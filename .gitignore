@@ -1,0 +1,9 @@
+.DS_Store
+.superdesign/design_iterations/.DS_Store
+.superdesign/test-output/
+node_modules/
+*.log
+
+# IDE
+.vscode/
+.idea/

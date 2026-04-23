@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Business Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Vendor header (mirrors dashboard) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; flex-shrink: 0; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; transition: .15s; position: relative; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+
+    .v-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    .store-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); font-weight: 500; padding: 8px 10px; border-radius: 10px; transition: .15s; }
+    .store-link:hover { color: var(--brand); background: var(--brand-soft); }
+
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; animation: fadeUp .18s ease both; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+
+    @media (max-width: 900px) {
+      .v-avatar-btn .v-name { display: none; }
+      .store-link { display: none !important; }
+      .v-nav { display: none !important; }
+      .app-header .row { height: 60px !important; gap: 12px !important; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark > span:not(.logo-box) { display: none; }
+    }
+
+    /* =========== Shared vendor mobile drawer =========== */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+    @media (max-width: 600px) {
+      .brand-block { flex-direction: column; gap: 12px; }
+      .cover-preview { width: 100%; min-width: 0; }
+      .danger-row { flex-direction: column; align-items: stretch; gap: 8px; }
+      .danger-row .btn-danger-outline { width: 100%; }
+    }
+
+    /* =========== Breadcrumb =========== */
+    .crumbs { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); padding: 20px 0 8px; flex-wrap: wrap; }
+    .crumbs a { color: var(--text-muted); }
+    .crumbs a:hover { color: var(--brand); }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .current { color: var(--text); font-weight: 600; }
+
+    /* =========== Title row =========== */
+    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 4px 0 24px; flex-wrap: wrap; }
+    .title-row h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.15; }
+    .title-row .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+    .title-row .view-store { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-size: 13px; font-weight: 600; color: var(--text); transition: .15s; }
+    .title-row .view-store:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+
+    /* =========== Grid =========== */
+    .profile-grid { display: grid; grid-template-columns: 65fr 35fr; gap: 24px; padding-bottom: 40px; align-items: flex-start; }
+    @media (max-width: 960px) { .profile-grid { grid-template-columns: 1fr; } }
+
+    .left-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    .right-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; position: sticky; top: 92px; }
+    @media (max-width: 960px) { .right-col { position: static; top: auto; } }
+
+    /* =========== Card =========== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: var(--shadow-xs);
+    }
+    .card-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .card-title { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; margin-bottom: 16px; }
+
+    /* =========== Form fields =========== */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .field .hint { font-size: 12px; color: var(--text-muted); }
+    .field .counter { font-size: 11px; color: var(--text-subtle); align-self: flex-end; margin-top: -2px; }
+
+    .fld-input,
+    .fld-select,
+    .fld-textarea {
+      width: 100%;
+      height: 42px;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 10px !important;
+      padding: 0 12px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--card);
+      font-family: var(--font);
+      outline: none;
+      transition: .15s ease;
+    }
+    .fld-textarea { height: auto; padding: 10px 12px; resize: vertical; min-height: 80px; line-height: 1.5; }
+    .fld-input:focus,
+    .fld-select:focus,
+    .fld-textarea:focus { border-color: var(--brand) !important; box-shadow: 0 0 0 4px rgba(55,189,105,.15); }
+    .fld-input:disabled { background: #F9FAFB; color: var(--text-muted); cursor: not-allowed; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+
+    /* =========== Branding previews =========== */
+    .brand-block { display: flex; gap: 18px; margin-bottom: 18px; flex-wrap: wrap; }
+    .logo-preview { width: 96px; height: 96px; border-radius: 18px; overflow: hidden; background: var(--card-subtle); border: 1px solid var(--border); flex-shrink: 0; position: relative; }
+    .logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-preview { flex: 1; min-width: 220px; height: 100px; border-radius: 12px; overflow: hidden; background: var(--card-subtle); border: 1px solid var(--border); position: relative; }
+    .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .change-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px;
+      background: rgba(15,23,42,.75); color: #fff;
+      border: none; cursor: pointer;
+      font-size: 12px; font-weight: 600;
+      position: absolute; bottom: 8px; right: 8px;
+      backdrop-filter: blur(4px);
+      transition: .15s;
+    }
+    .change-btn:hover { background: rgba(15,23,42,.9); }
+
+    /* Popover for image regeneration */
+    .pop {
+      position: absolute;
+      top: calc(100% + 8px); right: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      padding: 12px;
+      width: 280px;
+      z-index: 50;
+      display: none;
+      animation: fadeUp .18s ease both;
+    }
+    .pop.open { display: block; }
+    .pop label { font-size: 12px; font-weight: 600; color: var(--text); display: block; margin-bottom: 6px; }
+    .pop input { width: 100%; height: 36px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+    .pop input:focus { border-color: var(--brand); }
+    .pop .actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+    .pop .btn-sm { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+    .pop .btn-ghost-sm { background: transparent; color: var(--text-muted); }
+    .pop .btn-ghost-sm:hover { background: #F1F2F4; color: var(--text); }
+    .pop .btn-primary-sm { background: var(--brand); color: #fff; }
+    .pop .btn-primary-sm:hover { background: var(--brand-hover); }
+
+    /* =========== Sticky actions =========== */
+    .sticky-actions {
+      position: sticky;
+      bottom: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 20;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .sticky-actions .dirty-note { font-size: 12px; color: var(--text-muted); }
+    .sticky-actions .dirty-note.show { color: #A16207; font-weight: 600; }
+    .sticky-actions .btn-row { display: flex; gap: 10px; }
+    .btn-primary { background: var(--brand); color: #fff; border: none; padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); transition: .15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary:hover { background: var(--brand-hover); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: none; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
+    .btn-ghost:hover { background: #F1F2F4; color: var(--text); }
+    .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* =========== Public preview card =========== */
+    .pub-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-xs);
+      overflow: hidden;
+    }
+    .pub-cover { position: relative; height: 120px; background: var(--card-subtle); overflow: hidden; }
+    .pub-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .pub-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,.35) 100%); pointer-events: none; }
+    .pub-body { padding: 36px 20px 18px; position: relative; }
+    .pub-logo-wrap { position: absolute; top: -40px; left: 20px; width: 72px; height: 72px; border-radius: 18px; overflow: hidden; background: var(--card); border: 3px solid var(--card); box-shadow: var(--shadow-md); }
+    .pub-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .pub-name { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; margin-top: 4px; }
+    .pub-tagline { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .pub-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .pub-loc { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+    .pub-rating { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--warning-bg); color: #6d4b00; font-size: 12px; font-weight: 700; }
+    .pub-rating .star-i { color: var(--warning); }
+    .pub-stats { font-size: 12px; color: var(--text-muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pub-stats strong { color: var(--text); font-weight: 700; }
+    .pub-stats .dot { color: var(--text-subtle); }
+    .pub-visit { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; padding: 10px 16px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 13px; font-weight: 600; transition: .15s; }
+    .pub-visit:hover { background: var(--brand); color: #fff; }
+
+    /* =========== Danger zone =========== */
+    .danger-card {
+      background: var(--card);
+      border: 1.5px solid #FCA5A5;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-xs);
+    }
+    .danger-title { font-size: 14px; font-weight: 700; color: var(--danger); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .danger-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .danger-row:first-of-type { border-top: none; padding-top: 0; }
+    .danger-row .lbl { font-size: 13px; font-weight: 600; color: var(--text); }
+    .danger-row .hint { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Toggle switch */
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; cursor: pointer; inset: 0; background: #D1D5DB; border-radius: 999px; transition: .2s; }
+    .toggle .slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 999px; transition: .2s; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+    .toggle input:checked + .slider { background: var(--brand); }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+
+    .btn-danger-outline { background: var(--card); color: var(--danger); border: 1.5px solid var(--danger); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
+    .btn-danger-outline:hover { background: var(--danger); color: #fff; }
+    .btn-signout { background: transparent; color: var(--text); border: 1.5px solid var(--border); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-signout:hover { border-color: var(--border-strong); background: #F9FAFB; }
+
+    /* =========== Confirm dialog =========== */
+    .backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: .2s; z-index: 150; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
+    .dialog { background: var(--card); border-radius: 18px; padding: 24px; max-width: 400px; width: 100%; box-shadow: var(--shadow-xl); transform: scale(.96); transition: .2s; }
+    .backdrop.open .dialog { transform: scale(1); }
+    .dialog h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .dialog p { font-size: 14px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+    .dialog .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* =========== Footer =========== */
+    .foot-note { padding: 18px 0 40px; font-size: 12px; color: var(--text-subtle); text-align: center; }
+
+    /* =========== Toast =========== */
+    .ze-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; }
+    .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .anim-up { animation: fadeUp .45s cubic-bezier(.2,.8,.2,1) both; }
+
+    .stars-inline { display: inline-flex; gap: 1px; color: var(--warning); }
+    .stars-inline .off { color: #E5E7EB; }
+  </style>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="vendor_dashboard_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <nav class="v-nav" id="vNav">
+        <a href="vendor_dashboard_1.html" data-nav="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
+        </a>
+        <a href="vendor_orders_1.html" data-nav="orders">
+          <i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span>
+        </a>
+        <a href="vendor_products_1.html" data-nav="products">
+          <i data-lucide="package" class="w-4 h-4"></i><span>Products</span>
+        </a>
+        <a href="attribute_library_1.html" data-nav="attributes">
+          <i data-lucide="tags" class="w-4 h-4"></i><span>Attributes</span>
+        </a>
+        <a href="#" id="navStorefront" data-nav="storefront">
+          <i data-lucide="store" class="w-4 h-4"></i><span>Storefront</span>
+        </a>
+      </nav>
+
+      <div class="v-right">
+        <a href="#" id="viewPublicStoreHeader" class="store-link">
+          <span>View public store</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+
+        <div class="v-avatar-wrap">
+          <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+            <img id="vAvatar" alt="Vendor logo"/>
+            <span class="v-name" id="vName">Vendor</span>
+            <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+          </button>
+          <div class="v-menu" id="vMenu" role="menu">
+            <div class="muted" id="vMenuEmail">Signed in</div>
+            <div class="divider"></div>
+            <a href="vendor_profile_1.html">
+              <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
+            </a>
+            <button id="btnSignOutMenu">
+              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== VENDOR MOBILE DRAWER =============== -->
+  <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+    <div class="vd-head">
+      <span class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </span>
+      <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <nav class="vd-nav">
+      <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      <a href="vendor_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+      <a href="attribute_library_1.html"><i data-lucide="tags" class="w-4 h-4"></i> Attributes</a>
+      <a href="#" id="vDrawerStorefront"><i data-lucide="store" class="w-4 h-4"></i> Public storefront</a>
+      <a href="vendor_profile_1.html" class="active"><i data-lucide="user-cog" class="w-4 h-4"></i> Business profile</a>
+    </nav>
+    <div class="vd-foot">
+      <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- =============== BODY =============== -->
+  <main class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <nav class="crumbs">
+      <a href="vendor_dashboard_1.html">Dashboard</a>
+      <span class="sep">·</span>
+      <span class="current">Business profile</span>
+    </nav>
+
+    <!-- Title row -->
+    <section class="title-row anim-up">
+      <div>
+        <h1>Business profile</h1>
+        <div class="sub">How buyers see your business on the marketplace</div>
+      </div>
+      <a href="#" id="viewPublicStore" class="view-store">
+        <span>View public store</span>
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+      </a>
+    </section>
+
+    <!-- Two-column profile grid -->
+    <section class="profile-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+
+        <!-- Card 1: Branding -->
+        <div class="card anim-up">
+          <div class="card-eyebrow">01 · Branding</div>
+          <div class="card-title">Logo, cover & name</div>
+
+          <div class="brand-block">
+            <div class="logo-preview img-frame">
+              <img id="logoImg" alt="Logo preview"/>
+              <div class="v-avatar-wrap" style="position:absolute;bottom:6px;right:6px;">
+                <button class="change-btn" id="btnLogoChange" type="button">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i>Logo
+                </button>
+                <div class="pop" id="logoPop">
+                  <label>Logo prompt</label>
+                  <input type="text" id="logoPrompt" placeholder="e.g. minimalist letter A green logo"/>
+                  <div class="actions">
+                    <button class="btn-sm btn-ghost-sm" type="button" data-close="logoPop">Cancel</button>
+                    <button class="btn-sm btn-primary-sm" id="logoRegen" type="button">Regenerate</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cover-preview img-frame">
+              <img id="coverImg" alt="Cover preview"/>
+              <div class="v-avatar-wrap" style="position:absolute;bottom:6px;right:6px;">
+                <button class="change-btn" id="btnCoverChange" type="button">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i>Cover
+                </button>
+                <div class="pop" id="coverPop">
+                  <label>Cover prompt</label>
+                  <input type="text" id="coverPrompt" placeholder="e.g. workshop crafting soft light"/>
+                  <div class="actions">
+                    <button class="btn-sm btn-ghost-sm" type="button" data-close="coverPop">Cancel</button>
+                    <button class="btn-sm btn-primary-sm" id="coverRegen" type="button">Regenerate</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f_name">Business name</label>
+            <input class="fld-input" type="text" id="f_name" maxlength="60" data-field="name"/>
+            <div class="counter"><span id="nameLen">0</span>/60</div>
+          </div>
+
+          <div class="field">
+            <label for="f_tagline">Tagline</label>
+            <input class="fld-input" type="text" id="f_tagline" maxlength="80" data-field="tagline" placeholder="A short line buyers see on your storefront"/>
+            <div class="counter"><span id="tagLen">0</span>/80</div>
+          </div>
+        </div>
+
+        <!-- Card 2: About -->
+        <div class="card anim-up" style="animation-delay:.05s">
+          <div class="card-eyebrow">02 · About</div>
+          <div class="card-title">Tell your story</div>
+
+          <div class="field">
+            <label for="f_about">Description</label>
+            <textarea class="fld-textarea" id="f_about" rows="5" data-field="about"
+              placeholder="Tell buyers about your craft, your materials, your approvals."></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="f_year">Year founded</label>
+              <input class="fld-input" type="number" id="f_year" min="1900" max="2026" data-field="yearFounded"/>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <div class="hint" style="padding-top:12px;">Shown on your public storefront</div>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field">
+              <label for="f_city">City</label>
+              <input class="fld-input" type="text" id="f_city" data-field="city"/>
+            </div>
+            <div class="field">
+              <label for="f_state">State</label>
+              <input class="fld-input" type="text" id="f_state" data-field="state"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Policies -->
+        <div class="card anim-up" style="animation-delay:.1s">
+          <div class="card-eyebrow">03 · Policies</div>
+          <div class="card-title">Returns, lead time, minimums</div>
+
+          <div class="field">
+            <label for="f_return">Return policy</label>
+            <textarea class="fld-textarea" id="f_return" rows="3" data-field="returnPolicy"
+              placeholder="Describe your return window and exclusions."></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="f_lead">Lead time default</label>
+              <select class="fld-select" id="f_lead" data-field="leadTime">
+                <option value="1">1 day</option>
+                <option value="3">3 days</option>
+                <option value="7">1 week</option>
+                <option value="14">2 weeks</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div class="field" id="f_lead_custom_wrap" style="display:none;">
+              <label for="f_lead_custom">Custom days</label>
+              <input class="fld-input" type="number" id="f_lead_custom" min="1" max="120" data-field="leadTimeCustom" placeholder="Number of days"/>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label for="f_minorder">Minimum order value (₹)</label>
+            <input class="fld-input" type="number" id="f_minorder" min="0" data-field="minOrder" placeholder="0"/>
+            <div class="hint">Orders below this value will be declined automatically.</div>
+          </div>
+        </div>
+
+        <!-- Card 4: Contact & payout -->
+        <div class="card anim-up" style="animation-delay:.15s">
+          <div class="card-eyebrow">04 · Contact & payout</div>
+          <div class="card-title">How we reach you</div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="f_email">Contact email</label>
+              <input class="fld-input" type="email" id="f_email" data-field="email" placeholder="you@business.com"/>
+            </div>
+            <div class="field">
+              <label for="f_phone">Phone</label>
+              <input class="fld-input" type="tel" id="f_phone" data-field="phone" placeholder="+91 98765 43210"/>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label for="f_bank">Payout bank account</label>
+            <input class="fld-input" type="text" id="f_bank" disabled placeholder="Not added"/>
+            <div class="hint">Add bank account — Coming soon</div>
+          </div>
+        </div>
+
+        <!-- Sticky actions -->
+        <div class="sticky-actions" id="stickyActions">
+          <div class="dirty-note" id="dirtyNote">No unsaved changes</div>
+          <div class="btn-row">
+            <button class="btn-ghost" id="btnDiscard" disabled>Discard</button>
+            <button class="btn-primary" id="btnSave" disabled>
+              <i data-lucide="check" class="w-4 h-4"></i>Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- Public profile preview -->
+        <div class="pub-card anim-up" style="animation-delay:.1s">
+          <div class="pub-cover img-frame"><img id="pubCover" alt="Cover"/></div>
+          <div class="pub-body">
+            <div class="pub-logo-wrap img-frame"><img id="pubLogo" alt="Logo"/></div>
+            <div class="pub-name" id="pubName">Business name</div>
+            <div class="pub-tagline" id="pubTagline">Tagline</div>
+            <div class="pub-row">
+              <span class="pub-loc"><i data-lucide="map-pin" class="w-3 h-3"></i><span id="pubLoc">—</span></span>
+              <span class="pub-rating" id="pubRating">
+                <i data-lucide="star" class="w-3 h-3 star-i" style="fill:currentColor"></i>
+                <span id="pubRatingVal">4.7</span>
+                <span style="opacity:.8">· <span id="pubRatingCount">0</span> reviews</span>
+              </span>
+            </div>
+            <div class="pub-stats">
+              <strong id="pubProducts">0</strong><span>products</span>
+              <span class="dot">·</span>
+              <strong id="pubOrders">0</strong><span>orders</span>
+              <span class="dot">·</span>
+              <span>Founded <strong id="pubFounded">—</strong></span>
+            </div>
+            <a href="#" id="pubVisit" class="pub-visit">
+              Visit storefront
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-card anim-up" style="animation-delay:.15s">
+          <div class="danger-title">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            Dangerous zone
+          </div>
+
+          <div class="danger-row">
+            <div>
+              <div class="lbl">Pause listings</div>
+              <div class="hint">Temporarily hide all products from buyers.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="togPause"/>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="danger-row">
+            <div>
+              <div class="lbl">Sign out</div>
+              <div class="hint">End your session on this device.</div>
+            </div>
+            <button class="btn-signout" id="btnSignOut">
+              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
+            </button>
+          </div>
+
+          <div class="danger-row">
+            <div>
+              <div class="lbl" style="color:var(--danger)">Delete business</div>
+              <div class="hint">Remove your storefront and all products. This cannot be undone.</div>
+            </div>
+            <button class="btn-danger-outline" id="btnDelete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot-note">
+      Changes are stored in-memory for this prototype only. They reset on reload.
+    </div>
+  </main>
+
+  <!-- Confirm dialog -->
+  <div class="backdrop" id="confirmBackdrop">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <h3 id="confirmTitle">Delete business?</h3>
+      <p id="confirmBody">This will remove your storefront and all associated products. This action cannot be undone.</p>
+      <div class="actions">
+        <button class="btn-ghost" id="confirmCancel">Cancel</button>
+        <button class="btn-danger-outline" id="confirmOk">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="ze-toast" role="status" aria-live="polite"></div>
+</div></div>
+
+<script>
+  (function () {
+    // ---------- Page guard ----------
+    if (!ZE.user.requireRole('vendor')) return;
+
+    // ---------- Helpers ----------
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function starsHtml(avg) {
+      const a = Math.round(avg);
+      let html = '<span class="stars-inline">';
+      for (let i = 1; i <= 5; i++) {
+        html += '<i data-lucide="star" class="w-3 h-3 ' + (i <= a ? '' : 'off') + '" ' +
+                (i <= a ? 'style="fill:currentColor"' : '') + '></i>';
+      }
+      html += '</span>';
+      return html;
+    }
+
+    // ---------- Resolve vendor ----------
+    const vendor = ZE.user.resolve();
+    if (!vendor || !vendor.id) {
+      ZE.user.signOut();
+      location = 'login_1.html';
+      return;
+    }
+    // Find live index in DB.VENDORS for save write-back
+    const vendorIdx = (DB.VENDORS || []).findIndex(v => v && v.id === vendor.id);
+
+    // Build working state (deep-ish clone of editable fields + defaults)
+    const defaults = {
+      about: "We design thoughtful enrichment products for zoos, sanctuaries, and aquariums across India. Every piece is tested for safety, durability, and welfare impact.",
+      email: (vendor.id || 'vendor') + '@zooenrich.example',
+      phone: '+91 98765 43210',
+      minOrder: 0,
+      leadTime: '3',
+      leadTimeCustom: ''
+    };
+    const state = {
+      name: vendor.name || '',
+      tagline: vendor.tagline || '',
+      about: vendor.about || defaults.about,
+      yearFounded: vendor.yearFounded || 2020,
+      city: vendor.city || '',
+      state: vendor.state || '',
+      returnPolicy: vendor.returnPolicy || '',
+      leadTime: String(vendor.leadTime || defaults.leadTime),
+      leadTimeCustom: vendor.leadTimeCustom || '',
+      minOrder: vendor.minOrder != null ? vendor.minOrder : defaults.minOrder,
+      email: vendor.email || defaults.email,
+      phone: vendor.phone || defaults.phone,
+      logoSrc: DB.vendorLogo(vendor),
+      coverSrc: DB.vendorCover(vendor),
+      _paused: !!vendor._paused
+    };
+    const original = JSON.parse(JSON.stringify(state));
+
+    // ---------- Header chrome ----------
+    document.getElementById('vAvatar').src = state.logoSrc;
+    document.getElementById('vName').textContent = state.name;
+    document.getElementById('vMenuEmail').textContent = 'Signed in as ' + state.name;
+    document.getElementById('navStorefront').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    document.getElementById('viewPublicStoreHeader').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    document.getElementById('viewPublicStore').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    document.getElementById('pubVisit').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+
+    // Avatar menu toggle
+    const avatarBtn = document.getElementById('avatarBtn');
+    const vMenu = document.getElementById('vMenu');
+    avatarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      vMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!vMenu.contains(e.target) && !avatarBtn.contains(e.target)) vMenu.classList.remove('open');
+      // Close any open popovers on outside click
+      document.querySelectorAll('.pop.open').forEach(p => {
+        if (!p.contains(e.target) && !e.target.closest('.change-btn')) p.classList.remove('open');
+      });
+    });
+    document.getElementById('btnSignOutMenu').addEventListener('click', () => {
+      ZE.user.signOut();
+      location = 'login_1.html';
+    });
+
+    // ---------- Populate form ----------
+    function setVal(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val == null ? '' : val;
+    }
+    function fillForm() {
+      setVal('f_name', state.name);
+      setVal('f_tagline', state.tagline);
+      setVal('f_about', state.about);
+      setVal('f_year', state.yearFounded);
+      setVal('f_city', state.city);
+      setVal('f_state', state.state);
+      setVal('f_return', state.returnPolicy);
+      setVal('f_lead', state.leadTime);
+      setVal('f_lead_custom', state.leadTimeCustom);
+      setVal('f_minorder', state.minOrder);
+      setVal('f_email', state.email);
+      setVal('f_phone', state.phone);
+      document.getElementById('logoImg').src = state.logoSrc;
+      document.getElementById('coverImg').src = state.coverSrc;
+      document.getElementById('togPause').checked = !!state._paused;
+      updateCounters();
+      toggleCustomLead();
+    }
+
+    function updateCounters() {
+      document.getElementById('nameLen').textContent = (state.name || '').length;
+      document.getElementById('tagLen').textContent = (state.tagline || '').length;
+    }
+    function toggleCustomLead() {
+      const wrap = document.getElementById('f_lead_custom_wrap');
+      wrap.style.display = state.leadTime === 'custom' ? '' : 'none';
+    }
+
+    // ---------- Bind fields ----------
+    document.querySelectorAll('[data-field]').forEach(el => {
+      const key = el.dataset.field;
+      el.addEventListener('input', () => {
+        let v = el.value;
+        if (el.type === 'number') v = v === '' ? '' : Number(v);
+        state[key] = v;
+        if (key === 'name' || key === 'tagline') updateCounters();
+        if (key === 'leadTime') toggleCustomLead();
+        checkDirty();
+        renderPreview();
+      });
+      el.addEventListener('change', () => {
+        let v = el.value;
+        if (el.type === 'number') v = v === '' ? '' : Number(v);
+        state[key] = v;
+        if (key === 'leadTime') toggleCustomLead();
+        checkDirty();
+        renderPreview();
+      });
+    });
+
+    // ---------- Dirty tracking ----------
+    function isDirty() {
+      return JSON.stringify(state) !== JSON.stringify(original);
+    }
+    function checkDirty() {
+      const dirty = isDirty();
+      const note = document.getElementById('dirtyNote');
+      note.textContent = dirty ? 'You have unsaved changes' : 'No unsaved changes';
+      note.classList.toggle('show', dirty);
+      document.getElementById('btnSave').disabled = !dirty;
+      document.getElementById('btnDiscard').disabled = !dirty;
+    }
+
+    // ---------- Save / discard ----------
+    document.getElementById('btnSave').addEventListener('click', () => {
+      // Write back to DB.VENDORS (in-memory only)
+      if (vendorIdx >= 0) {
+        Object.assign(DB.VENDORS[vendorIdx], {
+          name: state.name,
+          tagline: state.tagline,
+          about: state.about,
+          yearFounded: Number(state.yearFounded) || DB.VENDORS[vendorIdx].yearFounded,
+          city: state.city,
+          state: state.state,
+          returnPolicy: state.returnPolicy,
+          leadTime: state.leadTime,
+          leadTimeCustom: state.leadTimeCustom,
+          minOrder: Number(state.minOrder) || 0,
+          email: state.email,
+          phone: state.phone,
+          _paused: !!state._paused
+        });
+        // If logo/cover were regenerated via prompt, persist the src override
+        DB.VENDORS[vendorIdx]._logoOverride = state.logoSrc;
+        DB.VENDORS[vendorIdx]._coverOverride = state.coverSrc;
+      }
+      // Update baseline
+      Object.assign(original, JSON.parse(JSON.stringify(state)));
+      checkDirty();
+      // Update header chrome
+      document.getElementById('vName').textContent = state.name;
+      document.getElementById('vAvatar').src = state.logoSrc;
+      renderPreview();
+      toast('Profile saved (in-memory only)');
+    });
+
+    document.getElementById('btnDiscard').addEventListener('click', () => {
+      Object.assign(state, JSON.parse(JSON.stringify(original)));
+      fillForm();
+      checkDirty();
+      renderPreview();
+      toast('Changes discarded');
+    });
+
+    // ---------- Image regeneration popovers ----------
+    function bindPop(btnId, popId, promptId, regenId, kind) {
+      const btn = document.getElementById(btnId);
+      const pop = document.getElementById(popId);
+      const promptInput = document.getElementById(promptId);
+      const regen = document.getElementById(regenId);
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other popovers
+        document.querySelectorAll('.pop.open').forEach(p => { if (p !== pop) p.classList.remove('open'); });
+        pop.classList.toggle('open');
+        if (pop.classList.contains('open')) setTimeout(() => promptInput.focus(), 50);
+      });
+
+      regen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const q = (promptInput.value || '').trim();
+        if (!q) { toast('Enter a prompt first'); return; }
+        const seed = Math.floor(Math.random() * 9999) + 1000;
+        if (kind === 'logo') {
+          state.logoSrc = DB.img(q, 120, 120, seed);
+          document.getElementById('logoImg').src = state.logoSrc;
+        } else {
+          state.coverSrc = DB.img(q, 1200, 500, seed);
+          document.getElementById('coverImg').src = state.coverSrc;
+        }
+        pop.classList.remove('open');
+        promptInput.value = '';
+        checkDirty();
+        renderPreview();
+        toast((kind === 'logo' ? 'Logo' : 'Cover') + ' regenerated');
+      });
+    }
+    bindPop('btnLogoChange',  'logoPop',  'logoPrompt',  'logoRegen',  'logo');
+    bindPop('btnCoverChange', 'coverPop', 'coverPrompt', 'coverRegen', 'cover');
+
+    document.querySelectorAll('[data-close]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const t = document.getElementById(b.dataset.close);
+        if (t) t.classList.remove('open');
+      });
+    });
+
+    // ---------- Preview card ----------
+    function renderPreview() {
+      document.getElementById('pubCover').src = state.coverSrc;
+      document.getElementById('pubLogo').src = state.logoSrc;
+      document.getElementById('pubName').textContent = state.name || 'Business name';
+      document.getElementById('pubTagline').textContent = state.tagline || 'Add a tagline';
+      const loc = [state.city, state.state].filter(Boolean).join(', ') || 'Add location';
+      document.getElementById('pubLoc').textContent = loc;
+
+      // Rating & review count from products
+      const prods = (DB.PRODUCTS || []).filter(p => p && p.vendorId === vendor.id);
+      let totalR = 0, totalC = 0;
+      prods.forEach(p => {
+        const r = DB.productRating(p.id);
+        if (r && r.count) { totalR += r.avg * r.count; totalC += r.count; }
+      });
+      const avg = totalC ? (totalR / totalC) : (vendor.rating || 0);
+      document.getElementById('pubRatingVal').textContent = avg ? avg.toFixed(1) : '—';
+      document.getElementById('pubRatingCount').textContent = totalC;
+
+      document.getElementById('pubProducts').textContent = prods.length;
+      document.getElementById('pubOrders').textContent = vendor.orders || 0;
+      document.getElementById('pubFounded').textContent = state.yearFounded || '—';
+    }
+
+    // ---------- Pause toggle ----------
+    document.getElementById('togPause').addEventListener('change', (e) => {
+      state._paused = !!e.target.checked;
+      checkDirty();
+      toast(state._paused ? 'Listings paused (preview)' : 'Listings active (preview)');
+    });
+
+    // ---------- Sign out ----------
+    document.getElementById('btnSignOut').addEventListener('click', () => {
+      ZE.user.signOut();
+      location = 'login_1.html';
+    });
+
+    // ---------- Delete confirm ----------
+    const backdrop = document.getElementById('confirmBackdrop');
+    function openConfirm() { backdrop.classList.add('open'); }
+    function closeConfirm() { backdrop.classList.remove('open'); }
+    document.getElementById('btnDelete').addEventListener('click', openConfirm);
+    document.getElementById('confirmCancel').addEventListener('click', closeConfirm);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeConfirm(); });
+    document.getElementById('confirmOk').addEventListener('click', () => {
+      closeConfirm();
+      toast('Delete is disabled in this prototype');
+    });
+
+    // ---------- Init ----------
+    fillForm();
+    checkDirty();
+    renderPreview();
+
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+
+    // ---------- Vendor mobile drawer ----------
+    (function initVendorDrawer(){
+      const btn = document.getElementById('vendorMenuBtn');
+      const dr  = document.getElementById('vDrawer');
+      const ov  = document.getElementById('vDrawerOverlay');
+      if (!btn || !dr || !ov) return;
+      const openDr = () => { dr.classList.add('open'); ov.classList.add('open'); dr.setAttribute('aria-hidden','false'); };
+      const closeDr = () => { dr.classList.remove('open'); ov.classList.remove('open'); dr.setAttribute('aria-hidden','true'); };
+      btn.addEventListener('click', openDr);
+      ov.addEventListener('click', closeDr);
+      dr.querySelector('.vd-close').addEventListener('click', closeDr);
+      const sf = document.getElementById('vDrawerStorefront');
+      if (sf && vendor && vendor.id) sf.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+      const so = document.getElementById('vDrawerSignOut');
+      if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
+    })();
+
+    ZE.init();
+  })();
+</script>
+</body>
+</html>

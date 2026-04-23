@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Attribute Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Vendor header (shared pattern) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; flex-shrink: 0; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; transition: .15s; position: relative; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+
+    .v-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    .store-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); font-weight: 500; padding: 8px 10px; border-radius: 10px; transition: .15s; }
+    .store-link:hover { color: var(--brand); background: var(--brand-soft); }
+
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; animation: fadeUp .18s ease both; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+
+    @media (max-width: 900px) {
+      .v-avatar-btn .v-name { display: none; }
+      .store-link { display: none !important; }
+      .v-nav { display: none !important; }
+      .app-header .row { height: 60px !important; gap: 12px !important; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark > span:not(.logo-box) { display: none; }
+    }
+
+    /* =========== Shared vendor mobile drawer =========== */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+    /* =========== Page title =========== */
+    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 28px 0 14px; flex-wrap: wrap; }
+    .title-row h1 { font-size: 28px; font-weight: 700; color: var(--text) !important; letter-spacing: -0.02em; line-height: 1.15; }
+    .title-row .sub { font-size: 14px; color: var(--text-muted); margin-top: 6px; }
+    .title-row .cta-add {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 18px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.4);
+      transition: .15s;
+    }
+    .title-row .cta-add:hover { background: var(--brand-hover); transform: translateY(-1px); }
+
+    /* =========== Summary strip =========== */
+    .summary-strip {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 20px;
+    }
+    .sum-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--border);
+      font-size: 13px; color: var(--text); font-weight: 500;
+    }
+    .sum-pill strong { font-weight: 700; color: var(--text); }
+    .sum-pill.brand  { background: var(--brand-soft); border-color: transparent; color: var(--brand-hover); }
+    .sum-pill.amber  { background: #FEF3C7; border-color: transparent; color: #A16207; }
+    .sum-pill .dot-ico { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* =========== Filter strip =========== */
+    .filter-strip {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow-xs);
+    }
+    @media (max-width: 900px) { .filter-strip { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .filter-strip { grid-template-columns: 1fr; } .filter-strip > * { width: 100%; } }
+
+    .f-cell { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .f-cell > label {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      width: 100%; padding: 10px 12px 10px 38px;
+      border-radius: 10px; border: 1px solid var(--border);
+      font-size: 14px; color: var(--text); background: var(--card);
+      outline: none; transition: .15s;
+    }
+    .search-wrap input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .search-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); }
+    .select-wrap select {
+      width: 100%; padding: 10px 36px 10px 12px;
+      border-radius: 10px; border: 1px solid var(--border);
+      font-size: 14px; color: var(--text); background: var(--card);
+      appearance: none; cursor: pointer; outline: none; transition: .15s;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .select-wrap select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+
+    /* =========== Grid =========== */
+    .attr-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px;
+      padding-bottom: 40px;
+    }
+    @media (max-width: 700px) { .attr-grid { grid-template-columns: 1fr; } }
+
+    .attr-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-xs);
+      display: flex; flex-direction: column; gap: 14px;
+      transition: .2s ease;
+      animation: fadeUp .4s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .attr-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: var(--border-strong); }
+
+    .attr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .attr-head-left { display: flex; align-items: flex-start; gap: 12px; min-width: 0; flex: 1; }
+    .attr-type-chip {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: var(--brand-soft);
+      color: var(--brand-hover);
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .attr-title-block { min-width: 0; flex: 1; }
+    .attr-title-block h3 {
+      font-size: 16px; font-weight: 700;
+      color: var(--text) !important;
+      display: inline-flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+      line-height: 1.25;
+    }
+    .type-label {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+    .custom-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 999px;
+      background: #FEF3C7; color: #A16207;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+
+    .attr-menu-btn {
+      width: 30px; height: 30px;
+      border-radius: 8px; border: none;
+      background: transparent; color: var(--text-subtle);
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: .15s;
+    }
+    .attr-menu-btn:hover { background: #F1F2F4; color: var(--text); }
+
+    /* Option preview */
+    .opts-line {
+      font-size: 13px; color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .opts-line strong { color: var(--text); font-weight: 600; }
+    .opts-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .opt-chip {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 999px;
+      background: #F1F2F4;
+      font-size: 12px; color: var(--text); font-weight: 500;
+    }
+    .opt-chip.more { background: transparent; color: var(--text-muted); font-weight: 500; }
+    .swatch-row { display: flex; gap: 6px; margin-top: 4px; }
+    .swatch {
+      width: 22px; height: 22px; border-radius: 999px;
+      border: 2px solid var(--card);
+      box-shadow: 0 0 0 1px var(--border);
+    }
+
+    /* Usage block */
+    .usage-block {
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+    .usage-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .usage-row .used-count { font-size: 13px; font-weight: 600; color: var(--text); }
+    .usage-row .used-count strong { color: var(--brand-hover); }
+    .usage-row .pct { font-size: 11px; color: var(--text-subtle); }
+
+    .usage-bar {
+      position: relative;
+      height: 6px; border-radius: 999px;
+      background: #F1F2F4;
+      overflow: hidden;
+    }
+    .usage-bar-fill {
+      position: absolute; inset: 0 auto 0 0;
+      background: linear-gradient(90deg, var(--brand), var(--brand-container));
+      border-radius: 999px;
+      transition: width .4s cubic-bezier(.2,.8,.2,1);
+    }
+    .usage-bar-fill.unused { background: #E5E7EB; }
+
+    /* Bottom actions */
+    .attr-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+    .attr-action {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: .15s;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .attr-action:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .attr-action.primary { background: var(--brand-soft); border-color: transparent; color: var(--brand-hover); }
+    .attr-action.primary:hover { background: var(--brand); color: #fff; }
+    .attr-action.danger { color: var(--danger); }
+    .attr-action.danger:hover { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); }
+
+    /* =========== Empty states =========== */
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 56px 24px;
+      text-align: center;
+      background: var(--card);
+      border: 1px dashed var(--border-strong);
+      border-radius: 16px;
+      color: var(--text-muted);
+    }
+    .empty-state .ico {
+      width: 56px; height: 56px; border-radius: 999px;
+      background: var(--brand-soft); color: var(--brand-hover);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .empty-state h4 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .empty-state p { font-size: 13px; color: var(--text-muted); }
+    .empty-state .cta-inline {
+      margin-top: 14px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 16px; border-radius: 999px;
+      background: var(--brand); color: #fff; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.4);
+    }
+    .empty-state .cta-inline:hover { background: var(--brand-hover); }
+
+    /* =========== Modal / Drawer =========== */
+    .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .25s ease; z-index: 90; }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    .sheet {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 480px; max-width: 100vw;
+      background: var(--card);
+      box-shadow: var(--shadow-xl);
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1);
+      z-index: 100;
+      display: flex; flex-direction: column;
+    }
+    .sheet.open { transform: translateX(0); }
+    @media (max-width: 640px) {
+      .sheet { width: 100%; top: auto; height: 92vh; border-radius: 20px 20px 0 0; transform: translateY(100%); }
+      .sheet.open { transform: translateY(0); }
+    }
+
+    .sheet-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sheet-head h3 { font-size: 17px; font-weight: 700; color: var(--text) !important; }
+    .sheet-head .close-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text-muted); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; transition: .15s;
+    }
+    .sheet-head .close-btn:hover { color: var(--text); border-color: var(--border-strong); background: #F9FAFB; }
+
+    .sheet-body { flex: 1; overflow-y: auto; padding: 18px 22px 14px; }
+    .sheet-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--card-subtle);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group .label {
+      display: block;
+      font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .form-group .hint {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .form-group .input-err {
+      font-size: 12px; color: var(--danger);
+      margin-top: 4px; display: none;
+    }
+    .form-group.err .input-err { display: block; }
+    .form-group.err input, .form-group.err textarea, .form-group.err select {
+      border-color: var(--danger);
+    }
+
+    textarea.input { min-height: 88px; resize: vertical; font-family: var(--font); line-height: 1.5; }
+
+    .type-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .type-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 6px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--card);
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; transition: .15s;
+    }
+    .type-tab:hover { border-color: var(--border-strong); color: var(--text); }
+    .type-tab.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-hover); }
+    @media (max-width: 480px) { .type-tabs { grid-template-columns: repeat(3, 1fr); } }
+
+    .readonly-box {
+      padding: 10px 12px;
+      background: var(--card-subtle); border: 1px solid var(--border); border-radius: 10px;
+      font-size: 13px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .readonly-box i { color: var(--brand); }
+
+    /* =========== Confirm dialog =========== */
+    .confirm-box {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(.95);
+      width: 90%; max-width: 400px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow-xl);
+      padding: 24px;
+      z-index: 110;
+      opacity: 0; pointer-events: none;
+      transition: .2s cubic-bezier(.2,.8,.2,1);
+    }
+    .confirm-box.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+    .confirm-box h4 { font-size: 16px; font-weight: 700; color: var(--text) !important; margin-bottom: 6px; }
+    .confirm-box p  { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* =========== Toast =========== */
+    .ze-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; }
+    .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* =========== Footer =========== */
+    .foot { padding: 24px 0 40px; border-top: 1px solid var(--border); margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+    .foot .links { display: flex; align-items: center; gap: 14px; }
+    .foot .links a { color: var(--text-muted); }
+    .foot .links a:hover { color: var(--brand); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="vendor_dashboard_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <nav class="v-nav">
+        <a href="vendor_dashboard_1.html" data-nav="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
+        </a>
+        <a href="vendor_orders_1.html" data-nav="orders">
+          <i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span>
+          <span class="nav-badge" id="navPendingBadge" style="display:none;">0</span>
+        </a>
+        <a href="vendor_products_1.html" data-nav="products">
+          <i data-lucide="package" class="w-4 h-4"></i><span>Products</span>
+        </a>
+        <a href="attribute_library_1.html" class="active" data-nav="attributes">
+          <i data-lucide="tags" class="w-4 h-4"></i><span>Attributes</span>
+        </a>
+        <a href="#" id="navStorefront" data-nav="storefront">
+          <i data-lucide="store" class="w-4 h-4"></i><span>Storefront</span>
+        </a>
+      </nav>
+
+      <div class="v-right">
+        <a href="#" id="viewPublicStore" class="store-link">
+          <span>View public store</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+
+        <div class="v-avatar-wrap">
+          <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+            <img id="vAvatar" alt="Vendor logo"/>
+            <span class="v-name" id="vName">Vendor</span>
+            <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+          </button>
+          <div class="v-menu" id="vMenu" role="menu">
+            <div class="muted" id="vMenuEmail">Signed in</div>
+            <div class="divider"></div>
+            <a href="vendor_profile_1.html">
+              <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
+            </a>
+            <button id="btnSignOut">
+              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== VENDOR MOBILE DRAWER =============== -->
+  <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+    <div class="vd-head">
+      <span class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </span>
+      <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <nav class="vd-nav">
+      <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      <a href="vendor_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+      <a href="attribute_library_1.html" class="active"><i data-lucide="tags" class="w-4 h-4"></i> Attributes</a>
+      <a href="#" id="vDrawerStorefront"><i data-lucide="store" class="w-4 h-4"></i> Public storefront</a>
+      <a href="vendor_profile_1.html"><i data-lucide="user-cog" class="w-4 h-4"></i> Business profile</a>
+    </nav>
+    <div class="vd-foot">
+      <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- =============== BODY =============== -->
+  <main class="page-wrap">
+
+    <!-- Title -->
+    <section class="title-row anim-in">
+      <div>
+        <h1>Attribute library</h1>
+        <div class="sub">Shared attributes any vendor can use when listing products.</div>
+      </div>
+      <button class="cta-add" id="btnPropose">
+        <i data-lucide="plus" class="w-4 h-4"></i>Propose new attribute
+      </button>
+    </section>
+
+    <!-- Summary strip -->
+    <section class="summary-strip anim-in" id="summaryStrip"></section>
+
+    <!-- Filter strip -->
+    <section class="filter-strip anim-in">
+      <div class="f-cell">
+        <label for="fSearch">Search</label>
+        <div class="search-wrap">
+          <i data-lucide="search" class="w-4 h-4 ico"></i>
+          <input id="fSearch" type="text" placeholder="Search by attribute name…"/>
+        </div>
+      </div>
+      <div class="f-cell">
+        <label for="fType">Type</label>
+        <div class="select-wrap">
+          <select id="fType">
+            <option value="all">All types</option>
+            <option value="select">Select</option>
+            <option value="multi_select">Multi-select</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="color">Color</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-cell">
+        <label for="fUsage">Usage</label>
+        <div class="select-wrap">
+          <select id="fUsage">
+            <option value="all">All</option>
+            <option value="in_use">In use</option>
+            <option value="unused">Unused</option>
+            <option value="custom">Custom (vendor-proposed)</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-cell">
+        <label for="fSort">Sort</label>
+        <div class="select-wrap">
+          <select id="fSort">
+            <option value="alpha">Alphabetical</option>
+            <option value="most_used">Most used</option>
+            <option value="recent">Recently added</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid -->
+    <section class="attr-grid" id="attrGrid"></section>
+
+    <!-- Footer -->
+    <div class="foot">
+      <div>ZooEnrich &middot; Vendor portal · Attribute library</div>
+      <div class="links">
+        <a href="#" data-stub>Support</a>
+        <a href="#" data-stub>Policies</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- =============== PROPOSE/EDIT DRAWER =============== -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="sheet" id="drawer" aria-hidden="true">
+    <div class="sheet-head">
+      <h3 id="drawerTitle">Propose new attribute</h3>
+      <button class="close-btn" id="drawerClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <form id="attrForm" onsubmit="return false;">
+        <div class="form-group" id="fg-name">
+          <label class="label" for="in-name">Attribute name <span style="color:var(--danger)">*</span></label>
+          <input id="in-name" class="input" type="text" placeholder="e.g. UV resistance, Waterproof rating"/>
+          <div class="hint">Keep it short and descriptive. Must be unique across the library.</div>
+          <div class="input-err" id="err-name">An attribute with this name already exists.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Type</label>
+          <div class="type-tabs" id="typeTabs">
+            <button type="button" class="type-tab active" data-type="select">
+              <i data-lucide="list" class="w-4 h-4"></i><span>Select</span>
+            </button>
+            <button type="button" class="type-tab" data-type="multi_select">
+              <i data-lucide="list-checks" class="w-4 h-4"></i><span>Multi</span>
+            </button>
+            <button type="button" class="type-tab" data-type="number">
+              <i data-lucide="hash" class="w-4 h-4"></i><span>Number</span>
+            </button>
+            <button type="button" class="type-tab" data-type="boolean">
+              <i data-lucide="toggle-right" class="w-4 h-4"></i><span>Boolean</span>
+            </button>
+            <button type="button" class="type-tab" data-type="color">
+              <i data-lucide="palette" class="w-4 h-4"></i><span>Color</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Type-specific -->
+        <div class="form-group" id="fg-options">
+          <label class="label" for="in-options">Options</label>
+          <textarea id="in-options" class="input" placeholder="One option per line, or comma-separated&#10;e.g.&#10;Small&#10;Medium&#10;Large"></textarea>
+          <div class="hint">Vendors will pick one (or many) of these when listing a product.</div>
+          <div class="input-err" id="err-options">Add at least two options.</div>
+        </div>
+
+        <div class="form-group" id="fg-unit" style="display:none;">
+          <label class="label" for="in-unit">Unit</label>
+          <input id="in-unit" class="input" type="text" placeholder="e.g. kg, cm, L"/>
+          <div class="hint">Shown next to the number when vendors fill this in.</div>
+        </div>
+
+        <div class="form-group" id="fg-swatches" style="display:none;">
+          <label class="label" for="in-swatches">Swatches (hex colors)</label>
+          <input id="in-swatches" class="input" type="text" placeholder="#37BD69, #E4B819, #E93353"/>
+          <div class="hint">Comma-separated hex values. At least two colors.</div>
+          <div class="input-err" id="err-swatches">Enter at least two valid hex colors.</div>
+        </div>
+
+        <div class="form-group" id="fg-boolean" style="display:none;">
+          <div class="readonly-box">
+            <i data-lucide="info" class="w-4 h-4"></i>
+            <span>Boolean attributes are automatically True / False. No extra setup needed.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="in-desc">Description <span style="color:var(--text-muted);font-weight:500">(optional)</span></label>
+          <textarea id="in-desc" class="input" placeholder="Explain when other vendors should use this attribute…" style="min-height:64px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Proposed by</label>
+          <div class="readonly-box">
+            <i data-lucide="user-check" class="w-4 h-4"></i>
+            <span id="proposedByName">—</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-ghost" id="drawerCancel" type="button">Cancel</button>
+      <button class="btn btn-brand" id="drawerSubmit" type="button">
+        <i data-lucide="send" class="w-4 h-4"></i>
+        <span id="submitLabel">Propose attribute</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =============== DELETE CONFIRM =============== -->
+  <div class="confirm-box" id="confirmBox" role="dialog" aria-modal="true">
+    <h4>Delete custom attribute?</h4>
+    <p id="confirmText">This cannot be undone. Products already using this attribute will keep their saved value, but it will no longer appear in the library.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button class="btn" id="confirmDelete" style="background:var(--danger);color:#fff;">Delete</button>
+    </div>
+  </div>
+
+  <div id="toast" class="ze-toast" role="status" aria-live="polite"></div>
+</div></div>
+
+<script>
+  (function () {
+    // ---------- Page guard ----------
+    if (!ZE.user.requireRole('vendor')) return;
+
+    // ---------- Helpers ----------
+    const $ = (s, r) => (r || document).querySelector(s);
+    const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 2400);
+    }
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function relDate(iso) {
+      if (!iso) return '';
+      const t = new Date(iso).getTime();
+      if (!isFinite(t)) return '';
+      const diff = Date.now() - t;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      if (days < 30) return days + 'd ago';
+      return Math.floor(days / 30) + 'mo ago';
+    }
+    function isHex(c) { return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(String(c || '').trim()); }
+
+    // ---------- Resolve vendor ----------
+    const vendor = ZE.user.resolve();
+    if (!vendor || !vendor.id) { ZE.user.signOut(); location = 'login_1.html'; return; }
+
+    // ---------- Header chrome ----------
+    document.getElementById('vAvatar').src = DB.vendorLogo(vendor);
+    document.getElementById('vName').textContent = vendor.name;
+    document.getElementById('vMenuEmail').textContent = 'Signed in as ' + vendor.name;
+    document.getElementById('navStorefront').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    document.getElementById('viewPublicStore').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    document.getElementById('proposedByName').textContent = vendor.name;
+
+    // Avatar menu
+    const avatarBtn = $('#avatarBtn'), vMenu = $('#vMenu');
+    avatarBtn.addEventListener('click', (e) => { e.stopPropagation(); vMenu.classList.toggle('open'); });
+    document.addEventListener('click', (e) => {
+      if (!vMenu.contains(e.target) && !avatarBtn.contains(e.target)) vMenu.classList.remove('open');
+    });
+    $('#btnSignOut').addEventListener('click', () => { ZE.user.signOut(); location = 'login_1.html'; });
+
+    // Nav pending badge (reuse vendor orders count)
+    (function updateNavBadge() {
+      try {
+        const demo = Array.isArray(DB.DEMO_ORDERS) ? DB.DEMO_ORDERS : [];
+        const user = Array.isArray(ZE.orders.read()) ? ZE.orders.read() : [];
+        const placed = demo.concat(user).filter(o => o && o.vendorId === vendor.id && o.status === 'placed').length;
+        const badge = $('#navPendingBadge');
+        if (placed > 0) { badge.textContent = placed; badge.style.display = ''; }
+      } catch (e) {}
+    })();
+
+    // ---------- Custom attrs persistence ----------
+    const LS_KEY = 'ze_custom_attrs_v1';
+    function loadCustomAttrs() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) { return []; }
+    }
+    function saveCustomAttrs() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(customAttrs)); } catch (e) {}
+    }
+    let customAttrs = loadCustomAttrs();
+
+    // Normalise each custom attr to ensure shape
+    customAttrs = customAttrs.map(a => ({
+      id: a.id || ('attr_custom_' + Date.now() + Math.random().toString(36).slice(2,6)),
+      name: a.name || 'Untitled',
+      type: a.type || 'select',
+      options: Array.isArray(a.options) ? a.options : [],
+      unit: a.unit || '',
+      description: a.description || '',
+      proposedBy: a.proposedBy || 'Unknown vendor',
+      custom: true,
+      createdAt: a.createdAt || new Date().toISOString()
+    }));
+
+    // ---------- Merge ----------
+    function allAttrs() {
+      // Core attributes sorted by original index implicitly; add `custom:false`
+      const core = (DB.ATTRIBUTES || []).map(a => Object.assign({ custom: false }, a));
+      return core.concat(customAttrs);
+    }
+
+    // ---------- Usage calc ----------
+    function usageFor(attrId) {
+      const prods = DB.PRODUCTS || [];
+      let n = 0;
+      prods.forEach(p => {
+        if (!p || !p.specs) return;
+        const v = p.specs[attrId];
+        if (v === undefined || v === null) return;
+        if (Array.isArray(v) && v.length === 0) return;
+        if (typeof v === 'string' && v.trim() === '') return;
+        n++;
+      });
+      return { count: n, total: prods.length, pct: prods.length ? Math.round((n / prods.length) * 100) : 0 };
+    }
+
+    // ---------- Type meta ----------
+    const TYPE_META = {
+      select:        { icon: 'list',         label: 'Select' },
+      multi_select:  { icon: 'list-checks',  label: 'Multi-select' },
+      number:        { icon: 'hash',         label: 'Number' },
+      boolean:       { icon: 'toggle-right', label: 'Boolean' },
+      color:         { icon: 'palette',      label: 'Color' }
+    };
+
+    // ---------- State ----------
+    const state = {
+      search: '',
+      type:   'all',
+      usage:  'all',
+      sort:   'alpha',
+      editId: null // null = propose, otherwise id of custom attr being edited
+    };
+
+    // ---------- Summary strip ----------
+    function renderSummary() {
+      const all = allAttrs();
+      const total = all.length;
+      const inUse = all.filter(a => usageFor(a.id).count > 0).length;
+      const custom = customAttrs.length;
+
+      $('#summaryStrip').innerHTML = ''
+        + '<span class="sum-pill brand"><span class="dot-ico"><i data-lucide="library" class="w-4 h-4"></i></span><strong>' + total + '</strong>&nbsp;total attributes</span>'
+        + '<span class="sum-pill"><span class="dot-ico"><i data-lucide="check-circle-2" class="w-4 h-4"></i></span><strong>' + inUse + '</strong>&nbsp;in active use</span>'
+        + '<span class="sum-pill amber"><span class="dot-ico"><i data-lucide="sparkles" class="w-4 h-4"></i></span><strong>' + custom + '</strong>&nbsp;custom (vendor-proposed)</span>';
+    }
+
+    // ---------- Options preview ----------
+    function optionsHtml(attr) {
+      if (attr.type === 'boolean') {
+        return '<div class="opts-line"><strong>True / False</strong></div>';
+      }
+      if (attr.type === 'number') {
+        const unit = attr.unit ? esc(attr.unit) : '—';
+        return '<div class="opts-line">Unit: <strong>' + unit + '</strong></div>';
+      }
+      if (attr.type === 'color') {
+        const opts = Array.isArray(attr.options) ? attr.options : [];
+        if (!opts.length) return '<div class="opts-line">No swatches yet</div>';
+        return '<div class="opts-line">Swatches:<div class="swatch-row">' +
+               opts.slice(0, 8).map(c => '<span class="swatch" style="background:' + esc(c) + '"></span>').join('') +
+               (opts.length > 8 ? '<span class="opt-chip more">+' + (opts.length - 8) + '</span>' : '') +
+               '</div></div>';
+      }
+      // select / multi_select
+      const opts = Array.isArray(attr.options) ? attr.options : [];
+      if (!opts.length) return '<div class="opts-line">No options defined</div>';
+      const visible = opts.slice(0, 4);
+      const extra = opts.length - visible.length;
+      return '<div class="opts-line">Options:<div class="opts-chips">' +
+             visible.map(o => '<span class="opt-chip">' + esc(o) + '</span>').join('') +
+             (extra > 0 ? '<span class="opt-chip more">+' + extra + ' more</span>' : '') +
+             '</div></div>';
+    }
+
+    // ---------- Card ----------
+    function cardHtml(attr) {
+      const meta = TYPE_META[attr.type] || TYPE_META.select;
+      const u = usageFor(attr.id);
+      const fillPct = Math.max(2, u.pct); // show a sliver for >0
+      const fillCls = u.count === 0 ? 'unused' : '';
+      const fillWidth = u.count === 0 ? 0 : fillPct;
+
+      const customTag = attr.custom ? '<span class="custom-tag"><i data-lucide="sparkles" class="w-3 h-3"></i>Custom</span>' : '';
+
+      const usedText = u.count === 0
+        ? 'Not used yet'
+        : ('<strong>' + u.count + '</strong>' + (u.count === 1 ? ' product' : ' products'));
+
+      const editBtn = attr.custom
+        ? '<button class="attr-action" data-action="edit" data-id="' + esc(attr.id) + '"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i>Edit</button>'
+        : '';
+      const delBtn = attr.custom
+        ? '<button class="attr-action danger" data-action="delete" data-id="' + esc(attr.id) + '"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>'
+        : '';
+
+      const subMeta = attr.custom && attr.proposedBy
+        ? '<div class="type-label">' + esc(meta.label) + ' · proposed by ' + esc(attr.proposedBy) + '</div>'
+        : '<div class="type-label">' + esc(meta.label) + '</div>';
+
+      return ''
+        + '<article class="attr-card">'
+        +   '<div class="attr-head">'
+        +     '<div class="attr-head-left">'
+        +       '<span class="attr-type-chip"><i data-lucide="' + meta.icon + '" class="w-5 h-5"></i></span>'
+        +       '<div class="attr-title-block">'
+        +         '<h3>' + esc(attr.name) + ' ' + customTag + '</h3>'
+        +         subMeta
+        +       '</div>'
+        +     '</div>'
+        +   '</div>'
+
+        +   optionsHtml(attr)
+
+        +   '<div class="usage-block">'
+        +     '<div class="usage-row">'
+        +       '<span class="used-count"><i data-lucide="package" class="w-3.5 h-3.5 inline-block align-middle" style="margin-right:4px;color:var(--text-muted)"></i>Used by ' + usedText + '</span>'
+        +       '<span class="pct">' + u.pct + '% of catalog</span>'
+        +     '</div>'
+        +     '<div class="usage-bar"><div class="usage-bar-fill ' + fillCls + '" style="width:' + fillWidth + '%"></div></div>'
+        +   '</div>'
+
+        +   '<div class="attr-actions">'
+        +     '<a class="attr-action primary" href="vendor_products_1.html?attr=' + encodeURIComponent(attr.id) + '">'
+        +       '<i data-lucide="package-search" class="w-3.5 h-3.5"></i>View products</a>'
+        +     editBtn
+        +     delBtn
+        +   '</div>'
+        + '</article>';
+    }
+
+    // ---------- Render grid ----------
+    function renderGrid() {
+      const host = $('#attrGrid');
+      let list = allAttrs();
+
+      // Filter: type
+      if (state.type !== 'all') list = list.filter(a => a.type === state.type);
+      // Filter: usage
+      if (state.usage === 'in_use') list = list.filter(a => usageFor(a.id).count > 0);
+      else if (state.usage === 'unused') list = list.filter(a => usageFor(a.id).count === 0);
+      else if (state.usage === 'custom') list = list.filter(a => a.custom);
+      // Search
+      const q = state.search.trim().toLowerCase();
+      if (q) list = list.filter(a => String(a.name || '').toLowerCase().includes(q));
+      // Sort
+      if (state.sort === 'alpha') {
+        list.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+      } else if (state.sort === 'most_used') {
+        list.sort((a, b) => usageFor(b.id).count - usageFor(a.id).count);
+      } else if (state.sort === 'recent') {
+        list.sort((a, b) => {
+          // custom attrs have createdAt; core are "older"
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return tb - ta;
+        });
+      }
+
+      if (list.length === 0) {
+        if (state.usage === 'custom' && customAttrs.length === 0) {
+          host.innerHTML = ''
+            + '<div class="empty-state">'
+            +   '<span class="ico"><i data-lucide="sparkles" class="w-7 h-7"></i></span>'
+            +   '<h4>No vendor-proposed attributes yet</h4>'
+            +   '<p>Have an attribute you\'d use across multiple products? Propose it for the shared library.</p>'
+            +   '<button class="cta-inline" id="emptyPropose"><i data-lucide="plus" class="w-4 h-4"></i>Propose one</button>'
+            + '</div>';
+        } else {
+          host.innerHTML = ''
+            + '<div class="empty-state">'
+            +   '<span class="ico"><i data-lucide="search-x" class="w-7 h-7"></i></span>'
+            +   '<h4>No attributes match</h4>'
+            +   '<p>Try clearing filters or searching with a different term.</p>'
+            + '</div>';
+        }
+      } else {
+        host.innerHTML = list.map(cardHtml).join('');
+      }
+
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      const emptyCta = $('#emptyPropose');
+      if (emptyCta) emptyCta.addEventListener('click', () => openDrawer(null));
+    }
+
+    // ---------- Filter wiring ----------
+    $('#fSearch').addEventListener('input', (e) => { state.search = e.target.value; renderGrid(); });
+    $('#fType').addEventListener('change',  (e) => { state.type = e.target.value; renderGrid(); });
+    $('#fUsage').addEventListener('change', (e) => { state.usage = e.target.value; renderGrid(); });
+    $('#fSort').addEventListener('change',  (e) => { state.sort = e.target.value; renderGrid(); });
+
+    // ---------- Drawer ----------
+    const overlay = $('#overlay'), drawer = $('#drawer');
+    let selectedType = 'select';
+
+    function setType(t) {
+      selectedType = t;
+      $$('.type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === t));
+      $('#fg-options').style.display  = (t === 'select' || t === 'multi_select') ? '' : 'none';
+      $('#fg-unit').style.display     = (t === 'number') ? '' : 'none';
+      $('#fg-swatches').style.display = (t === 'color') ? '' : 'none';
+      $('#fg-boolean').style.display  = (t === 'boolean') ? '' : 'none';
+    }
+    $$('.type-tab').forEach(el => {
+      el.addEventListener('click', () => setType(el.dataset.type));
+    });
+
+    function clearErrors() {
+      $$('.form-group.err').forEach(g => g.classList.remove('err'));
+    }
+    function resetForm() {
+      clearErrors();
+      $('#in-name').value = '';
+      $('#in-options').value = '';
+      $('#in-unit').value = '';
+      $('#in-swatches').value = '';
+      $('#in-desc').value = '';
+      setType('select');
+    }
+    function fillFormFromAttr(a) {
+      resetForm();
+      $('#in-name').value = a.name || '';
+      setType(a.type || 'select');
+      if (a.type === 'select' || a.type === 'multi_select') {
+        $('#in-options').value = (a.options || []).join('\n');
+      } else if (a.type === 'number') {
+        $('#in-unit').value = a.unit || '';
+      } else if (a.type === 'color') {
+        $('#in-swatches').value = (a.options || []).join(', ');
+      }
+      $('#in-desc').value = a.description || '';
+    }
+    function openDrawer(editId) {
+      state.editId = editId;
+      if (editId) {
+        const a = customAttrs.find(x => x.id === editId);
+        if (!a) { toast('Attribute not found'); return; }
+        $('#drawerTitle').textContent = 'Edit attribute';
+        $('#submitLabel').textContent = 'Save changes';
+        fillFormFromAttr(a);
+      } else {
+        $('#drawerTitle').textContent = 'Propose new attribute';
+        $('#submitLabel').textContent = 'Propose attribute';
+        resetForm();
+      }
+      overlay.classList.add('open');
+      drawer.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+      setTimeout(() => { try { $('#in-name').focus(); } catch(e){} }, 250);
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+    }
+    function closeDrawer() {
+      overlay.classList.remove('open');
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+      state.editId = null;
+    }
+    $('#btnPropose').addEventListener('click', () => openDrawer(null));
+    $('#drawerClose').addEventListener('click', closeDrawer);
+    $('#drawerCancel').addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+
+    // ---------- Submit ----------
+    $('#drawerSubmit').addEventListener('click', () => {
+      clearErrors();
+      const name = $('#in-name').value.trim();
+      const desc = $('#in-desc').value.trim();
+      let options = [];
+      let unit = '';
+      let valid = true;
+
+      if (!name) {
+        $('#fg-name').classList.add('err');
+        $('#err-name').textContent = 'Please enter a name.';
+        valid = false;
+      } else {
+        // Uniqueness — case-insensitive, allow current edit
+        const lc = name.toLowerCase();
+        const clash = allAttrs().some(a => {
+          if (state.editId && a.id === state.editId) return false;
+          return String(a.name || '').toLowerCase() === lc;
+        });
+        if (clash) {
+          $('#fg-name').classList.add('err');
+          $('#err-name').textContent = 'An attribute with this name already exists.';
+          valid = false;
+        }
+      }
+
+      if (selectedType === 'select' || selectedType === 'multi_select') {
+        const raw = $('#in-options').value;
+        options = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+        if (options.length < 2) {
+          $('#fg-options').classList.add('err');
+          valid = false;
+        }
+      } else if (selectedType === 'number') {
+        unit = $('#in-unit').value.trim();
+      } else if (selectedType === 'color') {
+        const raw = $('#in-swatches').value;
+        options = raw.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+        const allValid = options.every(isHex);
+        if (options.length < 2 || !allValid) {
+          $('#fg-swatches').classList.add('err');
+          valid = false;
+        }
+      }
+
+      if (!valid) return;
+
+      if (state.editId) {
+        const idx = customAttrs.findIndex(x => x.id === state.editId);
+        if (idx >= 0) {
+          customAttrs[idx] = Object.assign({}, customAttrs[idx], {
+            name, type: selectedType, options, unit, description: desc
+          });
+          saveCustomAttrs();
+          toast('Attribute updated.');
+        }
+      } else {
+        const newAttr = {
+          id: 'attr_custom_' + Date.now(),
+          name, type: selectedType, options, unit,
+          description: desc,
+          proposedBy: vendor.name,
+          custom: true,
+          createdAt: new Date().toISOString()
+        };
+        customAttrs.push(newAttr);
+        saveCustomAttrs();
+        toast('Proposed — admins will review before it\'s shared library-wide (stub).');
+      }
+
+      closeDrawer();
+      renderSummary();
+      renderGrid();
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+    });
+
+    // ---------- Delegated actions on cards ----------
+    const confirmBox = $('#confirmBox');
+    let pendingDelete = null;
+    function openConfirm(attr) {
+      pendingDelete = attr;
+      $('#confirmText').textContent =
+        'Delete "' + attr.name + '"? This cannot be undone. Products already using it will keep their saved value, ' +
+        'but it will no longer appear in the library.';
+      overlay.classList.add('open');
+      confirmBox.classList.add('open');
+    }
+    function closeConfirm() {
+      overlay.classList.remove('open');
+      confirmBox.classList.remove('open');
+      pendingDelete = null;
+    }
+    $('#confirmCancel').addEventListener('click', closeConfirm);
+    $('#confirmDelete').addEventListener('click', () => {
+      if (!pendingDelete) { closeConfirm(); return; }
+      customAttrs = customAttrs.filter(a => a.id !== pendingDelete.id);
+      saveCustomAttrs();
+      toast('Custom attribute deleted.');
+      closeConfirm();
+      renderSummary();
+      renderGrid();
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+    });
+
+    $('#attrGrid').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const attr = customAttrs.find(a => a.id === id);
+      if (!attr) return;
+      if (action === 'edit')   openDrawer(id);
+      if (action === 'delete') openConfirm(attr);
+    });
+
+    // ESC to close drawers/confirm
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (confirmBox.classList.contains('open')) closeConfirm();
+        else if (drawer.classList.contains('open')) closeDrawer();
+      }
+    });
+
+    // Stub footer links
+    document.querySelectorAll('[data-stub]').forEach(a => {
+      a.addEventListener('click', (e) => { e.preventDefault(); toast('Coming soon'); });
+    });
+
+    // ---------- Initial render ----------
+    renderSummary();
+    renderGrid();
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+
+    // ---------- Vendor mobile drawer ----------
+    (function initVendorDrawer(){
+      const btn = document.getElementById('vendorMenuBtn');
+      const dr  = document.getElementById('vDrawer');
+      const ov  = document.getElementById('vDrawerOverlay');
+      if (!btn || !dr || !ov) return;
+      const openDr = () => { dr.classList.add('open'); ov.classList.add('open'); dr.setAttribute('aria-hidden','false'); };
+      const closeDr = () => { dr.classList.remove('open'); ov.classList.remove('open'); dr.setAttribute('aria-hidden','true'); };
+      btn.addEventListener('click', openDr);
+      ov.addEventListener('click', closeDr);
+      dr.querySelector('.vd-close').addEventListener('click', closeDr);
+      const sf = document.getElementById('vDrawerStorefront');
+      if (sf && vendor && vendor.id) sf.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+      const so = document.getElementById('vDrawerSignOut');
+      if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
+    })();
+
+    // ---------- Shared init ----------
+    ZE.init();
+  })();
+</script>
+</body>
+</html>
