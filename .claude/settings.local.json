@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node *)",
+      "Bash(/usr/bin/python3 -c ' *)",
+      "Bash(/usr/bin/python3 -c 'import json,sys,os *)",
+      "Bash(npx --yes playwright --version)",
+      "Bash(npx --yes playwright install chromium)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(npx --version)",
+      "Bash(NODE_PATH=/Users/nitinganjigatti/.npm/_npx/e41f203b7505f1fb/node_modules node *)",
+      "Bash(ln -sf /Users/nitinganjigatti/.npm/_npx/e41f203b7505f1fb/node_modules ./node_modules)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(open *)"
+    ]
+  }
+}
