@@ -14,24 +14,20 @@
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
-    /* =========== Vendor header =========== */
+    /* =========== Vendor header (UNIFIED) =========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
-    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; flex-shrink: 0; }
-    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
 
     .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
     .v-nav::-webkit-scrollbar { display: none; }
-    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; transition: .15s; position: relative; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
     .v-nav a:hover { color: var(--text); background: #F1F2F4; }
     .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
     .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
-    .v-nav a.active .nav-badge { background: var(--danger); }
 
-    .v-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-    .store-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); font-weight: 500; padding: 8px 10px; border-radius: 10px; transition: .15s; }
-    .store-link:hover { color: var(--brand); background: var(--brand-soft); }
-
+    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .v-avatar-wrap { position: relative; }
     .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
     .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
@@ -39,16 +35,15 @@
     .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; animation: fadeUp .18s ease both; }
     .v-menu.open { display: block; }
-    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
     .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
     .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
     .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
 
     @media (max-width: 900px) {
       .v-avatar-btn .v-name { display: none; }
-      .store-link { display: none !important; }
       .v-nav { display: none !important; }
-      .app-header .row { height: 60px !important; gap: 12px !important; }
+      .app-header .row { gap: 12px !important; }
     }
     @media (max-width: 400px) {
       .brand-mark > span:not(.logo-box) { display: none; }
@@ -72,6 +67,7 @@
     .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
     .vd-nav a i { color: var(--text-muted); }
     .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
     .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
     .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
@@ -238,34 +234,20 @@
       </button>
 
       <nav class="v-nav" id="vNav">
-        <a href="vendor_dashboard_1.html" class="active" data-nav="dashboard">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
-        </a>
-        <a href="vendor_orders_1.html" data-nav="orders">
-          <i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span>
-          <span class="nav-badge" id="navPendingBadge" style="display:none;">0</span>
-        </a>
-        <a href="vendor_products_1.html" data-nav="products">
-          <i data-lucide="package" class="w-4 h-4"></i><span>Products</span>
-        </a>
-        <a href="attribute_library_1.html" data-nav="attributes">
-          <i data-lucide="tags" class="w-4 h-4"></i><span>Attributes</span>
-        </a>
-        <a href="#" id="navStorefront" data-nav="storefront">
-          <i data-lucide="store" class="w-4 h-4"></i><span>Storefront</span>
-        </a>
+        <a href="vendor_dashboard_1.html" class="active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+        <a href="vendor_orders_1_2.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge" id="navPendingBadge" style="display:none;">0</span></a>
+        <a href="vendor_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+        <a href="vendor_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+        <a href="vendor_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+        <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+        <a href="returns_vendor_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
       </nav>
 
       <div class="v-right">
-        <a href="#" id="viewPublicStore" class="store-link">
-          <span>View public store</span>
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-        </a>
-
         <div class="v-avatar-wrap">
           <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
-            <img id="vAvatar" alt="Vendor logo"/>
-            <span class="v-name" id="vName">Vendor</span>
+            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Vendor logo"/>
+            <span class="v-name" id="vName">TeakCraft</span>
             <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
           </button>
           <div class="v-menu" id="vMenu" role="menu">
@@ -295,11 +277,12 @@
     </div>
     <nav class="vd-nav">
       <a href="vendor_dashboard_1.html" class="active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-      <a href="vendor_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="vendor_orders_1_2.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
       <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
-      <a href="attribute_library_1.html"><i data-lucide="tags" class="w-4 h-4"></i> Attributes</a>
-      <a href="#" id="vDrawerStorefront"><i data-lucide="store" class="w-4 h-4"></i> Public storefront</a>
-      <a href="vendor_profile_1.html"><i data-lucide="user-cog" class="w-4 h-4"></i> Business profile</a>
+      <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+      <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+      <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+      <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
     </nav>
     <div class="vd-foot">
       <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
@@ -498,8 +481,8 @@
     document.getElementById('vAvatar').src = DB.vendorLogo(vendor);
     document.getElementById('vName').textContent = vendor.name;
     document.getElementById('vMenuEmail').textContent = 'Signed in as ' + vendor.name;
-    document.getElementById('navStorefront').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
-    document.getElementById('viewPublicStore').href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    var _navSf = document.getElementById('navStorefront'); if (_navSf) _navSf.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    var _vps = document.getElementById('viewPublicStore'); if (_vps) _vps.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
 
     // Avatar menu toggle
     const avatarBtn = document.getElementById('avatarBtn');

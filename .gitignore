@@ -3,6 +3,7 @@
 .superdesign/test-output/
 node_modules/
 *.log
+Product Images/
 
 # IDE
 .vscode/

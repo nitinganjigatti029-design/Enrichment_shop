@@ -149,70 +149,322 @@
     .note-wrap .note-count { display: block; text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
     .note-wrap .note-count.over { color: var(--danger); font-weight: 600; }
 
-    /* =========== Add-to-cart species picker modal (copied from index_1.html) =========== */
-    .atc-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 100; }
+    /* =========== Add-to-cart species picker modal — gallery grid redesign =========== */
+    .atc-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); opacity: 0; pointer-events: none; transition: opacity .22s ease; z-index: 100; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
     .atc-overlay.open { opacity: 1; pointer-events: auto; }
-    .atc-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-46%) scale(.98); opacity: 0; pointer-events: none; transition: .2s; z-index: 110; background: #fff; border: 1px solid var(--border); border-radius: 18px; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
-    .atc-modal.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
-    .atc-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-    .atc-thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--card-subtle); }
-    .atc-heading { flex: 1; min-width: 0; }
-    .atc-title { font-size: 15px; font-weight: 600; color: var(--text); }
-    .atc-sub { font-size: 12px; color: var(--text-muted); }
-    .atc-close { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    .atc-body { padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-    .atc-field { display: flex; flex-direction: column; gap: 6px; }
-    .atc-lab { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; display: flex; justify-content: space-between; }
-    .atc-lab .req { color: var(--danger); }
-    .atc-lab .opt { font-weight: 500; color: var(--text-subtle); text-transform: none; letter-spacing: 0; }
-    .atc-search-wrap { display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 10px; }
-    .atc-search-wrap input { flex: 1; height: 40px; border: none; outline: none; background: transparent; font-size: 14px; }
-    .atc-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
-    .atc-list .row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; margin: 0; }
-    .atc-list .row:hover { background: #F4F5F7; }
-    .atc-list .row.selected { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
-    .atc-list .row img { width: 28px; height: 28px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
-    .atc-list .row .latin { color: var(--text-subtle); font-style: italic; font-size: 11px; }
-    .atc-list .row.compat .compat-badge { margin-left: auto; color: var(--brand); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-    .atc-list .row .row-cb {
-      -webkit-appearance: none !important;
-      appearance: none !important;
-      width: 18px !important;
-      height: 18px !important;
-      min-width: 18px;
-      border: 1.5px solid var(--border-strong, #cbd5e1);
-      border-radius: 5px;
+    .atc-modal {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-46%) scale(.98);
+      opacity: 0; pointer-events: none;
+      transition: transform .22s cubic-bezier(.2,.8,.25,1), opacity .22s ease;
+      z-index: 110;
       background: #fff;
-      cursor: pointer;
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: .15s;
-      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: min(760px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px);
+      display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .atc-modal.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
+    .atc-grab { display: none; }
+    .atc-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
       flex-shrink: 0;
     }
-    .atc-list .row .row-cb:hover { border-color: var(--brand); }
-    .atc-list .row .row-cb:checked {
-      background: var(--brand);
-      border-color: var(--brand);
+    .atc-thumb { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
+    .atc-heading { flex: 1; min-width: 0; }
+    .atc-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .atc-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .atc-close { width: 40px; height: 40px; border-radius: 999px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: background .15s, color .15s; flex-shrink: 0; }
+    .atc-close:hover { background: #F1F2F4; color: var(--text); }
+    .atc-close i { width: 18px; height: 18px; }
+    .atc-body {
+      padding: 16px 18px 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex; flex-direction: column; gap: 18px;
+      flex: 1;
     }
-    .atc-list .row .row-cb:checked::after {
+    .atc-field { display: flex; flex-direction: column; gap: 8px; }
+    .atc-lab { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+    .atc-lab .req { color: var(--danger); }
+    .atc-lab .opt { font-weight: 500; color: var(--text-subtle); text-transform: none; letter-spacing: 0; }
+
+    /* --- Search pill --- */
+    .atc-search-wrap { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: 999px; padding: 0 14px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .atc-search-wrap:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .atc-search-wrap i[data-lucide="search"] { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+    .atc-search-wrap input { flex: 1; height: 40px; border: none; outline: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); min-width: 0; }
+    .atc-search-wrap input::-webkit-search-cancel-button { display: none; }
+    .atc-search-clear { display: none; width: 22px; height: 22px; border-radius: 999px; background: #E5E7EB; border: none; cursor: pointer; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; padding: 0; }
+    .atc-search-clear.show { display: inline-flex; }
+    .atc-search-clear:hover { background: #D1D5DB; color: var(--text); }
+    .atc-search-clear i { width: 12px; height: 12px; }
+
+    /* --- Filter chips row --- */
+    .atc-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .atc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; white-space: nowrap; }
+    .atc-chip:hover { border-color: var(--brand); color: var(--brand); }
+    .atc-chip.active { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 10px -3px rgba(55,189,105,.35); }
+
+    /* --- Selection meta row --- */
+    .atc-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .atc-count-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 12px; font-weight: 600; transition: transform .18s cubic-bezier(.2,.8,.25,1); }
+    .atc-count-chip.pulse { animation: atc-count-pulse .4s ease-out; }
+    @keyframes atc-count-pulse { 0% { transform: scale(1);} 40% { transform: scale(1.12);} 100% { transform: scale(1);} }
+    .atc-count-chip .sp-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); }
+    .atc-count-chip.empty { background: #F1F2F4; color: var(--text-muted); }
+    .atc-count-chip.empty .sp-dot { background: var(--text-muted); }
+    .atc-select-all { background: none; border: none; color: var(--brand); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 2px; text-decoration: none; }
+    .atc-select-all:hover { text-decoration: underline; }
+    .atc-select-all[disabled] { color: var(--text-subtle); cursor: default; text-decoration: none; }
+
+    /* --- Species gallery grid --- */
+    .sp-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .sp-card {
+      position: relative;
+      display: flex; flex-direction: column;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: sp-enter .32s cubic-bezier(.2,.8,.25,1) forwards;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    @keyframes sp-enter { to { opacity: 1; transform: translateY(0); } }
+    .sp-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--border-strong); }
+    .sp-card:active { transform: scale(.98); transition-duration: .1s; }
+    .sp-card.selected { border: 2px solid var(--brand); padding: 9px; }
+    .sp-card.selected:hover { border-color: var(--brand); box-shadow: 0 6px 16px -6px rgba(55,189,105,.45); }
+    .sp-card[data-compatible="false"] { opacity: .55; cursor: not-allowed; }
+    .sp-card[data-compatible="false"]:hover { transform: none; box-shadow: none; border-color: var(--border); }
+    .sp-card[data-compatible="false"]:active { transform: none; }
+
+    .sp-img-wrap {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card-subtle);
+      margin-bottom: 8px;
+    }
+    .sp-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+    .sp-card:hover .sp-img-wrap img { transform: scale(1.03); }
+
+    /* Selected-state overlay on image — subtle brand tint (never on placeholder text though it covers the whole frame) */
+    .sp-img-wrap::after {
       content: '';
-      position: absolute;
-      width: 5px;
-      height: 9px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) translate(-1px, -1px);
+      position: absolute; inset: 0;
+      background: rgba(55,189,105,0);
+      transition: background .2s ease;
+      pointer-events: none;
+      z-index: 2;
     }
-    .atc-field select, .atc-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; }
+    .sp-card.selected .sp-img-wrap::after { background: rgba(55,189,105,.14); }
+
+    /* Neutral placeholder when image fails — paw-print icon + species name */
+    .sp-img-wrap.failed { background: var(--card-subtle) !important; }
+    .sp-img-wrap.failed::before { display: none !important; }
+    .sp-img-wrap.failed > img { display: none !important; }
+    .sp-img-placeholder {
+      position: absolute; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px;
+      color: var(--text-subtle);
+      padding: 8px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .sp-img-wrap.failed .sp-img-placeholder { display: flex; }
+    .sp-img-placeholder .sp-ph-icon {
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--text-subtle);
+    }
+    .sp-img-placeholder .sp-ph-icon svg,
+    .sp-img-placeholder .sp-ph-icon i { width: 32px; height: 32px; stroke: var(--text-subtle) !important; color: var(--text-subtle) !important; }
+    .sp-img-placeholder .sp-ph-label {
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* Top-right satisfying check badge when selected */
+    .sp-check-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 28px; height: 28px;
+      border-radius: 999px;
+      background: var(--brand);
+      display: none;
+      align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.5), 0 0 0 3px rgba(255,255,255,.9);
+      transform: scale(0);
+      transition: transform .25s cubic-bezier(.2,1.4,.4,1.1);
+      z-index: 3;
+    }
+    .sp-check-badge i, .sp-check-badge svg { width: 16px; height: 16px; color: #fff !important; stroke: #fff !important; stroke-width: 3px; }
+    .sp-card.selected .sp-check-badge { display: inline-flex; transform: scale(1); }
+
+    .sp-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.5em;
+    }
+    .sp-latin {
+      font-size: 12px;
+      font-weight: 500;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sp-pill {
+      margin-top: 8px;
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-hover);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .sp-pill .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--brand); }
+    .sp-card[data-compatible="false"] .sp-pill { background: #FFE5EA; color: #B00020; }
+    .sp-card[data-compatible="false"] .sp-pill .dot { background: #B00020; border-radius: 0; width: 6px; height: 6px; border: 1.5px solid #B00020; background: transparent; }
+
+    /* Empty state */
+    .sp-empty { padding: 36px 12px; text-align: center; color: var(--text-muted); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .sp-empty .ic { width: 40px; height: 40px; border-radius: 999px; background: #F1F2F4; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .sp-empty .ic i { width: 20px; height: 20px; }
+
+    /* Enclosure + note unchanged shell */
+    .atc-field select, .atc-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .atc-field select:focus, .atc-field textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
     .atc-field select { height: 40px; }
     .atc-field textarea { resize: none; }
     .atc-count { text-align: right; font-size: 11px; color: var(--text-subtle); }
-    .atc-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .atc-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
     .atc-field--hidden { display: none !important; }
     .dd-empty { padding: 18px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+    /* ========== Tablet (600-759px) ========== */
+    @media (max-width: 759px) and (min-width: 600px) {
+      .atc-modal { width: min(600px, calc(100vw - 24px)); }
+      .sp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .sp-name { font-size: 14px; }
+    }
+
+    /* ========== Mobile bottom sheet (<=599px) ========== */
+    @media (max-width: 599px) {
+      .atc-overlay { background: rgba(15,23,42,.55); }
+      .atc-modal {
+        top: auto !important; left: 0 !important; right: 0; bottom: 0;
+        transform: translateY(100%);
+        width: 100%;
+        max-width: 100%;
+        max-height: 92vh;
+        height: 92vh;
+        border-radius: 20px 20px 0 0;
+        border: none;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -16px 40px -10px rgba(15,23,42,.22);
+        transition: transform .3s cubic-bezier(.2,.85,.25,1), opacity .25s ease;
+      }
+      .atc-modal.open { transform: translateY(0) !important; }
+      .atc-grab {
+        display: block;
+        width: 36px; height: 4px;
+        border-radius: 999px;
+        background: #D1D5DB;
+        margin: 8px auto 4px;
+        flex-shrink: 0;
+        cursor: grab;
+      }
+      .atc-grab:active { cursor: grabbing; }
+      .atc-head {
+        position: sticky; top: 0;
+        padding: 10px 14px 12px;
+        z-index: 3;
+      }
+      .atc-body { padding: 14px 14px 18px; }
+      .atc-foot {
+        position: sticky; bottom: 0;
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+        z-index: 3;
+        box-shadow: 0 -6px 14px -10px rgba(15,23,42,.18);
+      }
+      .atc-foot .btn { flex: 1; min-height: 44px; justify-content: center; }
+      .sp-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .sp-img-wrap { aspect-ratio: 4 / 3; }
+      .sp-name { font-size: 13px; min-height: 2.4em; }
+      .sp-latin { font-size: 11px; }
+      .sp-pill { font-size: 10px; padding: 2px 7px; }
+      .sp-card { padding: 8px; }
+      .sp-card.selected { padding: 7px; }
+    }
+
+    /* ========== Tiny mobile (<=374px) ========== */
+    @media (max-width: 374px) {
+      .atc-body { padding: 12px 10px 14px; }
+      .atc-head { padding: 10px 10px 10px; gap: 8px; }
+      .atc-foot { padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
+      .sp-grid { gap: 8px; }
+      .sp-card { padding: 7px; border-radius: 12px; }
+      .sp-card.selected { padding: 6px; }
+      .sp-name { font-size: 12px; min-height: 2.4em; }
+      .sp-latin { font-size: 10px; }
+      .sp-thumb-size { width: 40px; height: 40px; }
+    }
+
+    /* ========== Reduced motion ========== */
+    @media (prefers-reduced-motion: reduce) {
+      .sp-card { animation: none; opacity: 1; transform: none; }
+      .atc-modal, .atc-overlay { transition-duration: .01ms; }
+      .sp-check-badge { transition: none; }
+      .atc-count-chip.pulse { animation: none; }
+    }
 
     /* Per-line cart drawer adornments */
     .ci-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
@@ -410,6 +662,16 @@
     .p-card .pc-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .p-card .pc-cat { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); font-weight: 600; }
     .p-card .pc-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    /* Product rating — Flipkart-style compact green pill (similar-products cards) */
+    .p-card .prod-rating { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); line-height: 1; }
+    .p-card .prod-rating .stars { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; color: var(--text-muted); }
+    .p-card .prod-rating .stars i,
+    .p-card .prod-rating .stars svg { width: 10px !important; height: 10px !important; color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .p-card .prod-rating .stars svg *,
+    .p-card .prod-rating .stars svg polygon,
+    .p-card .prod-rating .stars svg path { fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .p-card .prod-rating .rating-count { color: var(--text-muted); font-weight: 500; font-size: 11px; }
+    .p-card .prod-rating .no-rating { color: var(--text-subtle); font-size: 11px; font-style: italic; }
     .p-card .pc-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
     .p-card .pc-price { font-size: 15px; font-weight: 700; color: var(--text); }
     .p-card-add { width: 36px; height: 36px; border-radius: 999px; background: var(--brand); color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px -3px rgba(55,189,105,.4); transition: .15s; }
@@ -560,6 +822,9 @@
           <kbd class="hidden sm:inline-flex text-[11px] text-[color:var(--text-subtle)] font-medium">⌘K</kbd>
         </label>
         <div class="header-actions">
+          <a href="customise_product_1.html" id="customiseBtn" style="background: var(--brand); color: #fff; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); text-decoration: none; margin-right: 4px;" aria-label="Customise product">
+            <i data-lucide="wand-sparkles" class="w-4 h-4"></i>Customise
+          </a>
           <a href="orders_1.html" class="link">Orders</a>
           <button class="icon-btn" id="savedHeaderBtn" aria-label="Saved" onclick="window.location.href='saved_1.html'">
             <i data-lucide="heart" class="w-4 h-4"></i>
@@ -664,7 +929,8 @@
 
   <!-- =============== ADD-TO-CART SPECIES PICKER MODAL =============== -->
   <div class="atc-overlay" id="atcOverlay"></div>
-  <aside class="atc-modal" id="atcModal" role="dialog" aria-hidden="true">
+  <aside class="atc-modal" id="atcModal" role="dialog" aria-hidden="true" aria-labelledby="atcTitle">
+    <div class="atc-grab" id="atcGrab" aria-hidden="true"></div>
     <div class="atc-head">
       <img class="atc-thumb" id="atcThumb" alt=""/>
       <div class="atc-heading">
@@ -674,23 +940,32 @@
       <button class="atc-close" id="atcClose" aria-label="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="atc-body">
-      <label class="atc-field">
-        <div class="atc-lab">Species <span class="req">*</span></div>
+      <div class="atc-field">
+        <div class="atc-lab"><span>Species <span class="req">*</span></span></div>
         <div class="atc-search-wrap">
           <i data-lucide="search"></i>
           <input id="atcSpeciesInput" type="search" placeholder="Search species…" autocomplete="off"/>
+          <button type="button" class="atc-search-clear" id="atcSearchClear" aria-label="Clear search"><i data-lucide="x"></i></button>
         </div>
-        <div class="atc-list" id="atcSpeciesList"></div>
-      </label>
-      <label class="atc-field atc-field--hidden" id="atcEnclosureField">
-        <div class="atc-lab">Enclosure <span class="opt">optional</span></div>
+        <div class="atc-chips" role="tablist" aria-label="Filter species">
+          <button type="button" class="atc-chip" id="atcChipAll" data-filter="all" role="tab">All</button>
+          <button type="button" class="atc-chip active" id="atcChipCompat" data-filter="compat" role="tab">Compatible only</button>
+        </div>
+        <div class="atc-meta-row">
+          <span class="atc-count-chip empty" id="atcCountChip"><span class="sp-dot"></span><span id="atcCountText">0 selected · 0 species</span></span>
+          <button type="button" class="atc-select-all" id="atcSelectAll">Select all compatible</button>
+        </div>
+        <div class="sp-grid" id="atcSpeciesList" role="listbox" aria-multiselectable="true"></div>
+      </div>
+      <div class="atc-field atc-field--hidden" id="atcEnclosureField">
+        <div class="atc-lab"><span>Enclosure <span class="opt">optional</span></span></div>
         <select id="atcEnclosure"><option value="">— Not specified —</option></select>
-      </label>
-      <label class="atc-field">
-        <div class="atc-lab">Customization note <span class="opt">optional</span></div>
+      </div>
+      <div class="atc-field">
+        <div class="atc-lab"><span>Customization note <span class="opt">optional</span></span></div>
         <textarea id="atcNote" rows="2" maxlength="200" placeholder="e.g. Smaller size for cubs, unscented for nursery"></textarea>
         <div class="atc-count"><span id="atcNoteCount">0</span>/200</div>
-      </label>
+      </div>
     </div>
     <div class="atc-foot">
       <button class="btn btn-ghost" id="atcCancel" type="button">Cancel</button>
@@ -762,6 +1037,7 @@
             <a href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
             <a href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
             <a href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
+            <a href="admin_products_1.html" id="adminNavItem"><i data-lucide="shield" class="w-4 h-4"></i> Admin</a>
             <button type="button" class="am-danger" id="signOutBtn"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
           `}
         </div>
@@ -1150,10 +1426,11 @@
     // 'cart' = normal add-to-cart; 'buyNow' = add then navigate to checkout.
     let atcFlow = 'cart';
 
-    // ----- Add-to-cart species picker modal (carried over from index_1.html) -----
+    // ----- Add-to-cart species picker modal (gallery redesign) -----
     const atc = {
       overlay:        document.getElementById('atcOverlay'),
       modal:          document.getElementById('atcModal'),
+      grab:           document.getElementById('atcGrab'),
       thumb:          document.getElementById('atcThumb'),
       title:          document.getElementById('atcTitle'),
       sub:            document.getElementById('atcSub'),
@@ -1162,71 +1439,185 @@
       confirmBtn:     document.getElementById('atcConfirm'),
       speciesInput:   document.getElementById('atcSpeciesInput'),
       speciesList:    document.getElementById('atcSpeciesList'),
+      searchClear:    document.getElementById('atcSearchClear'),
+      chipAll:        document.getElementById('atcChipAll'),
+      chipCompat:     document.getElementById('atcChipCompat'),
+      countChip:      document.getElementById('atcCountChip'),
+      countText:      document.getElementById('atcCountText'),
+      selectAllBtn:   document.getElementById('atcSelectAll'),
       enclosureField: document.getElementById('atcEnclosureField'),
       enclosureSel:   document.getElementById('atcEnclosure'),
       noteInput:      document.getElementById('atcNote'),
       noteCount:      document.getElementById('atcNoteCount'),
     };
-    let atcState = { product: null, selectedSet: new Set() };
+    let atcState = { product: null, selectedSet: new Set(), filter: 'compat' };
 
     function atcClose() {
       atc.overlay.classList.remove('open');
       atc.modal.classList.remove('open');
       atc.modal.setAttribute('aria-hidden', 'true');
-      atcState = { product: null, selectedSet: new Set() };
+      // reset transient sheet transform (mobile swipe)
+      atc.modal.style.transform = '';
+      atcState = { product: null, selectedSet: new Set(), filter: 'compat' };
       // Reset flow marker so a closed modal (without confirm) does not leak into
       // a subsequent Add-to-cart click.
       atcFlow = 'cart';
+    }
+
+    function atcCompatSet() {
+      const prod = atcState.product;
+      if (!prod) return new Set();
+      const ids = Array.isArray(prod.compatibleSpecies) ? prod.compatibleSpecies : [];
+      // If the product has no compat list, treat all species as compatible.
+      if (!ids.length) return new Set(DB.SPECIES.map(s => s.id));
+      return new Set(ids);
+    }
+
+    function atcUpdateCountChip(pulse) {
+      const totalShown = atc.speciesList.querySelectorAll('.sp-card').length;
+      const n = atcState.selectedSet.size;
+      atc.countText.textContent = `${n} selected · ${totalShown} species`;
+      atc.countChip.classList.toggle('empty', n === 0);
+      if (pulse) {
+        atc.countChip.classList.remove('pulse');
+        // force reflow for re-trigger
+        void atc.countChip.offsetWidth;
+        atc.countChip.classList.add('pulse');
+      }
+    }
+
+    // Wire a single species-card image frame: shimmer while loading, neutral
+    // placeholder on error/timeout, one retry with a fresh random seed before
+    // giving up. Never shows a colored tint — only the grey card-subtle bg +
+    // paw-print icon + species name defined via .sp-img-placeholder CSS.
+    function atcWireSpeciesImage(frame) {
+      if (!frame || frame.dataset.spWired === '1') return;
+      frame.dataset.spWired = '1';
+      const img = frame.querySelector('img');
+      if (!img) { frame.classList.add('failed'); return; }
+      let settled = false;
+      const markLoaded = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        frame.classList.add('img-loaded');
+        frame.classList.remove('failed');
+      };
+      const markFailed = () => {
+        if (settled) return;
+        const retry = parseInt(frame.dataset.spRetry || '0', 10);
+        if (retry < 1) {
+          // One retry with a fresh random seed
+          frame.dataset.spRetry = String(retry + 1);
+          const q = frame.dataset.spQ || '';
+          const newSeed = Math.floor(Math.random() * 99999) + 10000;
+          frame.dataset.spSeed = newSeed;
+          clearTimeout(timer);
+          timer = setTimeout(markFailed, 3500);
+          // Re-fire load by assigning new src
+          img.src = (window.DB && DB.img) ? DB.img(q, 360, 270, newSeed) : img.src;
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        frame.classList.remove('img-loaded');
+        frame.classList.add('failed');
+      };
+      img.addEventListener('load', markLoaded);
+      img.addEventListener('error', markFailed);
+      // If already complete (cached), resolve immediately
+      if (img.complete && img.naturalWidth > 0) {
+        markLoaded();
+        return;
+      }
+      if (img.complete && img.naturalWidth === 0) {
+        markFailed();
+        return;
+      }
+      // 3s timeout — slow/hanging Pollinations responses treated as failure
+      let timer = setTimeout(markFailed, 3000);
     }
 
     function atcRenderSpeciesList(query) {
       const prod = atcState.product;
       if (!prod) return;
       const q = (query || '').trim().toLowerCase();
-      const compatIds = Array.isArray(prod.compatibleSpecies) ? prod.compatibleSpecies.slice() : [];
-      const compat = compatIds.map(id => DB.byId(DB.SPECIES, id)).filter(Boolean);
-      const compatSet = new Set(compat.map(s => s.id));
-      const rest = DB.SPECIES.filter(s => !compatSet.has(s.id));
-      let ordered = compat.concat(rest);
+      const compatSet = atcCompatSet();
+      // Sort compatible first
+      const ordered = DB.SPECIES.slice().sort((a, b) => {
+        const ac = compatSet.has(a.id) ? 0 : 1;
+        const bc = compatSet.has(b.id) ? 0 : 1;
+        return ac - bc;
+      });
+      let list = ordered;
+      if (atcState.filter === 'compat') {
+        list = list.filter(s => compatSet.has(s.id));
+      }
       if (q) {
-        ordered = ordered.filter(s =>
+        list = list.filter(s =>
           s.name.toLowerCase().indexOf(q) !== -1 ||
           (s.latin && s.latin.toLowerCase().indexOf(q) !== -1)
         );
       }
-      if (!ordered.length) {
-        atc.speciesList.innerHTML = `<div class="dd-empty">No species found</div>`;
+      if (!list.length) {
+        atc.speciesList.innerHTML = `
+          <div class="sp-empty" style="grid-column: 1 / -1;">
+            <span class="ic"><i data-lucide="search-x"></i></span>
+            <div>No species match your search</div>
+          </div>`;
+        window.ZE && window.ZE.refreshIcons();
+        atcUpdateCountChip(false);
+        atcUpdateSelectAllState();
         return;
       }
-      atc.speciesList.innerHTML = ordered.map(s => {
-        const isSel     = atcState.selectedSet.has(s.id);
-        const selectCls = isSel ? 'selected' : '';
-        const compatCls = compatSet.has(s.id) ? 'compat' : '';
-        const compatBadge = compatSet.has(s.id) ? `<span class="compat-badge">compatible</span>` : '';
+      atc.speciesList.innerHTML = list.map((s, idx) => {
+        const isSel = atcState.selectedSet.has(s.id);
+        const isCompat = compatSet.has(s.id);
+        const selCls = isSel ? 'selected' : '';
+        const delay = Math.min(idx, 8) * 30;
+        const pillInner = isCompat
+          ? `<span class="dot"></span>Compatible`
+          : `<span class="dot"></span>Not compatible`;
+        const initialSeed = (s.seed != null) ? s.seed : Math.floor(Math.random() * 99999);
+        const initialSrc = DB.img(s.imgQ, 360, 270, initialSeed);
         return `
-          <label class="row ${selectCls} ${compatCls}" data-sp-id="${s.id}">
-            <input type="checkbox" class="row-cb" ${isSel ? 'checked' : ''} />
-            <img src="${DB.img(s.imgQ, 60, 60, s.seed)}" alt="" loading="lazy"/>
-            <div style="display:flex; flex-direction:column; min-width:0">
-              <span class="name">${esc(s.name)}</span>
-              <span class="latin">${esc(s.latin || '')}</span>
+          <article class="sp-card ${selCls}" data-sp-id="${s.id}" data-compatible="${isCompat ? 'true' : 'false'}" role="option" aria-selected="${isSel ? 'true' : 'false'}" style="animation-delay:${delay}ms">
+            <div class="sp-img-wrap img-frame" data-sp-img="1" data-sp-q="${esc(s.imgQ || s.name || '')}" data-sp-seed="${initialSeed}" data-sp-retry="0">
+              <img src="${initialSrc}" alt="${esc(s.name)}" loading="lazy"/>
+              <span class="sp-img-placeholder" aria-hidden="true">
+                <span class="sp-ph-icon"><i data-lucide="paw-print"></i></span>
+                <span class="sp-ph-label">${esc(s.name)}</span>
+              </span>
             </div>
-            ${compatBadge}
-          </label>`;
+            <span class="sp-check-badge" aria-hidden="true"><i data-lucide="check"></i></span>
+            <div class="sp-name">${esc(s.name)}</div>
+            <div class="sp-latin">${esc(s.latin || '')}</div>
+            <span class="sp-pill">${pillInner}</span>
+          </article>`;
       }).join('');
-      atc.speciesList.querySelectorAll('.row[data-sp-id]').forEach(row => {
-        const cb = row.querySelector('.row-cb');
-        const toggleFn = (e) => {
-          e.stopPropagation();
-          atcToggleSpecies(row.dataset.spId);
-        };
-        row.addEventListener('click', (e) => {
-          if (e.target === cb) return;
-          e.preventDefault();
-          atcToggleSpecies(row.dataset.spId);
-        });
-        cb.addEventListener('change', toggleFn);
+      // wire image load/error + 3s timeout with one retry
+      atc.speciesList.querySelectorAll('.sp-img-wrap[data-sp-img="1"]').forEach(frame => {
+        atcWireSpeciesImage(frame);
       });
+      // wire cards
+      atc.speciesList.querySelectorAll('.sp-card[data-sp-id]').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (card.dataset.compatible === 'false') return;
+          e.preventDefault();
+          atcToggleSpecies(card.dataset.spId);
+        });
+      });
+      window.ZE && window.ZE.refreshIcons();
+      atcUpdateCountChip(false);
+      atcUpdateSelectAllState();
+    }
+
+    function atcUpdateSelectAllState() {
+      const compatSet = atcCompatSet();
+      const compatIds = Array.from(compatSet);
+      const allSelected = compatIds.length > 0 && compatIds.every(id => atcState.selectedSet.has(id));
+      atc.selectAllBtn.textContent = allSelected ? 'Clear selection' : 'Select all compatible';
+      atc.selectAllBtn.disabled = compatIds.length === 0;
     }
 
     function atcPopulateEnclosures(speciesId) {
@@ -1263,21 +1654,26 @@
 
     function atcToggleSpecies(speciesId) {
       if (!speciesId) return;
-      if (atcState.selectedSet.has(speciesId)) atcState.selectedSet.delete(speciesId);
+      const wasSel = atcState.selectedSet.has(speciesId);
+      if (wasSel) atcState.selectedSet.delete(speciesId);
       else atcState.selectedSet.add(speciesId);
-      atc.speciesList.querySelectorAll('.row[data-sp-id]').forEach(r => {
-        const id = r.dataset.spId;
-        const on = atcState.selectedSet.has(id);
-        r.classList.toggle('selected', on);
-        const cb = r.querySelector('.row-cb');
-        if (cb) cb.checked = on;
-      });
+      // Update DOM card visuals without full re-render (preserves scroll + anim)
+      const card = atc.speciesList.querySelector(`.sp-card[data-sp-id="${speciesId}"]`);
+      if (card) {
+        card.classList.toggle('selected', !wasSel);
+        card.setAttribute('aria-selected', !wasSel ? 'true' : 'false');
+      }
       atcUpdateFieldVisibility();
+      atcUpdateCountChip(true);
+      atcUpdateSelectAllState();
     }
 
     function openAddToCartModal(product) {
       if (!product) return;
-      atcState = { product: product, selectedSet: new Set() };
+      const compatIds = Array.isArray(product.compatibleSpecies) ? product.compatibleSpecies : [];
+      // Default to 'compat' filter when the product exposes a compat list; otherwise 'all'
+      const defaultFilter = compatIds.length > 0 ? 'compat' : 'all';
+      atcState = { product: product, selectedSet: new Set(), filter: defaultFilter };
       atc.thumb.src = product.imgSmall || product.img || '';
       atc.thumb.alt = product.name || '';
       // Prefix title based on flow so the user knows Buy Now will navigate after confirm.
@@ -1286,12 +1682,16 @@
       const price = product.price.material + product.price.labor;
       atc.sub.textContent = `${pcat ? pcat.name + ' · ' : ''}${DB.fmtINR(price)}`;
       atc.speciesInput.value = '';
+      atc.searchClear.classList.remove('show');
       atc.noteInput.value = '';
       atc.noteCount.textContent = '0';
       atc.enclosureSel.innerHTML = '<option value="">— Not specified —</option>';
       atc.enclosureField.classList.add('atc-field--hidden');
       atc.confirmBtn.disabled = false;
       atc.confirmBtn.textContent = atcFlow === 'buyNow' ? 'Add & checkout' : 'Add to cart';
+      // Apply filter chip visuals
+      atc.chipAll.classList.toggle('active', atcState.filter === 'all');
+      atc.chipCompat.classList.toggle('active', atcState.filter === 'compat');
 
       atcRenderSpeciesList('');
       atcUpdateFieldVisibility();
@@ -1300,7 +1700,10 @@
       atc.modal.classList.add('open');
       atc.modal.setAttribute('aria-hidden', 'false');
       window.ZE && window.ZE.refreshIcons();
-      setTimeout(() => atc.speciesInput.focus(), 60);
+      setTimeout(() => {
+        // only autofocus search on non-touch (avoids popping virtual keyboard on mobile)
+        if (!matchMedia('(pointer: coarse)').matches) atc.speciesInput.focus();
+      }, 60);
     }
     window.openAddToCartModal = openAddToCartModal;
 
@@ -1316,11 +1719,86 @@
       atc.speciesInput.addEventListener('input', () => {
         clearTimeout(searchTimer);
         const v = atc.speciesInput.value;
+        atc.searchClear.classList.toggle('show', v.length > 0);
         searchTimer = setTimeout(() => atcRenderSpeciesList(v), 80);
       });
       atc.speciesInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') e.preventDefault();
       });
+      atc.searchClear.addEventListener('click', () => {
+        atc.speciesInput.value = '';
+        atc.searchClear.classList.remove('show');
+        atcRenderSpeciesList('');
+        atc.speciesInput.focus();
+      });
+
+      // Filter chips
+      const setFilter = (f) => {
+        atcState.filter = f;
+        atc.chipAll.classList.toggle('active', f === 'all');
+        atc.chipCompat.classList.toggle('active', f === 'compat');
+        atcRenderSpeciesList(atc.speciesInput.value);
+      };
+      atc.chipAll.addEventListener('click', () => setFilter('all'));
+      atc.chipCompat.addEventListener('click', () => setFilter('compat'));
+
+      // Select-all-compatible quick action
+      atc.selectAllBtn.addEventListener('click', () => {
+        const compatSet = atcCompatSet();
+        const compatIds = Array.from(compatSet);
+        const allSelected = compatIds.length > 0 && compatIds.every(id => atcState.selectedSet.has(id));
+        if (allSelected) {
+          atcState.selectedSet.clear();
+        } else {
+          compatIds.forEach(id => atcState.selectedSet.add(id));
+        }
+        // re-render to reflect state on every card
+        atc.speciesList.querySelectorAll('.sp-card[data-sp-id]').forEach(c => {
+          const on = atcState.selectedSet.has(c.dataset.spId);
+          c.classList.toggle('selected', on);
+          c.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        atcUpdateFieldVisibility();
+        atcUpdateCountChip(true);
+        atcUpdateSelectAllState();
+      });
+
+      // Mobile bottom-sheet: swipe-down-to-dismiss on grab bar
+      (function wireGrab(){
+        if (!atc.grab) return;
+        let startY = null, dragging = false;
+        const onStart = (e) => {
+          const y = (e.touches ? e.touches[0].clientY : e.clientY);
+          startY = y; dragging = true;
+          atc.modal.style.transition = 'none';
+        };
+        const onMove = (e) => {
+          if (!dragging || startY == null) return;
+          const y = (e.touches ? e.touches[0].clientY : e.clientY);
+          const dy = Math.max(0, y - startY);
+          atc.modal.style.transform = `translateY(${dy}px)`;
+        };
+        const onEnd = (e) => {
+          if (!dragging) return;
+          dragging = false;
+          atc.modal.style.transition = '';
+          const y = (e.changedTouches ? e.changedTouches[0].clientY : e.clientY);
+          const dy = startY != null ? y - startY : 0;
+          startY = null;
+          if (dy > 90) {
+            atc.modal.style.transform = '';
+            atcClose();
+          } else {
+            atc.modal.style.transform = '';
+          }
+        };
+        atc.grab.addEventListener('touchstart', onStart, { passive: true });
+        atc.grab.addEventListener('touchmove', onMove, { passive: true });
+        atc.grab.addEventListener('touchend', onEnd);
+        atc.grab.addEventListener('mousedown', onStart);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+      })();
 
       atc.enclosureSel.addEventListener('change', () => { /* no-op; read on confirm */ });
 
@@ -1779,6 +2257,14 @@
     function buildCard(pp) {
       const ccat = DB.byId(DB.CATEGORIES, pp.cat);
       const gallery = (DB.galleryFor ? DB.galleryFor(pp) : (pp.gallery && pp.gallery.length ? pp.gallery : [pp.imgSmall]));
+      // Rating pill (Flipkart-style)
+      const rr = (typeof DB.productRating === 'function') ? DB.productRating(pp.id) : { avg: 0, count: 0 };
+      const ratingHtml = rr && rr.count > 0
+        ? `<div class="prod-rating">
+             <span class="stars"><i data-lucide="star"></i> ${rr.avg.toFixed(1)}</span>
+             <span class="rating-count">(${rr.count})</span>
+           </div>`
+        : `<div class="prod-rating"><span class="no-rating">No reviews yet</span></div>`;
       const card = el('div', 'p-card');
       card.innerHTML = `
         <div class="ic has-carousel">
@@ -1791,6 +2277,7 @@
         <div class="pc-body">
           <div class="pc-cat">${ccat ? ccat.name : ''}</div>
           <div class="pc-name">${pp.name}</div>
+          ${ratingHtml}
           <div class="pc-foot">
             <span class="pc-price">${DB.fmtINR(pp.price.material + pp.price.labor)}</span>
             <div data-card-cta="${pp.id}"></div>

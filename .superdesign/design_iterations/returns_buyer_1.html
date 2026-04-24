@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Request return / rework</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .page-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* Header (buyer) */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .search-pill { flex: 1; max-width: 520px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; }
+    .header-actions { display: flex; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; padding: 6px 10px; border-radius: 10px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 60px; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+
+    /* Crumbs */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; }
+    .crumbs a { color: var(--text-muted); }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .page-head h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px; }
+    .page-head .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Order-being-returned strip */
+    .order-strip { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; display: flex; gap: 14px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .order-strip .os-thumb { width: 56px; height: 56px; border-radius: 12px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .order-strip .os-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .order-strip .os-body { flex: 1; min-width: 0; }
+    .order-strip .os-id { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .order-strip .os-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .order-strip .os-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .order-strip .os-meta i { color: var(--text-subtle); }
+    .os-total { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+
+    /* Step indicator */
+    .step-indicator { display: flex; margin-bottom: 28px; gap: 0; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .step-i { flex: 1; padding: 14px 16px; display: flex; align-items: center; gap: 10px; position: relative; transition: .2s; }
+    .step-i + .step-i { border-left: 1px solid var(--border); }
+    .step-i.active { background: var(--brand-soft); }
+    .step-i.done { background: var(--card); }
+    .step-i .sn { width: 28px; height: 28px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-i.active .sn { background: var(--brand); color: #fff; }
+    .step-i.done .sn { background: var(--brand); color: #fff; }
+    .step-i .sl { font-size: 13px; font-weight: 700; color: var(--text); }
+    .step-i .sl .sublab { font-size: 11px; color: var(--text-muted); font-weight: 500; display: block; margin-top: 1px; }
+    .step-i.active .sl { color: var(--brand-hover); }
+    @media (max-width: 700px) { .step-i .sl .sublab { display: none; } .step-i { padding: 10px 12px; } }
+
+    /* Main shell */
+    .return-layout { display: grid; grid-template-columns: minmax(0,1fr) 360px; gap: 24px; padding-bottom: 60px; }
+    @media (max-width: 900px) { .return-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-xs); }
+    .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .card p.sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+
+    /* Step panels */
+    .step-panel { display: none; animation: fadeUp .3s cubic-bezier(.2,.8,.2,1) both; }
+    .step-panel.show { display: block; }
+
+    /* Items to return */
+    .item-row { display: grid; grid-template-columns: auto auto 1fr auto; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: .15s; cursor: pointer; }
+    .item-row:hover { border-color: var(--brand); background: var(--brand-soft); }
+    .item-row.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .item-row .it-thumb { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); }
+    .item-row .it-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .item-row .it-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .item-row .it-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .it-qty { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
+    .it-qty button { width: 24px; height: 24px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; font-weight: 700; color: var(--text); font-size: 13px; }
+    .it-qty input { width: 32px; text-align: center; border: none; background: transparent; font-weight: 700; font-size: 13px; color: var(--text); outline: none; }
+
+    /* Reason radio cards */
+    .reason-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (max-width: 600px) { .reason-grid { grid-template-columns: 1fr; } }
+    .r-card { border: 2px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; display: flex; gap: 12px; align-items: flex-start; transition: .15s; background: var(--card); }
+    .r-card:hover { border-color: var(--brand); }
+    .r-card.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .r-card .rc-ico { width: 36px; height: 36px; border-radius: 10px; background: #FEF3C7; color: #A16207; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .r-card.selected .rc-ico { background: var(--brand); color: #fff; }
+    .r-card .rc-body { flex: 1; }
+    .r-card .rc-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .r-card .rc-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+    .non-returnable-warn { background: #FFF8CC; border: 1px solid #FCD34D; color: #6D4B00; border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-top: 14px; display: flex; gap: 8px; align-items: flex-start; line-height:1.45; }
+
+    /* Resolution cards */
+    .res-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
+    @media (max-width: 600px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-card { border: 2px solid var(--border); border-radius: 14px; padding: 18px 16px; cursor: pointer; transition: .15s; background: var(--card); position: relative; }
+    .res-card:hover { border-color: var(--brand); }
+    .res-card.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .res-card.selected::after { content: ''; position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 999px; background: var(--brand); }
+    .res-card.selected::before { content: ''; position: absolute; top: 17px; right: 17px; width: 10px; height: 6px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg); z-index: 2; }
+    .res-card .ico { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--brand-soft); color: var(--brand-hover); margin-bottom: 10px; }
+    .res-card .nm { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .res-card .dc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .res-card .rec { font-size: 10px; font-weight: 800; color: var(--brand); text-transform: uppercase; letter-spacing: .06em; margin-top: 8px; }
+
+    /* Photo uploader */
+    .photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+    @media (max-width: 600px) { .photo-grid { grid-template-columns: repeat(3, 1fr); } }
+    .photo-tile { aspect-ratio: 1; border: 1.5px dashed var(--border); border-radius: 12px; background: var(--card-subtle); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); gap: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: .15s; }
+    .photo-tile:hover { border-color: var(--brand); color: var(--brand); }
+    .photo-tile i { color: var(--text-subtle); }
+    .photo-tile:hover i { color: var(--brand); }
+    .photo-tile.uploaded { border-style: solid; background: var(--card); overflow: hidden; padding: 0; position: relative; }
+    .photo-tile.uploaded img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-tile.uploaded .rem { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; background: rgba(15,23,42,0.85); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+
+    /* Text area */
+    .ta { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-family: var(--font); font-size: 14px; min-height: 80px; resize: vertical; outline: none; }
+    .ta:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+
+    /* Pickup box */
+    .pickup-options { display: grid; gap: 10px; margin-bottom: 18px; }
+    .pickup-card { border: 2px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: .15s; }
+    .pickup-card:hover { border-color: var(--brand); }
+    .pickup-card.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .pickup-card .ico { width: 40px; height: 40px; border-radius: 10px; background: var(--card-subtle); color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pickup-card.selected .ico { background: var(--brand); color: #fff; }
+    .pickup-card .nm { font-size: 13px; font-weight: 700; color: var(--text); }
+    .pickup-card .dc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Right aside */
+    .aside-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; position: sticky; top: 84px; }
+    .aside-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .aside-row { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; }
+    .aside-row .k { color: var(--text-muted); }
+    .aside-row .v { color: var(--text); font-weight: 600; text-align: right; }
+    .aside-row.big { padding-top: 12px; margin-top: 8px; border-top: 1px dashed var(--border); }
+    .aside-row.big .v { font-size: 16px; font-weight: 800; }
+    .aside-timeline { margin-top: 12px; }
+    .atl-step { display: flex; gap: 10px; padding: 10px 0; position: relative; }
+    .atl-step + .atl-step::before { content: ''; position: absolute; left: 11px; top: -5px; height: 10px; width: 2px; background: var(--border); }
+    .atl-dot { width: 24px; height: 24px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .atl-step.active .atl-dot { background: var(--brand); color: #fff; box-shadow: 0 0 0 4px var(--brand-soft); }
+    .atl-step.done .atl-dot { background: var(--brand); color: #fff; }
+    .atl-body { font-size: 13px; color: var(--text); }
+    .atl-step.done .atl-body { color: var(--text-muted); }
+    .atl-body .t { font-weight: 600; }
+    .atl-body .d { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Foot actions */
+    .panel-foot { display: flex; justify-content: space-between; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 12px 22px; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: .15s; }
+    .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .btn-primary:hover { background: var(--brand-hover); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-outline { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--brand); color: var(--brand); }
+
+    /* Status / success panel */
+    .success-head { text-align: center; padding: 24px 0 8px; }
+    .success-head .ico { width: 80px; height: 80px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; animation: popIn .45s cubic-bezier(.2,1.5,.4,1) both; }
+    @keyframes popIn { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .success-head h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .success-head p { font-size: 14px; color: var(--text-muted); max-width: 440px; margin: 0 auto; }
+
+    .status-tl { background: var(--card-subtle); border-radius: 14px; padding: 20px; margin-top: 20px; }
+    .status-tl-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: flex-start; padding: 10px 0; position: relative; }
+    .status-tl-row + .status-tl-row::before { content: ''; position: absolute; left: 17px; top: -16px; height: 26px; width: 2px; background: var(--border); }
+    .status-tl-row.active + .status-tl-row::before, .status-tl-row.done + .status-tl-row::before { background: var(--brand); }
+    .stl-dot { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .status-tl-row.done .stl-dot { background: var(--brand); color: #fff; }
+    .status-tl-row.active .stl-dot { background: var(--card); border: 2.5px solid var(--brand); color: var(--brand); box-shadow: 0 0 0 4px var(--brand-soft); }
+    .stl-body .t { font-size: 14px; font-weight: 700; color: var(--text); }
+    .status-tl-row.done .stl-body .t { color: var(--text-muted); }
+    .stl-body .d { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+    .stl-time { font-size: 11px; color: var(--text-subtle); text-align: right; font-weight: 600; white-space: nowrap; }
+
+    .contact-strip { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--brand-soft); border-radius: 12px; margin-top: 18px; }
+    .contact-strip img { width: 42px; height: 42px; border-radius: 999px; object-fit: cover; }
+    .contact-strip .nm { font-size: 13px; font-weight: 700; }
+    .contact-strip .sub { font-size: 11px; color: var(--text-muted); }
+    .contact-strip .cta { margin-left: auto; display: inline-flex; gap: 8px; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="index_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <label class="search-pill">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input placeholder="Search…"/>
+    </label>
+    <div class="header-actions">
+      <a href="orders_1_1.html" class="header-btn" style="text-decoration:none">
+        <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+      </a>
+      <a href="chat_1.html" class="header-btn" style="text-decoration:none">
+        <i data-lucide="message-square" class="w-5 h-5"></i><span>Chat</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <div class="crumbs">
+    <a href="orders_1_1.html">Orders</a>
+    <span style="color:var(--text-subtle)">·</span>
+    <a href="order_detail_1.html">ORD-8815</a>
+    <span style="color:var(--text-subtle)">·</span>
+    <span style="color:var(--text); font-weight:600">Return / rework</span>
+  </div>
+
+  <div class="page-head">
+    <div>
+      <h1>Return or request a rework</h1>
+      <div class="sub">Custom products get the best outcomes via rework. We'll walk you through it.</div>
+    </div>
+    <div id="headState" style="display:none"></div>
+  </div>
+
+  <!-- Order strip -->
+  <div class="order-strip">
+    <div class="os-thumb img-frame"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20rhino%20zoo%20heavy?width=140&height=140&seed=109&nologo=true" alt=""/></div>
+    <div class="os-body">
+      <div class="os-id">ORD-8815 · placed 2 Mar 2026</div>
+      <div class="os-name">Mud-Wallow Liner Heavy-Gauge</div>
+      <div class="os-meta">
+        <i data-lucide="user" class="w-3 h-3"></i><span>Sold by <strong style="color:var(--text);font-weight:700">WildForge Fabrication</strong></span>
+        <span style="color:var(--text-subtle)">·</span>
+        <i data-lucide="truck" class="w-3 h-3"></i><span>Delivered 3 weeks ago</span>
+        <span style="color:var(--text-subtle)">·</span>
+        <i data-lucide="paw-print" class="w-3 h-3"></i><span>Indian rhino</span>
+      </div>
+    </div>
+    <div class="os-total">₹94,200</div>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-i active" data-step="1"><span class="sn">1</span><span class="sl">Select &amp; reason<span class="sublab">Which items &amp; why</span></span></div>
+    <div class="step-i" data-step="2"><span class="sn">2</span><span class="sl">Evidence &amp; resolution<span class="sublab">Photos · rework / refund</span></span></div>
+    <div class="step-i" data-step="3"><span class="sn">3</span><span class="sl">Logistics<span class="sublab">Pickup or inspection</span></span></div>
+    <div class="step-i" data-step="4"><span class="sn">4</span><span class="sl">Track status<span class="sublab">Vendor response</span></span></div>
+  </div>
+
+  <div class="return-layout">
+    <div>
+
+      <!-- STEP 1 -->
+      <section class="step-panel show" data-panel="1">
+        <div class="card">
+          <h3><i data-lucide="list-checks" class="w-4 h-4" style="color:var(--brand)"></i> Which items need attention?</h3>
+          <p class="sub">You can return some or all items on this order. For partial returns, specify quantity.</p>
+
+          <div class="item-row selected">
+            <input type="checkbox" checked/>
+            <div class="it-thumb img-frame"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20rhino%20zoo%20heavy?width=140&height=140&seed=109&nologo=true" alt=""/></div>
+            <div>
+              <div class="it-name">Mud-Wallow Liner Heavy-Gauge</div>
+              <div class="it-meta">Qty ordered: 1 · ₹94,200 · SKU: ENR-LNR-HG-12</div>
+            </div>
+            <div class="it-qty">
+              <button>−</button><input value="1"/><button>+</button>
+            </div>
+          </div>
+
+          <h3 style="margin-top:28px;"><i data-lucide="help-circle" class="w-4 h-4" style="color:var(--brand)"></i> Why are you returning it?</h3>
+          <p class="sub">Custom products are not returnable for change-of-mind. Pick the reason that fits best.</p>
+
+          <div class="reason-grid">
+            <div class="r-card selected">
+              <div class="rc-ico"><i data-lucide="ruler" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Dimensions or spec mismatch</div>
+                <div class="rc-desc">Doesn't match what we agreed in chat</div>
+              </div>
+            </div>
+            <div class="r-card">
+              <div class="rc-ico"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Defective / broken</div>
+                <div class="rc-desc">Structural issue, unsafe for animals</div>
+              </div>
+            </div>
+            <div class="r-card">
+              <div class="rc-ico"><i data-lucide="package-x" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Damaged in transit</div>
+                <div class="rc-desc">Arrived with visible damage</div>
+              </div>
+            </div>
+            <div class="r-card">
+              <div class="rc-ico"><i data-lucide="file-x" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Wrong item shipped</div>
+                <div class="rc-desc">Item received is not what we ordered</div>
+              </div>
+            </div>
+            <div class="r-card">
+              <div class="rc-ico"><i data-lucide="paw-print" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Not species-appropriate</div>
+                <div class="rc-desc">Unsafe or unsuitable for tagged species</div>
+              </div>
+            </div>
+            <div class="r-card">
+              <div class="rc-ico"><i data-lucide="shield-alert" class="w-4 h-4"></i></div>
+              <div class="rc-body">
+                <div class="rc-name">Quality issue / not as described</div>
+                <div class="rc-desc">Finish, material, or behaviour differs</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="non-returnable-warn">
+            <i data-lucide="info" class="w-4 h-4" style="flex-shrink:0;margin-top:1px;color:#A16207;"></i>
+            <div><strong>Custom-made item:</strong> We don't accept change-of-mind returns. If your reason falls outside the list above, chat with WildForge first — most issues are resolved through rework.</div>
+          </div>
+
+          <div class="panel-foot">
+            <a href="orders_1_1.html" class="btn btn-ghost">Cancel</a>
+            <button class="btn btn-primary" data-next="2">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="step-panel" data-panel="2">
+        <div class="card">
+          <h3><i data-lucide="camera" class="w-4 h-4" style="color:var(--brand)"></i> Share photos &amp; details</h3>
+          <p class="sub">Photos are required for custom products. They help the vendor decide rework or refund without back-and-forth.</p>
+
+          <div class="photo-grid">
+            <div class="photo-tile uploaded"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20corner%20crease%20detail?width=160&height=160&seed=609&nologo=true" alt=""/><button class="rem"><i data-lucide="x" class="w-3 h-3"></i></button></div>
+            <div class="photo-tile uploaded"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20measuring%20tape%20zoo?width=160&height=160&seed=610&nologo=true" alt=""/><button class="rem"><i data-lucide="x" class="w-3 h-3"></i></button></div>
+            <div class="photo-tile uploaded"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20installed%20rhino%20enclosure?width=160&height=160&seed=611&nologo=true" alt=""/><button class="rem"><i data-lucide="x" class="w-3 h-3"></i></button></div>
+            <div class="photo-tile"><i data-lucide="upload" class="w-5 h-5"></i><span>Add photo</span></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:18px;">3 of 6 photos uploaded · max 10 MB each</div>
+
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Describe the issue</label>
+          <textarea class="ta" placeholder="What's wrong? Include original chat reference if relevant.">Spec called for 3.6 × 2.4 m but liner arrived at 3.48 × 2.28 m. 12 cm short on both sides. Installed for photos but can't cover the wallow edge. See chat ORD-8815 dated 28 Mar for original dimensions.</textarea>
+
+          <h3 style="margin-top:24px;"><i data-lucide="sparkles" class="w-4 h-4" style="color:var(--brand)"></i> What outcome works for you?</h3>
+          <p class="sub">For custom items, <strong style="color:var(--text)">rework</strong> is usually fastest. You can always escalate to refund if rework fails.</p>
+
+          <div class="res-grid">
+            <div class="res-card selected">
+              <div class="rec">Recommended</div>
+              <div class="ico"><i data-lucide="hammer" class="w-5 h-5"></i></div>
+              <div class="nm">Rework it</div>
+              <div class="dc">Vendor remakes to correct spec at no extra cost. Estimated 10–14 days.</div>
+            </div>
+            <div class="res-card">
+              <div class="ico" style="background:#E0F2FE;color:#0369A1;"><i data-lucide="repeat" class="w-5 h-5"></i></div>
+              <div class="nm">Replacement</div>
+              <div class="dc">New item shipped. Return old one via pickup. Original timeline applies.</div>
+            </div>
+            <div class="res-card">
+              <div class="ico" style="background:#FFE5EA;color:#B00020;"><i data-lucide="indian-rupee" class="w-5 h-5"></i></div>
+              <div class="nm">Refund</div>
+              <div class="dc">Full refund to original payment. 5–7 working days after pickup.</div>
+            </div>
+            <div class="res-card">
+              <div class="ico" style="background:#FFE86E;color:#6D4B00;"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+              <div class="nm">Store credit</div>
+              <div class="dc">₹94,200 as platform credit, usable with any vendor. No pickup needed.</div>
+            </div>
+          </div>
+
+          <div class="panel-foot">
+            <button class="btn btn-ghost" data-back="1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+            <button class="btn btn-primary" data-next="3">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step-panel" data-panel="3">
+        <div class="card">
+          <h3><i data-lucide="truck" class="w-4 h-4" style="color:var(--brand)"></i> Logistics &amp; pickup</h3>
+          <p class="sub">For rework, the vendor may inspect via photos only — no pickup needed unless they ask.</p>
+
+          <div class="pickup-options">
+            <div class="pickup-card selected">
+              <div class="ico"><i data-lucide="camera" class="w-5 h-5"></i></div>
+              <div>
+                <div class="nm">Photos-first inspection <span style="margin-left:6px;font-size:10px;color:var(--brand);font-weight:800;letter-spacing:.04em;">DEFAULT FOR CUSTOM</span></div>
+                <div class="dc">Vendor reviews photos. Pickup only if rework can't be done on-site.</div>
+              </div>
+            </div>
+            <div class="pickup-card">
+              <div class="ico"><i data-lucide="package" class="w-5 h-5"></i></div>
+              <div>
+                <div class="nm">Schedule courier pickup</div>
+                <div class="dc">Vendor's logistics partner. Free. Requires you to be on-site with the item.</div>
+              </div>
+            </div>
+            <div class="pickup-card">
+              <div class="ico"><i data-lucide="store" class="w-5 h-5"></i></div>
+              <div>
+                <div class="nm">Drop off at vendor (Bengaluru only)</div>
+                <div class="dc">Drop at WildForge facility — 42/B Whitefield. Credit of ₹500 towards your next order.</div>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="margin-top:26px;"><i data-lucide="map-pin" class="w-4 h-4" style="color:var(--brand)"></i> Pickup address</h3>
+          <p class="sub">Confirm the site address — we'll pre-fill from your order.</p>
+          <div class="card" style="border-color:var(--border);padding:16px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:40px;height:40px;border-radius:10px;background:var(--card-subtle);display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted);"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:700;">Kaziranga National Park · Rhino Quarters</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5;">NH-37, Kohora, Golaghat District, Assam · 785609<br/>Contact: Dr. Arindam Baruah · +91 98123 00981</div>
+              </div>
+              <button class="btn-outline btn" style="padding:8px 14px;"><i data-lucide="edit-3" class="w-4 h-4"></i> Change</button>
+            </div>
+          </div>
+
+          <div class="panel-foot">
+            <button class="btn btn-ghost" data-back="2"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+            <button class="btn btn-primary" data-next="4">Submit return <i data-lucide="check" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 - Success & status tracking -->
+      <section class="step-panel" data-panel="4">
+        <div class="card">
+          <div class="success-head">
+            <div class="ico"><i data-lucide="check-check" class="w-10 h-10"></i></div>
+            <h2>Return request submitted</h2>
+            <p>Reference <strong style="color:var(--text)">RET-8815-01</strong> — WildForge has 48 hours to respond. Rework is pre-selected.</p>
+          </div>
+
+          <div class="status-tl">
+            <div class="status-tl-row done">
+              <div class="stl-dot"><i data-lucide="check" class="w-4 h-4"></i></div>
+              <div class="stl-body">
+                <div class="t">Return requested</div>
+                <div class="d">Spec mismatch · Photos-first inspection · Rework preferred</div>
+              </div>
+              <div class="stl-time">Just now</div>
+            </div>
+            <div class="status-tl-row active">
+              <div class="stl-dot"><i data-lucide="clock" class="w-4 h-4"></i></div>
+              <div class="stl-body">
+                <div class="t">Vendor reviewing</div>
+                <div class="d">WildForge must respond by 26 Apr · 48h SLA. They usually reply within 6h.</div>
+              </div>
+              <div class="stl-time">Pending</div>
+            </div>
+            <div class="status-tl-row">
+              <div class="stl-dot">3</div>
+              <div class="stl-body">
+                <div class="t">Decision received</div>
+                <div class="d">Vendor approves rework / replacement / refund. You can accept or counter.</div>
+              </div>
+              <div class="stl-time">—</div>
+            </div>
+            <div class="status-tl-row">
+              <div class="stl-dot">4</div>
+              <div class="stl-body">
+                <div class="t">In progress</div>
+                <div class="d">Rework begins — vendor posts an updated ETA.</div>
+              </div>
+              <div class="stl-time">—</div>
+            </div>
+            <div class="status-tl-row">
+              <div class="stl-dot">5</div>
+              <div class="stl-body">
+                <div class="t">Reshipped / refunded</div>
+                <div class="d">Final fix delivered or refund credited.</div>
+              </div>
+              <div class="stl-time">—</div>
+            </div>
+          </div>
+
+          <div class="contact-strip">
+            <img src="https://image.pollinations.ai/prompt/minimal%20industrial%20zoo%20logo%20metal?width=60&height=60&seed=703&nologo=true" alt=""/>
+            <div>
+              <div class="nm">WildForge Fabrication</div>
+              <div class="sub">Responds within 4h typically · 4.6 ★</div>
+            </div>
+            <div class="cta">
+              <a href="chat_1.html" class="btn btn-outline" style="padding:8px 14px;font-size:13px;text-decoration:none"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+              <button class="btn btn-primary" style="padding:8px 14px;font-size:13px;"><i data-lucide="flag" class="w-4 h-4"></i> Escalate to ZooEnrich</button>
+            </div>
+          </div>
+
+          <div class="panel-foot">
+            <a href="orders_1_1.html" class="btn btn-outline" style="text-decoration:none"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to orders</a>
+            <a href="chat_1.html" class="btn btn-primary" style="text-decoration:none"><i data-lucide="message-square" class="w-4 h-4"></i> Message vendor</a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right aside -->
+    <aside>
+      <div class="aside-card">
+        <h4><i data-lucide="receipt" class="w-4 h-4" style="color:var(--brand)"></i> Return summary</h4>
+        <div class="aside-row"><span class="k">Order</span><span class="v" style="font-family:ui-monospace,Menlo,monospace;font-size:12px;">ORD-8815</span></div>
+        <div class="aside-row"><span class="k">Items</span><span class="v">1 of 1</span></div>
+        <div class="aside-row"><span class="k">Reason</span><span class="v">Spec mismatch</span></div>
+        <div class="aside-row"><span class="k">Preferred outcome</span><span class="v" style="color:var(--brand-hover);">Rework</span></div>
+        <div class="aside-row"><span class="k">Pickup</span><span class="v">Photos-first</span></div>
+        <div class="aside-row big"><span class="k">Amount at stake</span><span class="v">₹94,200</span></div>
+
+        <h4 style="margin-top:18px;"><i data-lucide="clock" class="w-4 h-4" style="color:var(--brand)"></i> Timeline</h4>
+        <div class="aside-timeline">
+          <div class="atl-step active">
+            <div class="atl-dot">1</div>
+            <div class="atl-body"><div class="t">You're filling this out</div><div class="d">3 of 4 steps remaining</div></div>
+          </div>
+          <div class="atl-step">
+            <div class="atl-dot">2</div>
+            <div class="atl-body"><div class="t">Vendor review</div><div class="d">48-hour SLA</div></div>
+          </div>
+          <div class="atl-step">
+            <div class="atl-dot">3</div>
+            <div class="atl-body"><div class="t">Resolution</div><div class="d">Rework / replace / refund</div></div>
+          </div>
+          <div class="atl-step">
+            <div class="atl-dot">4</div>
+            <div class="atl-body"><div class="t">Closed</div><div class="d">Item reshipped or refunded</div></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+
+  const panels = document.querySelectorAll('.step-panel');
+  const steps = document.querySelectorAll('#stepIndicator .step-i');
+  function go(n){
+    panels.forEach(p => p.classList.toggle('show', String(p.dataset.panel) === String(n)));
+    steps.forEach(s => {
+      const k = parseInt(s.dataset.step,10);
+      s.classList.toggle('active', k === n);
+      s.classList.toggle('done',   k <  n);
+      const sn = s.querySelector('.sn');
+      sn.innerHTML = k < n ? '<i data-lucide="check" class="w-3 h-3"></i>' : k;
+    });
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => go(parseInt(b.dataset.next,10))));
+  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => go(parseInt(b.dataset.back,10))));
+
+  // Reason toggle
+  document.querySelectorAll('.r-card').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.r-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+  }));
+  // Resolution toggle
+  document.querySelectorAll('.res-card').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.res-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+  }));
+  // Pickup toggle
+  document.querySelectorAll('.pickup-card').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.pickup-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+  }));
+</script>
+</body>
+</html>

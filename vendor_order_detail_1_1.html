@@ -1,0 +1,1780 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Vendor Order Detail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Vendor header (UNIFIED — copied from vendor_orders_1_2.html) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+    @media (max-width: 900px) {
+      .v-nav { display: none !important; }
+      .v-avatar-btn .v-name { display: none; }
+      .app-header .row { gap: 12px !important; }
+    }
+    @media (max-width: 400px) { .brand-mark > span:not(.logo-box) { display: none; } }
+
+    /* Vendor mobile drawer */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+    /* ================= Detail page structure ================= */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 6px; display: flex; gap: 8px; align-items: center; }
+    .crumbs a:hover { color: var(--brand); }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 13px; font-weight: 600; padding: 6px 0; transition: .15s; }
+    .back-link:hover { color: var(--brand); }
+
+    /* Sample banner */
+    .sample-banner { background: #FFF9DB; border: 1px solid #FDE68A; border-radius: 12px; padding: 10px 16px; font-size: 12.5px; color: #6D4B00; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .sample-banner i { color: #A16207; }
+
+    /* Head block */
+    .detail-head { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; }
+    .dh-left { flex: 1; min-width: 260px; }
+    .dh-id-row { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .dh-id { font-family: ui-monospace, Menlo, monospace; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .chip-big { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
+    .chip-in_production    { background: #FEF3C7;           color: #A16207; }
+    .chip-packed           { background: #D1FAE5;           color: #065F46; }
+    .chip-shipped          { background: #CFFAFE;           color: #0891B2; }
+    .chip-out_for_delivery { background: #A7F3D0;           color: #065F46; }
+    .chip-delivered        { background: var(--brand);      color: #fff; }
+    .chip-cancelled        { background: var(--danger);     color: #fff; }
+    .chip-returned         { background: #FDE68A;           color: #92400E; }
+
+    .sla-big { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; padding: 6px 14px; border-radius: 999px; }
+    .sla-big.urgent { background: var(--danger-bg); color: var(--danger); }
+    .sla-big.warn { background: #FFF8CC; color: #A16207; }
+    .sla-big.ok { background: var(--brand-soft); color: var(--brand-hover); }
+
+    .dh-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); margin-top: 4px; align-items: center; }
+    .dh-meta .sep { color: var(--text-subtle); }
+    .dh-meta strong { color: var(--text); font-weight: 600; }
+
+    .cta-group { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+    .cta-btn { padding: 10px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; border: 1px solid transparent; transition: .15s; white-space: nowrap; }
+    .cta-primary { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 10px -3px rgba(55,189,105,.45); }
+    .cta-primary:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 6px 14px -3px rgba(55,189,105,.55); }
+    .cta-warn { background: var(--warning); color: #3B2A00; border-color: var(--warning); }
+    .cta-warn:hover { background: #D1A716; }
+    .cta-ghost { background: #fff; color: var(--text); border-color: var(--border); }
+    .cta-ghost:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .cta-danger { background: #fff; color: var(--danger); border-color: #F5C2CB; }
+    .cta-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+
+    /* ============== Two-column layout ============== */
+    .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; padding-bottom: 80px; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-xs); overflow: hidden; }
+    .card + .card { margin-top: 16px; }
+    .card-head { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); }
+    .card-head h3 { font-size: 14px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 8px; }
+    .card-head h3 i { color: var(--brand); }
+    .card-head .tiny { font-size: 12px; color: var(--text-muted); }
+    .card-body { padding: 18px 20px; }
+
+    /* Progress tracker */
+    .track-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 22px 20px 26px; }
+    .track-step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; position: relative; }
+    .track-step .dot { width: 32px; height: 32px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--border); font-weight: 700; font-size: 12px; z-index: 2; position: relative; transition: .3s; }
+    .track-step.done .dot { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+    .track-step.current .dot { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.18); }
+    .track-step .lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); line-height: 1.25; }
+    .track-step.done .lbl, .track-step.current .lbl { color: var(--text); }
+    .track-step .when { font-size: 10px; color: var(--text-subtle); }
+    .track-step:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: var(--border); z-index: 1; }
+    .track-step.done:not(:last-child)::after { background: var(--brand); }
+    @media (max-width: 720px) {
+      .track-grid { grid-template-columns: 1fr; gap: 14px; padding: 18px; }
+      .track-step { flex-direction: row; align-items: flex-start; text-align: left; gap: 10px; }
+      .track-step:not(:last-child)::after { left: 15px; top: 32px; bottom: -14px; right: auto; width: 2px; height: auto; }
+    }
+
+    /* Line items */
+    .item { display: flex; gap: 14px; padding: 16px 20px; border-top: 1px solid var(--border); }
+    .item:first-child { border-top: none; }
+    .item .thumb { width: 80px; height: 80px; border-radius: 12px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .item .meta { flex: 1; min-width: 0; }
+    .item .title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .item .sku { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .item .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .item-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--card-subtle); border: 1px solid var(--border); color: var(--text); }
+    .item-chip.species { background: var(--brand-soft); color: var(--brand-hover); border-color: transparent; }
+    .item-chip.species img { width: 14px; height: 14px; border-radius: 999px; object-fit: cover; }
+    .item-chip.custom { background: #FFF8CC; color: #8A6D00; border-color: transparent; }
+    .item .desc { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; line-height: 1.45; }
+    .item .price-line { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 13px; gap: 8px; flex-wrap: wrap; }
+    .item .price-line .left { color: var(--text-muted); }
+    .item .price-line .left strong { color: var(--text); font-weight: 700; }
+    .item .price-line .right { font-size: 15px; font-weight: 800; color: var(--text); }
+    .item .add-cat { font-size: 11.5px; color: var(--brand); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; cursor: pointer; border: none; transition: .15s; }
+    .item .add-cat:hover { background: var(--brand); color: #fff; }
+    .item .added-badge { font-size: 11px; color: var(--brand-hover); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; }
+
+    /* Address & tracking cards */
+    .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 16px; font-size: 13px; }
+    .kv .k { color: var(--text-muted); font-weight: 500; }
+    .kv .v { color: var(--text); font-weight: 600; }
+
+    .track-card { display: flex; gap: 12px; flex-direction: column; }
+    .awb-pill { font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; color: var(--text); background: #F1F2F4; padding: 4px 10px; border-radius: 6px; display: inline-flex; gap: 4px; }
+    .tr-event { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: var(--brand-soft); border-radius: 10px; }
+    .tr-event i { color: var(--brand); margin-top: 2px; }
+    .tr-event .nm { font-size: 13px; font-weight: 700; color: var(--text); }
+    .tr-event .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Right column cards */
+    .buyer-card-big { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 22px 20px 18px; }
+    .buyer-card-big .ba { width: 74px; height: 74px; border-radius: 999px; object-fit: cover; border: 3px solid var(--card); box-shadow: var(--shadow-sm); margin-bottom: 12px; }
+    .buyer-card-big .nm { font-size: 16px; font-weight: 700; color: var(--text); }
+    .buyer-card-big .role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .buyer-card-big .zoo { font-size: 12.5px; color: var(--text); margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
+    .buyer-card-big .stats { display: flex; gap: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); width: 100%; justify-content: center; font-size: 12px; color: var(--text-muted); }
+    .buyer-card-big .stats strong { color: var(--text); font-weight: 700; }
+    .buyer-card-big .stats .star { color: #E4B819; }
+    .buyer-card-big .contact { display: flex; gap: 8px; margin-top: 14px; width: 100%; }
+    .buyer-card-big .contact button { flex: 1; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: .15s; }
+    .buyer-card-big .contact button:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+    .buyer-card-big .contact button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .buyer-card-big .contact button.primary:hover { background: var(--brand-hover); }
+
+    /* Chat preview */
+    .chat-prev { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .prev-msg { display: flex; gap: 8px; }
+    .prev-msg img { width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0; object-fit: cover; }
+    .prev-msg .bubble { background: var(--card-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--text); line-height: 1.4; flex: 1; min-width: 0; }
+    .prev-msg .bubble .who { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .prev-msg .bubble .txt { color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .chat-open-btn { width: 100%; margin-top: 6px; padding: 10px; background: var(--brand-soft); border: none; border-radius: 10px; color: var(--brand-hover); font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .15s; }
+    .chat-open-btn:hover { background: var(--brand); color: #fff; }
+    .chat-empty { padding: 20px; text-align: center; font-size: 12.5px; color: var(--text-muted); }
+
+    /* Math card */
+    .math-line { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+    .math-line .lab { color: var(--text-muted); }
+    .math-line .val { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .math-line .val.neg { color: var(--danger); }
+    .math-divider { height: 1px; background: var(--border); margin: 6px 0; }
+    .payout-line { display: flex; justify-content: space-between; padding: 10px 0 2px; font-size: 14px; }
+    .payout-line .lab { color: var(--text); font-weight: 800; }
+    .payout-line .val { color: var(--brand); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+    /* Timestamps card */
+    .ts-line { display: flex; justify-content: space-between; padding: 7px 0; font-size: 12.5px; }
+    .ts-line .lab { color: var(--text-muted); }
+    .ts-line .val { color: var(--text); font-weight: 600; }
+
+    /* ============== Chat side sheet (copied from vendor_orders_1_2.html) ============== */
+    .chat-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 110; }
+    .chat-overlay.open { opacity: 1; pointer-events: auto; }
+    .chat-sheet { position: fixed; top: 0; right: 0; bottom: 0; width: 540px; max-width: 95vw; background: var(--card); box-shadow: -20px 0 50px -12px rgba(15,23,42,.22); transform: translateX(100%); transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index: 120; display: flex; flex-direction: column; overflow: hidden; }
+    .chat-sheet.open { transform: translateX(0); }
+    .chat-sheet .chat-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; border: none; background: var(--card); }
+    .chat-sheet .messages { flex: 1; max-height: none; }
+    @media (max-width: 600px) { .chat-sheet { width: 100vw; max-width: 100vw; } }
+
+    .chat-panel { display: none; border-top: 1px solid var(--border); background: #FAFBFC; }
+    .chat-head { padding: 14px 22px; display: flex; gap: 14px; align-items: center; background: var(--card); border-bottom: 1px solid var(--border); }
+    .chat-head .c-av { width: 40px; height: 40px; border-radius: 999px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; position: relative; }
+    .chat-head .c-av img { width: 100%; height: 100%; object-fit: cover; }
+    .chat-head .c-av .pres { position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px; border-radius: 999px; background: var(--brand); border: 2px solid var(--card); }
+    .chat-head .c-body { flex: 1; min-width: 0; }
+    .chat-head .c-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .chat-head .c-sub { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+    .chat-head .c-sub .dot { color: var(--text-subtle); }
+    .chat-head .c-sub .pres-dot { width: 6px; height: 6px; background: var(--brand); border-radius: 999px; display: inline-block; }
+    .chat-head .c-actions { display: inline-flex; gap: 6px; align-items: center; }
+    .chat-head .c-btn { width: 34px; height: 34px; border-radius: 10px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: .15s; }
+    .chat-head .c-btn:hover { background: #F1F2F4; color: var(--text); }
+
+    .spec-strip { padding: 10px 22px; background: #F4F6F8; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 11px; color: var(--text-muted); }
+    .spec-strip .lab { font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-right: 6px; font-size: 10px; }
+    .spec-strip .chip-at { background: var(--card); border: 1px solid var(--border); padding: 3px 8px; border-radius: 999px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
+    .spec-strip .chip-at i { color: var(--text-subtle); }
+
+    .messages { padding: 16px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 999px; }
+    .day-sep { text-align: center; font-size: 10px; color: var(--text-subtle); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin: 6px 0; }
+    .day-sep::before, .day-sep::after { content: ''; display: inline-block; width: 40px; height: 1px; background: var(--border); vertical-align: middle; margin: 0 10px; }
+
+    .msg { display: flex; gap: 8px; max-width: 78%; }
+    .msg.them { align-self: flex-start; }
+    .msg.me { align-self: flex-end; flex-direction: row-reverse; margin-left: auto; }
+    .msg-av { width: 26px; height: 26px; border-radius: 999px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .msg-av img { width: 100%; height: 100%; object-fit: cover; }
+    .msg-bubble { padding: 9px 12px; font-size: 13px; line-height: 1.45; border-radius: 12px; word-wrap: break-word; }
+    .msg.them .msg-bubble { background: var(--card); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 3px; }
+    .msg.me .msg-bubble { background: var(--brand); color: #fff; border-top-right-radius: 3px; box-shadow: 0 2px 4px -1px rgba(55,189,105,.3); }
+    .msg-meta { font-size: 9.5px; color: var(--text-subtle); padding: 0 2px; display: flex; gap: 4px; align-items: center; margin-top: 1px; }
+    .msg.me .msg-meta { justify-content: flex-end; }
+    .msg-meta .tk { color: var(--brand); }
+    .msg-img { max-width: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+    .msg-img img { width: 100%; display: block; }
+
+    .sys-chip { align-self: center; padding: 5px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; display: inline-flex; align-items: center; gap: 5px; max-width: 85%; text-align: center; }
+    .sys-chip.neutral { background: var(--card); border: 1px solid var(--border); color: var(--text-muted); }
+    .sys-chip.accent { background: var(--brand-soft); color: var(--brand-hover); }
+    .sys-chip.warn { background: #FFF8CC; color: #8A6D00; }
+    .sys-chip.danger { background: var(--danger-bg); color: #B00020; }
+    .sys-chip.info { background: #E0F2FE; color: #0369A1; }
+
+    .composer { padding: 12px 22px; background: var(--card); border-top: 1px solid var(--border); display: flex; align-items: flex-end; gap: 8px; }
+    .comp-wrap { flex: 1; border: 1px solid var(--border); border-radius: 18px; background: var(--card); padding: 6px 8px 6px 14px; display: flex; align-items: flex-end; gap: 4px; transition: .15s; }
+    .comp-wrap:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
+    .comp-wrap textarea { flex: 1; border: none; outline: none; background: transparent; resize: none; min-height: 22px; max-height: 100px; font-size: 13.5px; color: var(--text); font-family: var(--font); padding: 5px 0; }
+    .comp-tool { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-muted); cursor: pointer; }
+    .comp-tool:hover { background: #F1F2F4; color: var(--brand); }
+    .send-btn { width: 38px; height: 38px; border-radius: 999px; background: var(--brand); color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px -2px rgba(55,189,105,.5); transition: .15s; flex-shrink: 0; }
+    .send-btn:hover { background: var(--brand-hover); transform: scale(1.04); }
+    .send-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ============== Modal (Accept + Add-to-catalog) ============== */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 130; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal { background: var(--card); border-radius: 18px; box-shadow: var(--shadow-xl); width: 640px; max-width: 100%; max-height: calc(100vh - 40px); display: flex; flex-direction: column; transform: scale(.96) translateY(10px); transition: transform .24s cubic-bezier(.2,.8,.2,1); overflow: hidden; }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+    .modal-head .title { font-size: 16px; font-weight: 800; color: var(--text); display: inline-flex; align-items: center; gap: 8px; }
+    .modal-head .title i { color: var(--brand); }
+    .modal-close { width: 36px; height: 36px; border-radius: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .modal-close:hover { background: #F1F2F4; color: var(--text); }
+    .modal-body { padding: 22px; overflow-y: auto; flex: 1; }
+    .modal-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; background: var(--card-subtle); }
+    @media (max-width: 600px) {
+      .modal-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+      .modal { max-height: 100vh; max-width: 100vw; border-radius: 0; height: 100vh; }
+    }
+
+    /* Stepper progress */
+    .step-progress { display: flex; align-items: center; gap: 6px; flex: 1; margin-right: 16px; }
+    .step-progress .sp { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+    .step-progress .sp .sn { width: 22px; height: 22px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; transition: .2s; }
+    .step-progress .sp.done .sn, .step-progress .sp.active .sn { background: var(--brand); color: #fff; }
+    .step-progress .sp.active { color: var(--text); }
+    .step-progress .sp.done { color: var(--brand-hover); }
+    @media (max-width: 500px) { .step-progress .sp span:not(.sn) { display: none; } .step-progress { margin-right: 8px; } }
+
+    /* Step 1 — item editor */
+    .step-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; background: var(--card); }
+    .step-item .row1 { display: flex; align-items: center; gap: 12px; }
+    .step-item .row1 .thumb { width: 52px; height: 52px; border-radius: 10px; background: var(--card-subtle); overflow: hidden; flex-shrink: 0; }
+    .step-item .row1 .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .step-item .row1 .ttl { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .step-item .row1 .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .step-item .inputs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .step-item .inputs .field { flex: 1; min-width: 120px; }
+    .step-item .inputs label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block; }
+    .step-item .inputs input { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; outline: none; font-family: var(--font); background: var(--card); }
+    .step-item .inputs input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .step-item .line-total { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12.5px; }
+    .step-item .line-total .lab { color: var(--text-muted); }
+    .step-item .line-total .val { font-weight: 800; color: var(--text); }
+    .step-item.custom { border-color: #FDE68A; background: #FFFDF5; }
+    .step-item .cat-btn { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+    .step-item .cat-btn:hover { background: var(--brand); color: #fff; }
+    .step-item .cat-added { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+
+    .subtotal-bar { margin-top: 8px; padding: 12px 14px; background: var(--brand-soft); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .subtotal-bar .lab { color: var(--brand-hover); font-weight: 600; }
+    .subtotal-bar .val { color: var(--text); font-weight: 800; font-size: 16px; }
+
+    /* Step 2 — delivery days */
+    .days-big { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 18px; }
+    .days-step-btn { width: 44px; height: 44px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--border); cursor: pointer; font-size: 22px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
+    .days-step-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .days-step-btn:active { transform: scale(.94); }
+    .days-input { width: 120px; height: 64px; text-align: center; font-size: 34px; font-weight: 800; border: 2px solid var(--border); border-radius: 14px; color: var(--text); outline: none; font-variant-numeric: tabular-nums; font-family: var(--font); }
+    .days-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.15); }
+    .days-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+    .preset-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px; }
+    .preset-chip { padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card); font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; transition: .15s; }
+    .preset-chip:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .preset-chip.active { border-color: var(--brand); color: #fff; background: var(--brand); box-shadow: 0 3px 8px -2px rgba(55,189,105,.4); }
+
+    .date-preview { padding: 14px 18px; background: linear-gradient(135deg, var(--brand-soft) 0%, #F0FDF4 100%); border: 1.5px solid var(--brand); border-radius: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .date-preview .ic { width: 42px; height: 42px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .date-preview .txt .lab { font-size: 11px; font-weight: 700; color: var(--brand-hover); text-transform: uppercase; letter-spacing: .05em; }
+    .date-preview .txt .big { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
+
+    .hint { font-size: 12px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 6px; padding: 10px 12px; background: var(--card-subtle); border-radius: 10px; margin-bottom: 14px; }
+    .hint i { flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
+
+    .buffer-toggle { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card-subtle); border-radius: 10px; font-size: 13px; cursor: pointer; }
+    .buffer-toggle input { margin: 0; }
+    .buffer-toggle .tg-lab { font-weight: 600; color: var(--text); }
+    .buffer-toggle .tg-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+    /* Step 3 — note */
+    .note-area { width: 100%; min-height: 100px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 13.5px; color: var(--text); outline: none; resize: vertical; font-family: var(--font); line-height: 1.5; }
+    .note-area:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+
+    .revise-toggle { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-subtle); border-radius: 10px; font-size: 13px; margin-top: 14px; cursor: pointer; }
+    .price-revise { margin-top: 12px; padding: 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; display: none; }
+    .price-revise.open { display: block; }
+    .price-revise label { font-size: 12px; font-weight: 700; color: #A16207; margin-bottom: 6px; display: block; }
+    .price-revise input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #FDE68A; font-size: 15px; font-weight: 700; color: var(--text); outline: none; font-family: var(--font); background: #fff; }
+
+    /* Review screen */
+    .review-card { background: var(--brand-soft); border: 1.5px solid var(--brand); border-radius: 14px; padding: 18px; }
+    .review-kv { display: grid; grid-template-columns: 130px 1fr; gap: 10px 16px; font-size: 13.5px; margin-bottom: 14px; }
+    .review-kv .k { color: var(--brand-hover); font-weight: 600; }
+    .review-kv .v { color: var(--text); font-weight: 700; }
+    .review-kv .v.big { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+    .review-line { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12.5px; color: var(--text); }
+    .review-line .thm { width: 30px; height: 30px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    .review-line .thm img { width: 100%; height: 100%; object-fit: cover; }
+    .review-line .nm { flex: 1; }
+    .review-line .tot { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* Add-to-catalog nested modal */
+    .cat-form .field { margin-bottom: 14px; }
+    .cat-form label { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .cat-form input, .cat-form select, .cat-form textarea { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 13.5px; color: var(--text); outline: none; font-family: var(--font); background: var(--card); }
+    .cat-form input:focus, .cat-form select:focus, .cat-form textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .cat-form textarea { min-height: 70px; resize: vertical; }
+    .thumb-drop { width: 100%; height: 120px; border: 2px dashed var(--border); border-radius: 12px; background: var(--card-subtle); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: .15s; }
+    .thumb-drop:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .thumb-drop i { color: var(--text-subtle); }
+    .thumb-drop:hover i { color: var(--brand); }
+    .tag-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag-opt { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: .15s; }
+    .tag-opt:hover { border-color: var(--brand); color: var(--brand); }
+    .tag-opt.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    /* Revert modal */
+    .revert-banner { display: flex; gap: 10px; padding: 12px 14px; background: #FFF8CC; border: 1px solid #FDE68A; border-radius: 12px; font-size: 12.5px; color: #6D4B00; line-height: 1.5; margin-bottom: 16px; }
+    .revert-banner i { color: #A16207; flex-shrink: 0; margin-top: 1px; }
+    .revert-current { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .revert-current strong { color: var(--text); font-weight: 700; }
+    .revert-label { font-size: 12px; font-weight: 700; color: var(--text); margin: 12px 0 8px; display: block; }
+    .revert-targets { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--card); }
+    .revert-target { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; cursor: pointer; border-top: 1px solid var(--border); background: var(--card); transition: .15s; }
+    .revert-target:first-child { border-top: none; }
+    .revert-target:hover { background: var(--card-subtle); }
+    .revert-target.selected { background: var(--brand-soft); }
+    .revert-target .rt-radio { width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
+    .revert-target.selected .rt-radio { border-color: var(--brand); background: var(--brand); }
+    .revert-target.selected .rt-radio::after { content: ''; width: 6px; height: 6px; border-radius: 999px; background: #fff; }
+    .revert-target .rt-body { flex: 1; min-width: 0; }
+    .revert-target .rt-name { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .revert-target .rt-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+    .revert-reason { width: 100%; min-height: 90px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 13.5px; color: var(--text); outline: none; resize: vertical; font-family: var(--font); line-height: 1.5; }
+    .revert-reason:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .revert-reason.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(176,0,32,.12); animation: revertShake .4s; }
+    @keyframes revertShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+    .revert-count { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+    .revert-count.ok { color: var(--brand-hover); font-weight: 600; }
+    .cta-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
+
+    /* Toast */
+    .toast-stack { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+    .toast { pointer-events: auto; min-width: 260px; max-width: 90vw; padding: 12px 18px; background: var(--text); color: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: toastIn .28s cubic-bezier(.2,.8,.2,1) both; }
+    .toast.success { background: var(--brand); }
+    .toast.warn { background: var(--warning); color: #3B2A00; }
+    .toast i { flex-shrink: 0; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .toast.out { animation: toastOut .28s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(12px); } }
+
+    /* Responsive */
+    @media (max-width: 760px) {
+      .dh-id { font-size: 22px; }
+      .card-body { padding: 14px 16px; }
+      .card-head { padding: 14px 16px; }
+      .item { padding: 14px 16px; }
+      .cta-group { width: 100%; }
+      .cta-group .cta-btn { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header (unified) -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="vendor_dashboard_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button"><i data-lucide="menu" class="w-5 h-5"></i></button>
+    <nav class="v-nav" id="vNav">
+      <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+      <a href="vendor_orders_1_2.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
+      <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+      <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+      <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+      <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+      <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+    </nav>
+    <div class="v-right">
+      <div class="v-avatar-wrap">
+        <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+          <img src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Vendor logo"/>
+          <span class="v-name">TeakCraft</span>
+          <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </button>
+        <div class="v-menu" id="vMenu" role="menu">
+          <div class="muted">Signed in</div>
+          <div class="divider"></div>
+          <a href="vendor_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
+          <button id="btnSignOut"><i data-lucide="log-out" class="w-4 h-4"></i>Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Vendor mobile drawer -->
+<div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+  <div class="vd-head">
+    <span class="brand-mark"><span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span><span>ZooEnrich</span></span>
+    <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+  <nav class="vd-nav">
+    <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+    <a href="vendor_orders_1_2.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
+    <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+    <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+    <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+    <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+    <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+  </nav>
+  <div class="vd-foot">
+    <button class="btn-ghost" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+  </div>
+</aside>
+
+<main class="page-wrap" id="pageMain">
+  <!-- Rendered by JS -->
+</main>
+
+<!-- Chat side sheet -->
+<div class="chat-overlay" id="chatOverlay" aria-hidden="true"></div>
+<aside class="chat-sheet" id="chatSheet" aria-hidden="true" aria-label="Order chat"></aside>
+
+<!-- Accept modal -->
+<div class="modal-overlay" id="acceptOverlay" aria-hidden="true">
+  <div class="modal" id="acceptModal" role="dialog" aria-labelledby="acceptTitle"></div>
+</div>
+
+<!-- Add to catalog modal (nested) -->
+<div class="modal-overlay" id="catOverlay" aria-hidden="true" style="z-index:140;">
+  <div class="modal" id="catModal" role="dialog" aria-labelledby="catTitle" style="width:520px;"></div>
+</div>
+
+<!-- Generic modal (view reason, progress update, generate label, etc.) -->
+<div class="modal-overlay" id="genOverlay" aria-hidden="true">
+  <div class="modal" id="genModal" role="dialog" style="width:520px;"></div>
+</div>
+
+<!-- Revert to earlier state modal -->
+<div class="modal-overlay" id="revertOverlay" aria-hidden="true">
+  <div class="modal" id="revertModal" role="dialog" aria-labelledby="revertTitle" style="width:560px;"></div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+/* ============ Data (mirrored from vendor_orders_1_2.html) ============ */
+const BUYERS = [
+  { nm: 'Priya Raman',        zoo: 'Bannerghatta Biological Park · Bengaluru', role:'Sr. Biologist',   seed: 401, addr:{street:'Bannerghatta Rd, Anekal Taluk', pin:'560083', city:'Bengaluru', phone:'+91 98451 22340'}, pastOrders:12 },
+  { nm: 'Dr. Arjun Menon',    zoo: 'Mysuru Zoo · Mysuru',                       role:'Veterinarian',    seed: 402, addr:{street:'Indiranagar, Mysuru Zoo Rd', pin:'570010', city:'Mysuru', phone:'+91 98860 11022'}, pastOrders:7 },
+  { nm: 'Nisha Kapoor',       zoo: 'Sakkarbaug Zoo · Junagadh',                  role:'Curator',         seed: 403, addr:{street:'Sakkarbaug Rd', pin:'362001', city:'Junagadh', phone:'+91 98240 44881'}, pastOrders:4 },
+  { nm: 'Rahul Das',          zoo: 'Alipore Zoological Gardens · Kolkata',       role:'Head Zookeeper',  seed: 404, addr:{street:'Alipore Rd', pin:'700027', city:'Kolkata', phone:'+91 98300 77651'}, pastOrders:9 },
+  { nm: 'Meera Shastri',      zoo: 'Nehru Zoological Park · Hyderabad',          role:'Sr. Zookeeper',   seed: 405, addr:{street:'Bahadurpura, Hyderabad', pin:'500064', city:'Hyderabad', phone:'+91 99495 22110'}, pastOrders:3 },
+  { nm: 'Kunal Iyer',         zoo: 'Vandalur Zoo · Chennai',                     role:'Biologist',       seed: 406, addr:{street:'Vandalur-Kelambakkam Rd', pin:'600048', city:'Chennai', phone:'+91 98401 23390'}, pastOrders:6 },
+  { nm: 'Dr. Ramesh Kumar',   zoo: 'Gir Reserve · Junagadh',                     role:'Park Director',   seed: 407, addr:{street:'Gir National Park, Sasan', pin:'362135', city:'Junagadh', phone:'+91 98252 68830'}, pastOrders:15 },
+  { nm: 'Aarav Bhat',         zoo: 'Nandankanan Zoological Park · Bhubaneswar',  role:'Curator',         seed: 408, addr:{street:'Nandankanan Rd, Barang', pin:'754005', city:'Bhubaneswar', phone:'+91 94370 55621'}, pastOrders:5 },
+  { nm: 'Dr. Arindam Baruah', zoo: 'Kaziranga National Park · Assam',            role:'Veterinarian',    seed: 409, addr:{street:'Kaziranga, Bokakhat', pin:'785612', city:'Golaghat', phone:'+91 94350 11228'}, pastOrders:11 },
+  { nm: 'Shweta Rao',         zoo: 'Indira Gandhi Zoological Park · Vizag',      role:'Sr. Biologist',   seed: 410, addr:{street:'Isukathota', pin:'530040', city:'Visakhapatnam', phone:'+91 98480 92210'}, pastOrders:2 },
+  { nm: 'Vikram Chauhan',     zoo: 'Delhi Zoo · New Delhi',                      role:'Curator',         seed: 411, addr:{street:'Mathura Rd, Pragati Maidan', pin:'110003', city:'New Delhi', phone:'+91 98100 44881'}, pastOrders:8 },
+  { nm: 'Dr. Anita Patel',    zoo: 'Kamla Nehru Zoological Garden · Ahmedabad',  role:'Park Director',   seed: 412, addr:{street:'Kankaria Lake', pin:'380028', city:'Ahmedabad', phone:'+91 98250 66734'}, pastOrders:10 },
+  { nm: 'Sneha Nair',         zoo: 'Thiruvananthapuram Zoo · Trivandrum',        role:'Zookeeper',       seed: 413, addr:{street:'Museum Compound, Palayam', pin:'695033', city:'Trivandrum', phone:'+91 94470 88821'}, pastOrders:4 },
+  { nm: 'Dr. Prakash Desai',  zoo: 'Katraj Snake Park · Pune',                   role:'Herpetologist',   seed: 414, addr:{street:'Katraj Bypass', pin:'411046', city:'Pune', phone:'+91 98230 12340'}, pastOrders:3 }
+];
+const SPECIES = {
+  macaque:{name:'Bonnet macaque', seed:801}, tiger:{name:'Bengal tiger', seed:802},
+  otter:{name:'Asian otter', seed:803},       lion:{name:'Asiatic lion', seed:804},
+  elephant:{name:'Asian elephant', seed:805}, hornbill:{name:'Great hornbill', seed:806},
+  rhino:{name:'Indian rhino', seed:807},      langur:{name:'Lion-tailed langur', seed:808},
+  leopard:{name:'Snow leopard', seed:809},    croc:{name:'Mugger crocodile', seed:810}
+};
+const P = (name, seed, sku) => ({ name, sku, img: `https://image.pollinations.ai/prompt/${encodeURIComponent(name+' zoo enrichment studio shot')}?width=240&height=240&seed=${seed}&nologo=true` });
+const PROD = {
+  teakClimb:  P('Custom teak climbing structure',103,'TC-CLMB-301'),
+  scratchPost:P('Reinforced steel scratch post',101,'SP-STL-112'),
+  restPlat:   P('Anti-slip resting platform',102,'RP-WD-204'),
+  lionTower:  P('Reinforced lion scratch tower',110,'LT-SAL-440'),
+  scentDiff:  P('Stainless scent diffuser',111,'SD-SS-088'),
+  mudLiner:   P('Mud-wallow liner heavy-gauge',109,'ML-HDPE-220'),
+  puzzleFeed: P('Floating puzzle feeder',106,'PF-HDPE-155'),
+  findBall:   P('Aqua food-finder ball',107,'FB-HDPE-071'),
+  canopy:     P('Woven foraging canopy',108,'WFC-NT-330'),
+  swingLog:   P('Swing-log enrichment',112,'SL-TK-225'),
+  bambooBrow: P('Bamboo browse bundle XXL',104,'BB-XXL-900'),
+  sugarFeed:  P('Sugarcane log feeder',105,'SC-LF-411'),
+  ropeBridge: P('Aerial rope bridge',120,'RB-MAR-664'),
+  snakeHide:  P('Naturalistic snake hide',121,'SH-RES-115'),
+  crocLog:    P('Crocodile basking log',122,'CL-HW-270'),
+  kongBig:    P('Heavy-duty scent Kong XL',123,'HK-XL-092'),
+  climbNet:   P('Woven climbing net 4×3m',125,'CN-4X3-480'),
+  platformM:  P('Multi-level viewing platform',129,'MVP-PN-601'),
+  soakPool:   P('Otter soaking pool insert',128,'SPI-HDPE-330'),
+  enrichBoard:P('Tactile enrichment board',130,'TEB-RB-201'),
+  shadowBox:  P('Enrichment hide-and-seek box',131,'HSB-WD-305')
+};
+// Mark custom-only items (not in vendor's catalog yet)
+const CUSTOM_IDS = new Set(['TC-CLMB-301','LT-SAL-440','WFC-NT-330','MVP-PN-601']);
+
+function dateAgo(days, hours=0) { const d=new Date(); d.setDate(d.getDate()-days); d.setHours(d.getHours()-hours); return d.toISOString(); }
+function dateAhead(days) { const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString(); }
+
+/* Mirror orders with richer per-item data (dimensions/notes per line) */
+const ORDERS = [
+  { id:'ORD-9101', status:'placed', priority:'Critical', species:'macaque', buyer:0, createdAt:dateAgo(0,2), total:148000, slaHoursLeft:10,
+    items:[{p:PROD.teakClimb, qty:1, unit:148000, note:'3.2 × 2.1 × 2.4 m · two tiers · two 6 m rope bridges · silicone corner reinforcement · untreated teak · non-toxic finish only.'}],
+    chat:[
+      {who:'them', t:'09:52', body:'Hi! We need a custom climbing structure for our macaque enclosure. Group of 8 adults.'},
+      {who:'them', t:'09:52', body:'Enclosure is 3.2 × 2.1 × 2.4 m. Must handle rough climbing.'},
+      {who:'them', t:'09:53', img:'zoo%20primate%20enclosure%20interior%20empty'},
+      {who:'me',   t:'10:18', body:'Thanks Priya 👋 Teak works great here. Quick questions:\n1) Single or two-tier platform?\n2) Rope bridges needed?\n3) Treated or untreated wood?'},
+      {who:'them', t:'10:26', body:'1) Two tiers — they split into sub-groups\n2) Yes, two rope bridges across the span\n3) Untreated — we use non-toxic finishes only'},
+      {who:'them', t:'10:28', body:'Can you also reinforce the corners with silicone? We had a splintering issue last year.'},
+      {sys:'accent', body:'Buyer shared full spec · ready for offer'}
+    ]
+  },
+  { id:'ORD-9020', status:'confirmed', priority:'Normal', species:'lion', buyer:6, createdAt:dateAgo(5,0), approvedAt:dateAgo(4,0), total:234000, readyBy:dateAhead(8),
+    items:[
+      {p:PROD.lionTower, qty:1, unit:198000, note:'2.8 m tall · Sal wood + stainless hardware · rated for 250 kg+ dynamic load · tapered base.'},
+      {p:PROD.scentDiff, qty:2, unit:18000, note:'Stainless, refillable. One near pool, one near den.'}
+    ],
+    chat:[
+      {sys:'accent', body:'Order approved by Dr. Ramesh · production can start'},
+      {who:'me',   t:'4d ago', body:'Great news Dr Ramesh — approval just came through. We start cutting tomorrow.'}
+    ]
+  },
+  { id:'ORD-9014', status:'in_production', priority:'High', species:'macaque', buyer:0, createdAt:dateAgo(8,0), total:148000, readyBy:dateAhead(4), productionStage:'Rope bridge weaving · 80%',
+    items:[
+      {p:PROD.teakClimb, qty:1, unit:132000, note:'3.2 × 2.1 × 2.4 m · two-tier · two rope bridges · clear silicone corners.'},
+      {p:PROD.ropeBridge, qty:2, unit:8000, note:'6 m marine rope span each · stainless anchors welded at 4 points.'}
+    ],
+    chat:[
+      {who:'me',   t:'3d ago', body:'Update — rope bridges are 80% woven. Silicone corner detail is in progress.'},
+      {who:'them', t:'3d ago', body:'The silicone — can you use the clear variant? The tan one ages visibly.'},
+      {who:'me',   t:'3d ago', body:'Clear it is. Good call.'}
+    ]
+  },
+  { id:'ORD-8986', status:'packed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(15,0), total:78000, packedAt:dateAgo(0,6), shipBy:'today 6pm', suggestedCarrier:'Delhivery Freight',
+    items:[{p:PROD.swingLog, qty:2, unit:39000, note:'2 m teak logs · marine treated · ready for Delhi to Gir route.'}],
+    chat:[
+      {sys:'accent', body:'Packed — ready for courier'},
+      {who:'me',   t:'06:00', body:"Dr Ramesh — logs are packed. I'll generate the label with Delhivery for today 6pm pickup."}
+    ]
+  },
+  { id:'ORD-8944', status:'shipped', priority:'Normal', species:'macaque', buyer:0, createdAt:dateAgo(7,0), total:148000,
+    items:[
+      {p:PROD.teakClimb, qty:1, unit:132000, note:'Delivered on freight pallet · installation guide enclosed.'},
+      {p:PROD.ropeBridge, qty:2, unit:8000, note:'Pre-tensioned, tag A + B for install order.'}
+    ],
+    tracking:{carrier:'Porter Freight', awb:'PRT-4K11-7736', event:{note:'Out for delivery to Bannerghatta', loc:'Bengaluru', rel:'1h ago'}},
+    chat:[
+      {who:'them', t:'1h ago', body:'Porter driver just called!'},
+      {who:'me',   t:'50m ago', body:"Excellent — let me know once installed, we'll walk you through any tuning."}
+    ]
+  },
+  { id:'ORD-8920', status:'delivered', priority:'Normal', species:'macaque', buyer:1, createdAt:dateAgo(20,0), deliveredAt:dateAgo(1,0), total:142000, rating:5, invoiced:true,
+    items:[{p:PROD.teakClimb, qty:1, unit:142000, note:'Installed and in use · buyer loved the silicone corners.'}],
+    tracking:{carrier:'BlueDart Surface', awb:'BDS-3101-7720'},
+    chat:[
+      {sys:'accent', body:'Delivered · 5★ rating'},
+      {who:'them', t:'1d ago', body:'Installed and our macaques took to it within an hour. 5 stars ⭐'}
+    ]
+  },
+  { id:'ORD-8884', status:'cancelled', priority:'Normal', species:'lion', buyer:6, createdAt:dateAgo(34,0), total:18900,
+    items:[{p:PROD.canopy, qty:4, unit:4725, note:'Cancelled before production.'}],
+    cancelReason:'Rejected by approver — Q4 budget exhausted',
+    chat:[
+      {sys:'danger', body:'Cancelled by buyer · budget Q4'},
+      {who:'them', t:'3 wk ago', body:'Apologies — approver rejected. Q4 budget gone.'}
+    ]
+  },
+  { id:'ORD-8881', status:'returned', priority:'High', species:'rhino', buyer:8, createdAt:dateAgo(52,0), total:94200, returnStage:'Rework in progress',
+    items:[{p:PROD.mudLiner, qty:1, unit:94200, note:'Arrived 12 cm short · rework to exact spec · ETA 3 May.'}],
+    returnTag:'Spec mismatch — rework underway',
+    chat:[
+      {sys:'warn', body:'Return opened · spec mismatch'},
+      {who:'them', t:'5d ago', body:'Liner arrived 12 cm short in both directions.'}
+    ]
+  },
+  { id:'ORD-9099', status:'placed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(0,5), total:234000, slaHoursLeft:19,
+    items:[
+      {p:PROD.lionTower, qty:1, unit:198000, note:'2.8 m tall · Sal + stainless · rated 250 kg+ · monsoon-ready.'},
+      {p:PROD.scentDiff, qty:2, unit:18000, note:'Stainless refillable · one near pool, one near den.'}
+    ],
+    chat:[
+      {who:'them', t:'05:42', body:'We need a reinforced scratch tower for our Bengal tigers at Gir.'},
+      {who:'them', t:'05:43', body:'Need it before monsoon — can you deliver by May 15?'},
+      {who:'me',   t:'08:11', body:"Absolutely — we can rate it for 250kg+ dynamic load."}
+    ]
+  },
+  { id:'ORD-8935', status:'out_for_delivery', priority:'Normal', species:'langur', buyer:7, createdAt:dateAgo(9,0), total:94600,
+    items:[
+      {p:PROD.ropeBridge, qty:2, unit:38300, note:'6 m span · marine rope · stainless anchors.'},
+      {p:PROD.climbNet, qty:1, unit:18000, note:'4×3 m net · marine-grade PP rope.'}
+    ],
+    tracking:{carrier:'Porter Freight', awb:'PRT-2B88-4421', event:{note:'Out for delivery', loc:'Bhubaneswar', rel:'25m ago'}},
+    chat:[
+      {who:'them', t:'25m ago', body:"Out for delivery — we'll install today afternoon."},
+      {who:'me',   t:'20m ago', body:'Let me know once installed — I can walk you through tensioning.'}
+    ]
+  }
+];
+
+/* ============ Helpers ============ */
+const STATUS_LABEL = { placed:'New Request', confirmed:'Approved', in_production:'In Production', packed:'Ready for Shipment', shipped:'Shipped', out_for_delivery:'Out for Delivery', delivered:'Delivered', cancelled:'Cancelled', returned:'Return in Progress' };
+const STATUS_ICON = { placed:'inbox', confirmed:'check-circle', in_production:'hammer', packed:'package-check', shipped:'truck', out_for_delivery:'navigation', delivered:'check-check', cancelled:'x', returned:'rotate-ccw' };
+const inINR = n => '₹' + Number(n).toLocaleString('en-IN');
+const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+const fmtDateLong = iso => new Date(iso).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+const fmtDateMed = iso => new Date(iso).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'});
+const escapeHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function getParam(name){ const m = new URLSearchParams(window.location.search); return m.get(name); }
+function slaBig(h){ if (h==null) return ''; if (h<0) return `<span class="sla-big urgent"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> ${Math.abs(h)}h over SLA</span>`; if (h<=12) return `<span class="sla-big urgent"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; if (h<=24) return `<span class="sla-big warn"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; return `<span class="sla-big ok"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${h}h left</span>`; }
+
+/* ============ Step timeline ============ */
+function timelineSteps(o) {
+  const steps = [
+    { key:'placed',        lbl:'New Request' },
+    { key:'confirmed',     lbl:'Approved' },
+    { key:'in_production', lbl:'In Production' },
+    { key:'packed',        lbl:'Ready to Ship' },
+    { key:'shipped',       lbl:'Shipped' },
+    { key:'delivered',     lbl:'Delivered' }
+  ];
+  const order = ['placed','confirmed','in_production','packed','shipped','out_for_delivery','delivered'];
+  let currentIdx = order.indexOf(o.status);
+  if (o.status === 'out_for_delivery') currentIdx = 4; // map to shipped
+  if (o.status === 'cancelled' || o.status === 'returned') currentIdx = -1; // show all as inactive
+  return steps.map((s, i) => {
+    let cls = '';
+    let when = '';
+    if (currentIdx >= 0) {
+      if (i < currentIdx) cls = 'done';
+      else if (i === currentIdx) cls = 'current';
+    }
+    if (i === 0 && o.createdAt) when = fmtDate(o.createdAt);
+    if (i === 1 && o.approvedAt) when = fmtDate(o.approvedAt);
+    if (i === 3 && o.packedAt) when = fmtDate(o.packedAt);
+    if (i === 5 && o.deliveredAt) when = fmtDate(o.deliveredAt);
+    return `<div class="track-step ${cls}">
+      <div class="dot">${cls==='done' ? '<i data-lucide=\'check\' class=\'w-3.5 h-3.5\'></i>' : (i+1)}</div>
+      <div class="lbl">${s.lbl}</div>
+      ${when?`<div class="when">${when}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ============ Item card (with per-line custom "Add to catalog" button for detail page) ============ */
+function renderItemCard(it, idx, orderStatus) {
+  const speciesImg = o => SPECIES[o]?.name || '';
+  const isCustom = CUSTOM_IDS.has(it.p.sku);
+  const chips = [];
+  if (isCustom) chips.push(`<span class="item-chip custom"><i data-lucide="sparkles" class="w-3 h-3"></i> Custom build</span>`);
+  return `<div class="item">
+    <div class="thumb"><img src="${it.p.img}" alt=""/></div>
+    <div class="meta">
+      <div class="title">${escapeHtml(it.p.name)}</div>
+      <div class="sku">SKU ${it.p.sku}</div>
+      <div class="chips">${chips.join('')}</div>
+      ${it.note?`<div class="desc">${escapeHtml(it.note)}</div>`:''}
+      <div class="price-line">
+        <div class="left">Qty <strong>${it.qty}</strong> × ${inINR(it.unit)}</div>
+        <div class="right">${inINR(it.qty * it.unit)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============ Order detail page render ============ */
+function renderDetail(o) {
+  const b = BUYERS[o.buyer];
+  const sp = SPECIES[o.species];
+
+  // State-aware CTAs
+  const ctas = stateCTAs(o);
+
+  // Breadcrumb
+  const isSample = !window.location.search.includes('id=');
+  const sampleBanner = isSample
+    ? `<div class="sample-banner"><i data-lucide="info" class="w-4 h-4"></i><div>Showing sample order — click any order from <a href="vendor_orders_1_2.html" style="color:var(--brand);text-decoration:underline;font-weight:700">the listing</a> to see its detail.</div></div>`
+    : '';
+
+  // Line items
+  const itemsHtml = o.items.map((it,i) => renderItemCard(it, i, o.status)).join('');
+  const subtotal = o.items.reduce((s,it)=>s + it.qty * it.unit, 0);
+  const commission = Math.round(subtotal * 0.06);
+  const tax = Math.round((subtotal - commission) * 0.18);
+  const payout = subtotal - commission - tax;
+
+  // Tracking card
+  const trackingCard = (o.tracking) ? `
+    <div class="card">
+      <div class="card-head"><h3><i data-lucide="map-pin" class="w-4 h-4"></i> Tracking</h3></div>
+      <div class="card-body track-card">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;">
+          <span style="font-weight:700;color:var(--text)">${escapeHtml(o.tracking.carrier)}</span>
+          <span class="awb-pill">AWB ${escapeHtml(o.tracking.awb)}</span>
+          <button onclick="toast('Copied AWB ${escapeHtml(o.tracking.awb)}','success')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy</button>
+        </div>
+        ${o.tracking.event ? `<div class="tr-event">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          <div>
+            <div class="nm">${escapeHtml(o.tracking.event.note)}</div>
+            <div class="sub">${escapeHtml(o.tracking.event.loc)} · ${escapeHtml(o.tracking.event.rel)}</div>
+          </div>
+        </div>` : ''}
+        <button onclick="toast('Opening live map','success')" class="cta-btn cta-ghost" style="align-self:flex-start;"><i data-lucide="external-link" class="w-4 h-4"></i> Live map</button>
+      </div>
+    </div>` : '';
+
+  // Production stage card
+  const prodCard = (o.productionStage) ? `
+    <div class="card">
+      <div class="card-head"><h3><i data-lucide="hammer" class="w-4 h-4"></i> Current production stage</h3></div>
+      <div class="card-body">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${escapeHtml(o.productionStage)}</div>
+        <div style="font-size:12.5px;color:var(--text-muted);">Expected ready-by <strong style="color:var(--text);">${fmtDate(o.readyBy)}</strong></div>
+      </div>
+    </div>` : '';
+
+  // Packed card
+  const packedCard = (o.status === 'packed') ? `
+    <div class="card">
+      <div class="card-head"><h3><i data-lucide="package-check" class="w-4 h-4"></i> Ship-by window</h3></div>
+      <div class="card-body">
+        <div class="kv">
+          <div class="k">Ship by</div><div class="v">${escapeHtml(o.shipBy || '—')}</div>
+          <div class="k">Suggested carrier</div><div class="v">${escapeHtml(o.suggestedCarrier || '—')}</div>
+          <div class="k">Packed at</div><div class="v">${o.packedAt?fmtDate(o.packedAt):'—'}</div>
+        </div>
+      </div>
+    </div>` : '';
+
+  // Cancellation card
+  const cancelCard = (o.status === 'cancelled' && o.cancelReason) ? `
+    <div class="card">
+      <div class="card-head"><h3 style="color:var(--danger);"><i data-lucide="x-circle" class="w-4 h-4" style="color:var(--danger);"></i> Cancellation reason</h3></div>
+      <div class="card-body">
+        <div style="font-size:13.5px;color:var(--text);line-height:1.5;">${escapeHtml(o.cancelReason)}</div>
+      </div>
+    </div>` : '';
+
+  // Chat preview
+  const lastTwo = (o.chat || []).filter(m => !m.sys).slice(-2);
+  const chatPrevHtml = lastTwo.length ? lastTwo.map(m => {
+    const who = m.who === 'me' ? 'You' : b.nm.split(' ')[0];
+    const avUrl = m.who === 'me'
+      ? 'https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true'
+      : `https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true`;
+    const text = m.img ? '📷 [image]' : (m.body || '');
+    return `<div class="prev-msg">
+      <img src="${avUrl}" alt=""/>
+      <div class="bubble"><div class="who">${escapeHtml(who)} · <span style="color:var(--text-muted);font-weight:500;">${escapeHtml(m.t||'')}</span></div><div class="txt">${escapeHtml(text)}</div></div>
+    </div>`;
+  }).join('') : `<div class="chat-empty">No messages yet. Start the conversation below.</div>`;
+
+  // Render
+  return `
+    <div class="crumbs">
+      <a href="vendor_dashboard_1.html">Dashboard</a>
+      <span style="color:var(--text-subtle)">›</span>
+      <a href="vendor_orders_1_2.html">Orders</a>
+      <span style="color:var(--text-subtle)">›</span>
+      <span style="color:var(--text);font-weight:600">${o.id}</span>
+    </div>
+    <a href="vendor_orders_1_2.html" class="back-link"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to orders</a>
+
+    ${sampleBanner}
+
+    <div class="detail-head">
+      <div class="dh-left">
+        <div class="dh-id-row">
+          <span class="dh-id">${o.id}</span>
+          <span class="chip-big chip-${o.status}"><i data-lucide="${STATUS_ICON[o.status]}" class="w-3.5 h-3.5"></i> ${STATUS_LABEL[o.status]}</span>
+          ${o.slaHoursLeft != null ? slaBig(o.slaHoursLeft) : ''}
+        </div>
+        <div class="dh-meta">
+          <span><i data-lucide="calendar" class="w-3.5 h-3.5" style="vertical-align:middle;color:var(--text-subtle)"></i> Placed <strong>${fmtDate(o.createdAt)}</strong></span>
+          <span class="sep">·</span>
+          <span><strong>${escapeHtml(b.nm)}</strong> · ${escapeHtml(b.zoo)}</span>
+        </div>
+      </div>
+      <div class="cta-group">${ctas}</div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="activity" class="w-4 h-4"></i> Order progress</h3></div>
+          <div class="track-grid">${timelineSteps(o)}</div>
+        </div>
+
+        ${prodCard}
+        ${packedCard}
+        ${trackingCard}
+        ${cancelCard}
+
+        <!-- Items -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="package" class="w-4 h-4"></i> Products · ${o.items.length} line${o.items.length>1?'s':''}</h3></div>
+          ${itemsHtml}
+        </div>
+
+        <!-- Shipping address -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="map-pin" class="w-4 h-4"></i> Shipping address</h3></div>
+          <div class="card-body">
+            <div class="kv">
+              <div class="k">Zoo</div><div class="v">${escapeHtml(b.zoo.split(' · ')[0])}</div>
+              <div class="k">Receiver</div><div class="v">${escapeHtml(b.nm)} · ${escapeHtml(b.role)}</div>
+              <div class="k">Street</div><div class="v">${escapeHtml(b.addr.street)}</div>
+              <div class="k">City</div><div class="v">${escapeHtml(b.addr.city)} — ${escapeHtml(b.addr.pin)}</div>
+              <div class="k">Phone</div><div class="v">${escapeHtml(b.addr.phone)} · <a href="tel:${b.addr.phone}" onclick="toast('Calling receiver…','success')" style="color:var(--brand);font-weight:700;">Call receiver</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <!-- Buyer -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="user" class="w-4 h-4"></i> Buyer</h3></div>
+          <div class="buyer-card-big">
+            <img class="ba" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=160&height=160&seed=${b.seed}&nologo=true" alt=""/>
+            <div class="nm">${escapeHtml(b.nm)}</div>
+            <div class="role">${escapeHtml(b.role)}</div>
+            <div class="zoo"><i data-lucide="landmark" class="w-3 h-3"></i> ${escapeHtml(b.zoo.split(' · ')[0])}</div>
+            <div class="stats">
+              <div><span class="star">★</span> <strong>4.8</strong> rating</div>
+              <div><strong>${b.pastOrders}</strong> past orders</div>
+            </div>
+            <div class="contact">
+              <button class="primary" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</button>
+              <button onclick="toast('Email draft opened','success')"><i data-lucide="mail" class="w-4 h-4"></i> Email</button>
+              <button onclick="toast('Calling ${escapeHtml(b.nm.split(' ')[0])}…','success')"><i data-lucide="phone" class="w-4 h-4"></i> Call</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat preview -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="message-circle" class="w-4 h-4"></i> Recent messages</h3><span class="tiny">${(o.chat||[]).filter(m=>!m.sys).length} messages</span></div>
+          <div class="chat-prev">
+            ${chatPrevHtml}
+            <button class="chat-open-btn" onclick="openChatSheet('${o.id}')"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Open full chat</button>
+          </div>
+        </div>
+
+        <!-- Order math -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="calculator" class="w-4 h-4"></i> Order math</h3></div>
+          <div class="card-body">
+            <div class="math-line"><div class="lab">Subtotal</div><div class="val">${inINR(subtotal)}</div></div>
+            <div class="math-line"><div class="lab">Platform commission <span style="color:var(--text-subtle);">(6%)</span></div><div class="val neg">−${inINR(commission)}</div></div>
+            <div class="math-line"><div class="lab">GST on commission <span style="color:var(--text-subtle);">(18%)</span></div><div class="val neg">−${inINR(tax)}</div></div>
+            <div class="math-divider"></div>
+            <div class="payout-line"><div class="lab">Your payout</div><div class="val">${inINR(payout)}</div></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Estimated. Paid within 7 days of delivery confirmation.</div>
+          </div>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="card">
+          <div class="card-head"><h3><i data-lucide="clock" class="w-4 h-4"></i> Timestamps</h3></div>
+          <div class="card-body">
+            <div class="ts-line"><div class="lab">Placed</div><div class="val">${fmtDate(o.createdAt)}</div></div>
+            ${o.approvedAt?`<div class="ts-line"><div class="lab">Approved</div><div class="val">${fmtDate(o.approvedAt)}</div></div>`:''}
+            ${o.readyBy?`<div class="ts-line"><div class="lab">Expected ready-by</div><div class="val">${fmtDate(o.readyBy)}</div></div>`:''}
+            ${o.packedAt?`<div class="ts-line"><div class="lab">Packed</div><div class="val">${fmtDate(o.packedAt)}</div></div>`:''}
+            ${o.deliveredAt?`<div class="ts-line"><div class="lab">Delivered</div><div class="val">${fmtDate(o.deliveredAt)}</div></div>`:''}
+            <div class="ts-line"><div class="lab">Last updated</div><div class="val">just now</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============ State-aware CTA group (reused on swap after revert/accept) ============ */
+const REVERTABLE_STATUSES = ['confirmed','in_production','packed','shipped','out_for_delivery'];
+// Chain of forward progression; earlier targets for revert come from this array
+const STATUS_CHAIN = ['placed','confirmed','in_production','packed','shipped','out_for_delivery'];
+const REVERT_TARGET_DESC = {
+  placed: 'Restart the conversation — buyer will need to re-confirm',
+  confirmed: 'Production paused — order goes back to the approved queue',
+  in_production: 'Pause packing — fabrication still ongoing',
+  packed: 'Unship — goods come back to packed / ready-to-ship',
+  shipped: 'Recall from out-for-delivery — goods in transit'
+};
+function validRevertTargets(status) {
+  const i = STATUS_CHAIN.indexOf(status);
+  if (i <= 0) return [];
+  // Return closest-first (i-1, i-2, …, 0)
+  return STATUS_CHAIN.slice(0, i).reverse();
+}
+function revertBtn(o) {
+  if (!REVERTABLE_STATUSES.includes(o.status)) return '';
+  return `<button class="cta-btn cta-ghost" onclick="openRevertModal()" title="Move this order to an earlier state"><i data-lucide="corner-up-left" class="w-4 h-4"></i> Revert state</button>`;
+}
+function stateCTAs(o) {
+  let ctas = '';
+  if (o.status === 'placed') {
+    ctas = `
+      <button class="cta-btn cta-primary" onclick="openAcceptModal()"><i data-lucide="sparkles" class="w-4 h-4"></i> Accept &amp; Confirm</button>
+      <button class="cta-btn cta-ghost" onclick="toast('Queued for later · reminders in 24h','warn')"><i data-lucide="timer" class="w-4 h-4"></i> Queue for later</button>
+      <button class="cta-btn cta-danger" onclick="openGen('decline')"><i data-lucide="x" class="w-4 h-4"></i> Decline</button>`;
+  } else if (o.status === 'confirmed') {
+    ctas = `
+      <button class="cta-btn cta-primary" onclick="toast('Moved to In Production','success')"><i data-lucide="hammer" class="w-4 h-4"></i> Mark In Production</button>
+      <button class="cta-btn cta-ghost" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat buyer</button>`;
+  } else if (o.status === 'in_production') {
+    ctas = `
+      <button class="cta-btn cta-primary" onclick="openGen('progress')"><i data-lucide="pencil" class="w-4 h-4"></i> Update Progress</button>
+      <button class="cta-btn cta-ghost" onclick="toast('Ready to Ship · buyer notified','success')"><i data-lucide="package-check" class="w-4 h-4"></i> Mark Ready to Ship</button>`;
+  } else if (o.status === 'packed') {
+    ctas = `
+      <button class="cta-btn cta-warn" onclick="openGen('label')"><i data-lucide="printer" class="w-4 h-4"></i> Generate courier label</button>
+      <button class="cta-btn cta-primary" onclick="openGen('shipped')"><i data-lucide="truck" class="w-4 h-4"></i> Mark Shipped</button>`;
+  } else if (o.status === 'shipped' || o.status === 'out_for_delivery') {
+    ctas = `
+      <button class="cta-btn cta-primary" onclick="openGen('tracking')"><i data-lucide="pencil" class="w-4 h-4"></i> Update Tracking</button>
+      <button class="cta-btn cta-ghost" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat buyer</button>`;
+  } else if (o.status === 'delivered') {
+    ctas = `
+      <button class="cta-btn cta-primary" onclick="toast('Invoice downloaded','success')"><i data-lucide="download" class="w-4 h-4"></i> Download Invoice</button>
+      <button class="cta-btn cta-ghost" onclick="toast('Review requested · buyer nudged','success')"><i data-lucide="star" class="w-4 h-4"></i> Request Review</button>`;
+  } else if (o.status === 'cancelled') {
+    ctas = `
+      <button class="cta-btn cta-ghost" onclick="openGen('reason')"><i data-lucide="eye" class="w-4 h-4"></i> View reason</button>
+      <button class="cta-btn cta-ghost" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat buyer</button>`;
+  } else if (o.status === 'returned') {
+    ctas = `
+      <a class="cta-btn cta-primary" href="returns_vendor_1.html?id=${o.id}"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Manage Return</a>`;
+  }
+  return ctas + revertBtn(o);
+}
+
+/* ============ Revert to earlier state modal ============ */
+let revertState = { target: null, reason: '' };
+
+function openRevertModal() {
+  if (!currentOrder || !REVERTABLE_STATUSES.includes(currentOrder.status)) return;
+  const targets = validRevertTargets(currentOrder.status);
+  revertState = { target: targets[0] || null, reason: '' };
+  renderRevertModal();
+  document.getElementById('revertOverlay').classList.add('open');
+}
+function closeRevertModal() {
+  document.getElementById('revertOverlay').classList.remove('open');
+}
+function renderRevertModal() {
+  const o = currentOrder;
+  const modal = document.getElementById('revertModal');
+  const targets = validRevertTargets(o.status);
+  const targetsHtml = targets.map(k => `
+    <label class="revert-target ${revertState.target === k ? 'selected' : ''}" data-target="${k}">
+      <span class="rt-radio"></span>
+      <span class="rt-body">
+        <span class="rt-name">${escapeHtml(STATUS_LABEL[k])}</span>
+        <span class="rt-desc">${escapeHtml(REVERT_TARGET_DESC[k] || '')}</span>
+      </span>
+    </label>`).join('');
+  const reasonLen = revertState.reason.trim().length;
+  const valid = reasonLen >= 15 && revertState.target;
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div class="title" id="revertTitle"><i data-lucide="corner-up-left" class="w-5 h-5"></i> Revert order to earlier state</div>
+      <button class="modal-close" onclick="closeRevertModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="revert-banner">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        <div>Buyer will be notified of this change. Reverting backward is a last resort — use only when forward progress truly isn't possible.</div>
+      </div>
+      <div class="revert-current">Current state: <span class="chip-big chip-${o.status}"><i data-lucide="${STATUS_ICON[o.status]}" class="w-3.5 h-3.5"></i> ${escapeHtml(STATUS_LABEL[o.status])}</span></div>
+      <label class="revert-label">Revert to</label>
+      <div class="revert-targets" id="revertTargets">${targetsHtml}</div>
+      <label class="revert-label" style="margin-top:16px;">Reason <span style="color:var(--danger);font-weight:700;">*</span> <span style="font-weight:500;color:var(--text-muted);">(visible to buyer)</span></label>
+      <textarea class="revert-reason" id="revertReason" placeholder="e.g., Material shortage — need to pause production until new batch arrives next week">${escapeHtml(revertState.reason)}</textarea>
+      <div class="revert-count ${reasonLen >= 15 ? 'ok' : ''}" id="revertCount">${reasonLen} / 15 min chars${reasonLen >= 15 ? ' ✓' : ''}</div>
+    </div>
+    <div class="modal-foot" style="justify-content:flex-end;">
+      <button class="cta-btn cta-ghost" onclick="closeRevertModal()">Cancel</button>
+      <button class="cta-btn cta-primary" id="revertConfirmBtn" ${valid?'':'disabled'} onclick="confirmRevert()"><i data-lucide="corner-up-left" class="w-4 h-4"></i> Confirm revert</button>
+    </div>`;
+  // Wire target radio clicks
+  modal.querySelectorAll('.revert-target').forEach(el => {
+    el.addEventListener('click', () => {
+      revertState.target = el.dataset.target;
+      modal.querySelectorAll('.revert-target').forEach(x => x.classList.toggle('selected', x.dataset.target === revertState.target));
+      updateRevertConfirmBtn();
+    });
+  });
+  // Wire reason textarea
+  const ta = modal.querySelector('#revertReason');
+  ta.addEventListener('input', e => {
+    revertState.reason = e.target.value;
+    const len = revertState.reason.trim().length;
+    const counter = modal.querySelector('#revertCount');
+    counter.textContent = `${len} / 15 min chars${len >= 15 ? ' ✓' : ''}`;
+    counter.classList.toggle('ok', len >= 15);
+    ta.classList.remove('invalid');
+    updateRevertConfirmBtn();
+  });
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+function updateRevertConfirmBtn() {
+  const btn = document.getElementById('revertConfirmBtn');
+  if (!btn) return;
+  const valid = revertState.reason.trim().length >= 15 && revertState.target;
+  btn.disabled = !valid;
+}
+function confirmRevert() {
+  const reason = revertState.reason.trim();
+  const target = revertState.target;
+  if (reason.length < 15 || !target) {
+    const ta = document.getElementById('revertReason');
+    if (ta) { ta.classList.add('invalid'); ta.focus(); }
+    return;
+  }
+  const o = currentOrder;
+  const oldStatus = o.status;
+  const oldLabel = STATUS_LABEL[oldStatus];
+  const newLabel = STATUS_LABEL[target];
+  // Mutate order
+  o.status = target;
+  // Clear now-invalid forward timestamps/fields
+  if (STATUS_CHAIN.indexOf(target) < STATUS_CHAIN.indexOf('packed')) { delete o.packedAt; delete o.shipBy; delete o.suggestedCarrier; }
+  if (STATUS_CHAIN.indexOf(target) < STATUS_CHAIN.indexOf('shipped')) { delete o.tracking; }
+  if (STATUS_CHAIN.indexOf(target) < STATUS_CHAIN.indexOf('in_production')) { delete o.productionStage; }
+  if (STATUS_CHAIN.indexOf(target) < STATUS_CHAIN.indexOf('confirmed')) { delete o.approvedAt; delete o.readyBy; }
+  // Push chat system message
+  if (!o.chat) o.chat = [];
+  o.chat.push({ sys: 'warn', body: `Vendor reverted from ${oldLabel} to ${newLabel} — ${reason}` });
+  // Close modal
+  closeRevertModal();
+  // Toast
+  toast(`Order reverted to ${newLabel} · buyer notified`, 'warn');
+  // Update chip
+  const chip = document.querySelector('.dh-id-row .chip-big');
+  if (chip) {
+    chip.className = `chip-big chip-${target}`;
+    chip.innerHTML = `<i data-lucide="${STATUS_ICON[target]}" class="w-3.5 h-3.5"></i> ${STATUS_LABEL[target]}`;
+  }
+  // Swap CTAs
+  const ctaGrp = document.querySelector('.cta-group');
+  if (ctaGrp) ctaGrp.innerHTML = stateCTAs(o);
+  // Update timeline
+  const track = document.querySelector('.track-grid');
+  if (track) track.innerHTML = timelineSteps(o);
+  // If chat sheet is open for this order, live-insert the system chip
+  const sheet = document.getElementById('chatSheet');
+  if (sheet && sheet.classList.contains('open')) {
+    const panel = sheet.querySelector(`[data-chat-for="${o.id}"]`);
+    if (panel) {
+      const msgs = panel.querySelector('.messages');
+      if (msgs) {
+        msgs.insertAdjacentHTML('beforeend', `<div class="sys-chip warn"><i data-lucide="clock" class="w-3 h-3"></i> ${escapeHtml('Vendor reverted from ' + oldLabel + ' to ' + newLabel + ' — ' + reason)}</div>`);
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+    }
+  }
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+
+/* ============ Chat side sheet (copied from vendor_orders_1_2.html) ============ */
+function chatPanel(o){
+  const b = BUYERS[o.buyer];
+  const avatar = `https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true`;
+  const sp = SPECIES[o.species];
+  const totalUnits = o.items.reduce((s,i)=>s+i.qty, 0);
+  const specChips = `
+    ${sp?`<span class="chip-at"><i data-lucide="paw-print" class="w-3 h-3"></i> ${sp.name}</span>`:''}
+    <span class="chip-at"><i data-lucide="hash" class="w-3 h-3"></i> ${totalUnits} units</span>
+    <span class="chip-at"><i data-lucide="indian-rupee" class="w-3 h-3"></i> ${inINR(o.total)}</span>`;
+
+  const msgs = (o.chat || []).map(m => {
+    if (m.sys) {
+      const cls = m.sys || 'neutral';
+      const iconMap = { accent:'check-circle', warn:'clock', danger:'alert-circle', info:'info', neutral:'circle-dot' };
+      return `<div class="sys-chip ${cls}"><i data-lucide="${iconMap[cls]}" class="w-3 h-3"></i> ${escapeHtml(m.body)}</div>`;
+    }
+    const who = m.who === 'me' ? 'me' : 'them';
+    const av = who === 'them' ? `<div class="msg-av"><img src="${avatar}" alt=""/></div>` : '';
+    const body = m.img
+      ? `<div class="msg-img"><img src="https://image.pollinations.ai/prompt/${m.img}?width=340&height=220&seed=${Math.floor(Math.random()*9999)}&nologo=true" alt=""/></div>`
+      : `<div class="msg-bubble">${escapeHtml(m.body).replace(/\n/g,'<br/>')}</div>`;
+    const tick = who === 'me' ? ' <i data-lucide="check-check" class="w-3 h-3 tk"></i>' : '';
+    return `<div class="msg ${who}">${av}<div>${body}<div class="msg-meta">${m.t || ''}${tick}</div></div></div>`;
+  }).join('');
+
+  return `<div class="chat-panel" data-chat-for="${o.id}" style="display:flex;">
+    <div class="chat-head">
+      <div class="c-av"><img src="${avatar}" alt=""/><span class="pres"></span></div>
+      <div class="c-body">
+        <div class="c-name">${escapeHtml(b.nm)} <span style="font-weight:500;color:var(--text-muted);font-size:11px;">· ${escapeHtml(b.role)}</span></div>
+        <div class="c-sub"><span class="pres-dot"></span><span>Online</span><span class="dot">·</span><span>${escapeHtml(b.zoo)}</span><span class="dot">·</span><span>Order ${o.id}</span></div>
+      </div>
+      <div class="c-actions">
+        <button class="c-btn" title="Search"><i data-lucide="search" class="w-4 h-4"></i></button>
+        <button class="c-btn" title="Phone" onclick="toast('Calling buyer…','success')"><i data-lucide="phone" class="w-4 h-4"></i></button>
+        <a href="chat_1.html" class="c-btn" title="Open full"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+        <button class="c-btn" data-close-chat title="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+    <div class="spec-strip">
+      <span class="lab">Spec</span>
+      ${specChips}
+    </div>
+    <div class="messages">
+      <div class="day-sep">Conversation</div>
+      ${msgs}
+    </div>
+    <div class="composer">
+      <div class="comp-wrap">
+        <button class="comp-tool" title="Attach"><i data-lucide="paperclip" class="w-4 h-4"></i></button>
+        <button class="comp-tool" title="Image"><i data-lucide="image" class="w-4 h-4"></i></button>
+        <textarea placeholder="Message ${escapeHtml(b.nm.split(' ')[0])}…" rows="1"></textarea>
+        <button class="comp-tool" title="Emoji"><i data-lucide="smile" class="w-4 h-4"></i></button>
+      </div>
+      <button class="send-btn" disabled><i data-lucide="send" class="w-4 h-4"></i></button>
+    </div>
+  </div>`;
+}
+
+function openChatSheet(orderId) {
+  const o = ORDERS.find(x => x.id === orderId) || currentOrder;
+  if (!o) return;
+  const sheet = document.getElementById('chatSheet');
+  const overlay = document.getElementById('chatOverlay');
+  sheet.innerHTML = chatPanel(o);
+  sheet.classList.add('open');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  sheet.querySelectorAll('[data-close-chat]').forEach(btn => btn.addEventListener('click', closeChatSheet));
+  const ta = sheet.querySelector('.comp-wrap textarea');
+  const sendBtn = sheet.querySelector('.send-btn');
+  if (ta && sendBtn) {
+    ta.addEventListener('input', () => {
+      sendBtn.disabled = !ta.value.trim();
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
+    });
+    ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendInSheet(ta, sendBtn); } });
+    sendBtn.addEventListener('click', () => sendInSheet(ta, sendBtn));
+    setTimeout(() => ta.focus(), 300);
+  }
+  setTimeout(() => { const msgs = sheet.querySelector('.messages'); if (msgs) msgs.scrollTop = msgs.scrollHeight; }, 40);
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+function closeChatSheet() {
+  document.getElementById('chatSheet').classList.remove('open');
+  document.getElementById('chatOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function sendInSheet(ta, sendBtn) {
+  const text = ta.value.trim();
+  if (!text) return;
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit', minute:'2-digit'});
+  const msgs = document.querySelector('#chatSheet .messages');
+  msgs.insertAdjacentHTML('beforeend', `<div class="msg me"><div><div class="msg-bubble">${escapeHtml(text).replace(/\n/g,'<br/>')}</div><div class="msg-meta">${now} <i data-lucide="check-check" class="w-3 h-3 tk"></i></div></div></div>`);
+  ta.value = ''; ta.style.height = 'auto'; sendBtn.disabled = true;
+  msgs.scrollTop = msgs.scrollHeight;
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+
+/* ============ Accept Modal (3 steps + review) ============ */
+let acceptState = {
+  step: 1,            // 1 = items, 2 = days, 3 = note, 4 = review
+  days: 14,
+  note: '',
+  reviseTotal: null,
+  addedToCat: {},     // sku -> true
+  items: []           // live copy {qty, unit}
+};
+
+function openAcceptModal() {
+  if (!currentOrder) return;
+  // Reset state from order
+  acceptState = {
+    step: 1,
+    days: 14,
+    note: '',
+    reviseTotal: null,
+    addedToCat: {},
+    items: currentOrder.items.map(it => ({ qty: it.qty, unit: it.unit, sku: it.p.sku, name: it.p.name, img: it.p.img, note: it.note, custom: CUSTOM_IDS.has(it.p.sku) }))
+  };
+  renderAcceptModal();
+  document.getElementById('acceptOverlay').classList.add('open');
+}
+function closeAcceptModal() {
+  document.getElementById('acceptOverlay').classList.remove('open');
+}
+
+function computeDelivery() {
+  const d = new Date();
+  d.setDate(d.getDate() + acceptState.days);
+  return d;
+}
+
+function renderAcceptModal() {
+  const modal = document.getElementById('acceptModal');
+  const s = acceptState.step;
+  const subtotal = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
+  const finalTotal = acceptState.reviseTotal != null ? acceptState.reviseTotal : subtotal;
+
+  const progress = `
+    <div class="step-progress">
+      <div class="sp ${s>1?'done':(s===1?'active':'')}"><span class="sn">${s>1?'✓':'1'}</span><span>Review</span></div>
+      <div class="sp ${s>2?'done':(s===2?'active':'')}"><span class="sn">${s>2?'✓':'2'}</span><span>Delivery</span></div>
+      <div class="sp ${s>3?'done':(s===3?'active':'')}"><span class="sn">${s>3?'✓':'3'}</span><span>Note</span></div>
+      <div class="sp ${s===4?'active':''}"><span class="sn">4</span><span>Confirm</span></div>
+    </div>`;
+
+  let body = '';
+  let foot = '';
+
+  if (s === 1) {
+    const itemsHtml = acceptState.items.map((it, idx) => {
+      const addCatBtn = it.custom
+        ? (acceptState.addedToCat[it.sku]
+           ? `<div class="cat-added"><i data-lucide="check-circle" class="w-3 h-3"></i> Added to your catalog</div>`
+           : `<button class="cat-btn" onclick="openCatalogModal(${idx})"><i data-lucide="plus-circle" class="w-3 h-3"></i> Add to my catalog</button>`)
+        : '';
+      return `<div class="step-item ${it.custom?'custom':''}">
+        <div class="row1">
+          <div class="thumb"><img src="${it.img}" alt=""/></div>
+          <div style="flex:1;min-width:0;">
+            <div class="ttl">${escapeHtml(it.name)}</div>
+            <div class="sub">SKU ${it.sku}${it.custom?' · <span style="color:#A16207;font-weight:700;">Not in your catalog</span>':''}</div>
+          </div>
+        </div>
+        <div class="inputs">
+          <div class="field"><label>Quantity</label><input type="number" min="1" value="${it.qty}" data-item-idx="${idx}" data-field="qty"/></div>
+          <div class="field"><label>Unit price (₹)</label><input type="number" min="0" value="${it.unit}" data-item-idx="${idx}" data-field="unit"/></div>
+        </div>
+        ${it.note ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.4;"><strong style="color:var(--text);">Buyer spec:</strong> ${escapeHtml(it.note)}</div>` : ''}
+        ${addCatBtn}
+        <div class="line-total"><div class="lab">Line total</div><div class="val">${inINR(it.qty * it.unit)}</div></div>
+      </div>`;
+    }).join('');
+
+    body = `
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Review quantities and pricing. For any items not yet in your catalog, you can add them with a single click.</div>
+      ${itemsHtml}
+      <div class="subtotal-bar"><div class="lab">Running subtotal</div><div class="val">${inINR(subtotal)}</div></div>`;
+    foot = `
+      <button class="cta-btn cta-ghost" onclick="closeAcceptModal()">Cancel</button>
+      <button class="cta-btn cta-primary" onclick="nextStep()">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
+  }
+
+  else if (s === 2) {
+    const preview = computeDelivery();
+    const presets = [
+      { lbl:'1 week', days:7 },
+      { lbl:'2 weeks', days:14 },
+      { lbl:'3 weeks', days:21 },
+      { lbl:'1 month', days:30 }
+    ];
+    body = `
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Tell the buyer how many days you need to deliver. They'll see a countdown on their side and a clear "Delivers by" date.</div>
+
+      <div class="days-label" style="text-align:center;margin-bottom:8px;">How many days to deliver?</div>
+      <div class="days-big">
+        <button class="days-step-btn" onclick="tweakDays(-1)" aria-label="Decrease"><i data-lucide="minus" class="w-5 h-5"></i></button>
+        <input type="number" class="days-input" id="daysInput" min="1" max="180" value="${acceptState.days}"/>
+        <button class="days-step-btn" onclick="tweakDays(1)" aria-label="Increase"><i data-lucide="plus" class="w-5 h-5"></i></button>
+      </div>
+      <div class="days-label" style="text-align:center;margin-bottom:16px;">days</div>
+
+      <div class="preset-chips" id="presetChips">
+        ${presets.map(p => `<button class="preset-chip ${p.days === acceptState.days?'active':''}" data-days="${p.days}">${p.lbl}</button>`).join('')}
+      </div>
+
+      <div class="date-preview">
+        <div class="ic"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
+        <div class="txt">
+          <div class="lab">Delivers by</div>
+          <div class="big" id="deliveryPreview">${fmtDateLong(preview)}</div>
+        </div>
+      </div>
+
+      <div class="hint"><i data-lucide="info" class="w-3.5 h-3.5"></i><div>Include buffer for any rework requests. Buyers see this as a live countdown, so shorter but reliable beats optimistic.</div></div>
+
+      <label class="buffer-toggle">
+        <input type="checkbox" id="bufferChk" ${acceptState.bufferAdded?'checked':''}/>
+        <div>
+          <div class="tg-lab">Add 3-day risk padding</div>
+          <div class="tg-sub">Recommended for items with weather-dependent materials</div>
+        </div>
+      </label>`;
+    foot = `
+      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+      <button class="cta-btn cta-primary" onclick="nextStep()">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
+  }
+
+  else if (s === 3) {
+    body = `
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Optionally add a note. Buyers appreciate clarity around spec, pricing adjustments, or schedule caveats.</div>
+
+      <label class="label" style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Note to buyer</label>
+      <textarea class="note-area" id="noteArea" placeholder="e.g., Teak will be kiln-dried. Silicone corners add ₹6k — reflected in total.">${escapeHtml(acceptState.note)}</textarea>
+
+      <label class="revise-toggle">
+        <input type="checkbox" id="reviseChk" ${acceptState.reviseTotal != null ? 'checked':''}/>
+        <div>
+          <div class="tg-lab">Price adjusted? Show new total</div>
+          <div class="tg-sub">Useful if buyer asked for add-ons or specs changed</div>
+        </div>
+      </label>
+
+      <div class="price-revise ${acceptState.reviseTotal != null ? 'open':''}" id="priceReviseBox">
+        <label>New final quote (₹)</label>
+        <input type="number" id="reviseInput" min="0" value="${acceptState.reviseTotal ?? subtotal}"/>
+        <div style="font-size:11px;color:#A16207;margin-top:6px;">Current subtotal from Step 1: <strong>${inINR(subtotal)}</strong></div>
+      </div>`;
+    foot = `
+      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+      <button class="cta-btn cta-primary" onclick="nextStep()">Review <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
+  }
+
+  else if (s === 4) {
+    const preview = computeDelivery();
+    const linesHtml = acceptState.items.map(it => `
+      <div class="review-line">
+        <div class="thm"><img src="${it.img}" alt=""/></div>
+        <div class="nm">${escapeHtml(it.name)} <span style="color:var(--text-muted);">× ${it.qty}</span></div>
+        <div class="tot">${inINR(it.qty * it.unit)}</div>
+      </div>`).join('');
+
+    body = `
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Double-check before confirming. Once accepted, the buyer gets a notification and the countdown starts.</div>
+      <div class="review-card">
+        <div class="review-kv">
+          <div class="k">Final total</div><div class="v big">${inINR(finalTotal)}</div>
+          <div class="k">Delivery window</div><div class="v">${acceptState.days} days</div>
+          <div class="k">Delivers by</div><div class="v">${fmtDateLong(preview)}</div>
+        </div>
+        <div style="margin-top:4px;padding-top:12px;border-top:1px dashed var(--brand);">
+          <div style="font-size:11.5px;font-weight:700;color:var(--brand-hover);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Line items</div>
+          ${linesHtml}
+        </div>
+        ${acceptState.note ? `<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--brand);font-size:12.5px;color:var(--text);line-height:1.5;"><strong>Note:</strong> ${escapeHtml(acceptState.note)}</div>` : ''}
+      </div>`;
+    foot = `
+      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to edit</button>
+      <button class="cta-btn cta-primary" onclick="confirmAccept()">Confirm &amp; Accept <i data-lucide="check" class="w-4 h-4"></i></button>`;
+  }
+
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div class="title" id="acceptTitle"><i data-lucide="sparkles" class="w-5 h-5"></i> Accept order ${currentOrder.id}</div>
+      <button class="modal-close" onclick="closeAcceptModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot">${progress}${foot}</div>`;
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+  wireAcceptModal();
+}
+
+function wireAcceptModal() {
+  // Step 1 qty/unit wiring
+  document.querySelectorAll('[data-item-idx]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = +e.target.dataset.itemIdx;
+      const field = e.target.dataset.field;
+      const val = Math.max(0, +e.target.value || 0);
+      acceptState.items[idx][field] = val;
+      const st = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
+      const bar = document.querySelector('.subtotal-bar .val');
+      if (bar) bar.textContent = inINR(st);
+      const lineTotal = e.target.closest('.step-item').querySelector('.line-total .val');
+      if (lineTotal) lineTotal.textContent = inINR(acceptState.items[idx].qty * acceptState.items[idx].unit);
+    });
+  });
+  // Step 2
+  const daysInput = document.getElementById('daysInput');
+  if (daysInput) {
+    daysInput.addEventListener('input', e => {
+      let v = Math.max(1, Math.min(180, +e.target.value || 1));
+      acceptState.days = v;
+      updateDatePreview();
+      highlightPreset();
+    });
+  }
+  document.querySelectorAll('#presetChips .preset-chip').forEach(c => c.addEventListener('click', () => {
+    acceptState.days = +c.dataset.days;
+    if (daysInput) daysInput.value = acceptState.days;
+    updateDatePreview();
+    highlightPreset();
+  }));
+  const bufferChk = document.getElementById('bufferChk');
+  if (bufferChk) bufferChk.addEventListener('change', e => {
+    const wasOn = acceptState.bufferAdded;
+    if (e.target.checked && !wasOn) { acceptState.days += 3; }
+    else if (!e.target.checked && wasOn) { acceptState.days = Math.max(1, acceptState.days - 3); }
+    acceptState.bufferAdded = e.target.checked;
+    if (daysInput) daysInput.value = acceptState.days;
+    updateDatePreview();
+    highlightPreset();
+  });
+  // Step 3
+  const noteA = document.getElementById('noteArea');
+  if (noteA) noteA.addEventListener('input', e => acceptState.note = e.target.value);
+  const reviseChk = document.getElementById('reviseChk');
+  if (reviseChk) reviseChk.addEventListener('change', e => {
+    const box = document.getElementById('priceReviseBox');
+    if (e.target.checked) {
+      box.classList.add('open');
+      const st = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
+      acceptState.reviseTotal = st;
+    } else {
+      box.classList.remove('open');
+      acceptState.reviseTotal = null;
+    }
+  });
+  const reviseInp = document.getElementById('reviseInput');
+  if (reviseInp) reviseInp.addEventListener('input', e => { acceptState.reviseTotal = Math.max(0, +e.target.value || 0); });
+}
+
+function updateDatePreview() {
+  const el = document.getElementById('deliveryPreview');
+  if (el) el.textContent = fmtDateLong(computeDelivery());
+}
+function highlightPreset() {
+  document.querySelectorAll('#presetChips .preset-chip').forEach(c => {
+    if (+c.dataset.days === acceptState.days) c.classList.add('active');
+    else c.classList.remove('active');
+  });
+}
+function tweakDays(delta) {
+  acceptState.days = Math.max(1, Math.min(180, acceptState.days + delta));
+  const di = document.getElementById('daysInput');
+  if (di) di.value = acceptState.days;
+  updateDatePreview();
+  highlightPreset();
+}
+function nextStep() {
+  if (acceptState.step < 4) { acceptState.step++; renderAcceptModal(); }
+}
+function prevStep() {
+  if (acceptState.step > 1) { acceptState.step--; renderAcceptModal(); }
+}
+function confirmAccept() {
+  const preview = computeDelivery();
+  closeAcceptModal();
+  toast(`Order accepted · ETA ${acceptState.days} days · delivers by ${fmtDateMed(preview)}`, 'success');
+  // Simulate status change: update chip & CTA section
+  setTimeout(() => {
+    currentOrder.status = 'confirmed';
+    currentOrder.approvedAt = new Date().toISOString();
+    const chip = document.querySelector('.dh-id-row .chip-big');
+    if (chip) { chip.className = 'chip-big chip-confirmed'; chip.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Approved'; }
+    const sla = document.querySelector('.dh-id-row .sla-big');
+    if (sla) sla.remove();
+    const ctaGrp = document.querySelector('.cta-group');
+    if (ctaGrp) ctaGrp.innerHTML = stateCTAs(currentOrder);
+    const track = document.querySelector('.track-grid');
+    if (track) track.innerHTML = timelineSteps(currentOrder);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }, 100);
+}
+
+/* ============ Add-to-catalog nested modal ============ */
+let catTargetIdx = null;
+function openCatalogModal(idx) {
+  catTargetIdx = idx;
+  const it = acceptState.items[idx];
+  const modal = document.getElementById('catModal');
+  const categories = ['Climbing structures','Puzzle feeders','Scent enrichment','Browse & foraging','Structural','Pool inserts'];
+  const tags = Object.keys(SPECIES).map(k => SPECIES[k].name);
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div class="title" id="catTitle"><i data-lucide="plus-circle" class="w-5 h-5"></i> Add "${escapeHtml(it.name)}" to catalog</div>
+      <button class="modal-close" onclick="closeCatalogModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="modal-body cat-form">
+      <div class="field">
+        <label>Thumbnail</label>
+        <div class="thumb-drop" id="thumbDrop"><i data-lucide="upload-cloud" class="w-6 h-6"></i><span>Tap to upload or use existing buyer image</span></div>
+      </div>
+      <div class="field">
+        <label>Product name</label>
+        <input id="catName" type="text" value="${escapeHtml(it.name)}"/>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="field" style="flex:1;">
+          <label>Category</label>
+          <select id="catCategory">${categories.map(c=>`<option>${c}</option>`).join('')}</select>
+        </div>
+        <div class="field" style="flex:1;">
+          <label>Starting price (₹)</label>
+          <input id="catPrice" type="number" min="0" value="${it.unit}"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Species tags <span style="font-weight:500;color:var(--text-muted);">(pick up to 3)</span></label>
+        <div class="tag-picker" id="tagPicker">${tags.map(t=>`<button class="tag-opt" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}</div>
+      </div>
+      <div class="field">
+        <label>Short spec</label>
+        <textarea id="catSpec" placeholder="Dimensions, materials, certifications…">${escapeHtml(it.note || '')}</textarea>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:flex-end;">
+      <button class="cta-btn cta-ghost" onclick="closeCatalogModal()">Cancel</button>
+      <button class="cta-btn cta-primary" onclick="saveCatalogItem()"><i data-lucide="check" class="w-4 h-4"></i> Save to catalog</button>
+    </div>`;
+  document.getElementById('catOverlay').classList.add('open');
+  // Wire
+  modal.querySelectorAll('#tagPicker .tag-opt').forEach(b => b.addEventListener('click', () => {
+    const picked = modal.querySelectorAll('#tagPicker .tag-opt.active');
+    if (!b.classList.contains('active') && picked.length >= 3) { toast('Max 3 species tags', 'warn'); return; }
+    b.classList.toggle('active');
+  }));
+  modal.querySelector('#thumbDrop').addEventListener('click', () => toast('Upload dialog (demo)','success'));
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+function closeCatalogModal() {
+  document.getElementById('catOverlay').classList.remove('open');
+  catTargetIdx = null;
+}
+function saveCatalogItem() {
+  if (catTargetIdx == null) return;
+  const sku = acceptState.items[catTargetIdx].sku;
+  acceptState.addedToCat[sku] = true;
+  closeCatalogModal();
+  toast('Added to your catalog · reuse for future orders', 'success');
+  // Re-render step 1 to show "Added" badge
+  if (acceptState.step === 1) renderAcceptModal();
+}
+
+/* ============ Generic action modal ============ */
+function openGen(kind) {
+  const modal = document.getElementById('genModal');
+  const overlay = document.getElementById('genOverlay');
+  let title = '', body = '', primary = 'Done', primaryCb = () => { closeGen(); toast('Done', 'success'); };
+  if (kind === 'decline') {
+    title = '<i data-lucide="x-circle" class="w-5 h-5" style="color:var(--danger)"></i> Decline order';
+    body = `<div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Tell the buyer why. A clear reason keeps your response rate healthy.</div>
+      <label class="label" style="font-size:12px;font-weight:700;">Reason</label>
+      <select class="input" style="margin-bottom:10px;">
+        <option>Capacity booked this week</option>
+        <option>Material out of stock</option>
+        <option>Spec outside our range</option>
+        <option>Pricing doesn't work</option>
+        <option>Other</option>
+      </select>
+      <label class="label" style="font-size:12px;font-weight:700;">Message (optional)</label>
+      <textarea class="input" style="min-height:70px;" placeholder="e.g., Fully booked till 15 May — happy to re-quote after."></textarea>`;
+    primary = 'Decline';
+    primaryCb = () => { closeGen(); toast('Order declined · buyer notified', 'warn'); };
+  } else if (kind === 'progress') {
+    title = '<i data-lucide="hammer" class="w-5 h-5" style="color:var(--brand)"></i> Update production progress';
+    body = `<label class="label" style="font-size:12px;font-weight:700;">Current stage</label>
+      <select class="input" style="margin-bottom:10px;">
+        <option>Materials sourcing</option>
+        <option>Cutting</option>
+        <option>Frame assembly</option>
+        <option>Detail work</option>
+        <option>Finishing · coatings</option>
+        <option>Quality check</option>
+      </select>
+      <label class="label" style="font-size:12px;font-weight:700;">Progress %</label>
+      <input type="number" class="input" min="0" max="100" value="60" style="margin-bottom:10px;"/>
+      <label class="label" style="font-size:12px;font-weight:700;">Note to buyer (optional)</label>
+      <textarea class="input" style="min-height:70px;" placeholder="What's happening this week…"></textarea>`;
+    primary = 'Post update';
+    primaryCb = () => { closeGen(); toast('Update posted · buyer notified', 'success'); };
+  } else if (kind === 'label') {
+    title = '<i data-lucide="printer" class="w-5 h-5" style="color:var(--warning)"></i> Generate courier label';
+    body = `<label class="label" style="font-size:12px;font-weight:700;">Carrier</label>
+      <select class="input" style="margin-bottom:10px;">
+        <option>Delhivery Freight</option>
+        <option>Porter Freight</option>
+        <option>BlueDart Surface</option>
+        <option>XpressBees</option>
+      </select>
+      <label class="label" style="font-size:12px;font-weight:700;">Pickup window</label>
+      <select class="input" style="margin-bottom:10px;">
+        <option>Today 4-6 PM</option>
+        <option>Tomorrow 10-12 AM</option>
+        <option>Tomorrow 2-4 PM</option>
+      </select>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Label will be emailed to your printing address.</div>`;
+    primary = 'Generate label';
+    primaryCb = () => { closeGen(); toast('Label sent to your inbox', 'success'); };
+  } else if (kind === 'shipped') {
+    title = '<i data-lucide="truck" class="w-5 h-5" style="color:var(--brand)"></i> Mark shipped';
+    body = `<label class="label" style="font-size:12px;font-weight:700;">AWB / Tracking number</label>
+      <input type="text" class="input" placeholder="e.g., DLV-7H29-8842" style="margin-bottom:10px;"/>
+      <label class="label" style="font-size:12px;font-weight:700;">Carrier</label>
+      <select class="input" style="margin-bottom:10px;">
+        <option>Delhivery Freight</option>
+        <option>Porter Freight</option>
+        <option>BlueDart Surface</option>
+      </select>`;
+    primary = 'Mark shipped';
+    primaryCb = () => { closeGen(); toast('Marked shipped · buyer can now track','success'); };
+  } else if (kind === 'tracking') {
+    title = '<i data-lucide="pencil" class="w-5 h-5" style="color:var(--brand)"></i> Update tracking';
+    body = `<label class="label" style="font-size:12px;font-weight:700;">Latest event</label>
+      <input type="text" class="input" placeholder="e.g., Arrived at Mysuru hub" style="margin-bottom:10px;"/>
+      <label class="label" style="font-size:12px;font-weight:700;">Location</label>
+      <input type="text" class="input" placeholder="e.g., Mysuru"/>`;
+    primary = 'Save';
+    primaryCb = () => { closeGen(); toast('Tracking updated','success'); };
+  } else if (kind === 'reason') {
+    title = '<i data-lucide="info" class="w-5 h-5" style="color:var(--danger)"></i> Cancellation reason';
+    body = `<div style="padding:14px;background:var(--danger-bg);border-radius:10px;color:var(--text);font-size:13.5px;line-height:1.5;">
+      ${escapeHtml(currentOrder?.cancelReason || '—')}
+    </div>`;
+    primary = 'Close';
+    primaryCb = () => closeGen();
+  }
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div class="title" style="gap:6px;">${title}</div>
+      <button class="modal-close" onclick="closeGen()"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot" style="justify-content:flex-end;">
+      <button class="cta-btn cta-ghost" onclick="closeGen()">Cancel</button>
+      <button class="cta-btn cta-primary" id="genPrimary">${primary}</button>
+    </div>`;
+  overlay.classList.add('open');
+  document.getElementById('genPrimary').addEventListener('click', primaryCb);
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+function closeGen() { document.getElementById('genOverlay').classList.remove('open'); }
+
+/* ============ Toasts ============ */
+function toast(msg, kind='default') {
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = `toast ${kind==='success'?'success':kind==='warn'?'warn':''}`;
+  const icon = kind==='success'?'check-circle':kind==='warn'?'alert-triangle':'info';
+  el.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i><span>${escapeHtml(msg)}</span>`;
+  stack.appendChild(el);
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 2800);
+}
+
+/* ============ Boot ============ */
+let currentOrder = null;
+function boot() {
+  const id = getParam('id');
+  let o = null;
+  if (id) o = ORDERS.find(x => x.id === id);
+  if (!o) o = ORDERS.find(x => x.status === 'placed') || ORDERS[0];
+  currentOrder = o;
+  document.getElementById('pageMain').innerHTML = renderDetail(o);
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+  // Overlay click-to-close
+  document.getElementById('chatOverlay').addEventListener('click', closeChatSheet);
+  document.getElementById('acceptOverlay').addEventListener('click', e => { if (e.target.id === 'acceptOverlay') closeAcceptModal(); });
+  document.getElementById('catOverlay').addEventListener('click', e => { if (e.target.id === 'catOverlay') closeCatalogModal(); });
+  document.getElementById('genOverlay').addEventListener('click', e => { if (e.target.id === 'genOverlay') closeGen(); });
+  document.getElementById('revertOverlay').addEventListener('click', e => { if (e.target.id === 'revertOverlay') closeRevertModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('catOverlay').classList.contains('open')) closeCatalogModal();
+      else if (document.getElementById('acceptOverlay').classList.contains('open')) closeAcceptModal();
+      else if (document.getElementById('revertOverlay').classList.contains('open')) closeRevertModal();
+      else if (document.getElementById('genOverlay').classList.contains('open')) closeGen();
+      else closeChatSheet();
+    }
+  });
+}
+
+/* Unified header: mobile drawer + avatar menu */
+(function(){
+  const menuBtn = document.getElementById('vendorMenuBtn');
+  const drawer  = document.getElementById('vDrawer');
+  const overlay = document.getElementById('vDrawerOverlay');
+  const closeBtn = drawer && drawer.querySelector('.vd-close');
+  function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('open'); drawer.setAttribute('aria-hidden','false'); }
+  function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+  if (menuBtn) menuBtn.addEventListener('click', openDrawer);
+  if (overlay) overlay.addEventListener('click', closeDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+  const avatarBtn = document.getElementById('avatarBtn');
+  const vMenu = document.getElementById('vMenu');
+  if (avatarBtn && vMenu) {
+    avatarBtn.addEventListener('click', e => { e.stopPropagation(); vMenu.classList.toggle('open'); });
+    document.addEventListener('click', e => { if (!vMenu.contains(e.target) && e.target !== avatarBtn) vMenu.classList.remove('open'); });
+  }
+})();
+
+boot();
+</script>
+</body>
+</html>

@@ -68,69 +68,390 @@
     .dd-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; color: var(--text); }
     .dd-empty { padding: 18px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
 
+    /* =========== Multi-select Species Picker (msp) =========== */
+    /* Trigger pill extras */
+    .msp-trigger-stack { display: inline-flex; align-items: center; }
+    .msp-trigger-stack .pill-avatar { border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+    .msp-trigger-stack .pill-avatar + .pill-avatar { margin-left: -10px; }
+    .msp-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: -8px; background: var(--brand); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--brand); z-index: 1; position: relative; }
+    #speciesSelector.msp-has-selection { border-color: var(--brand); background: var(--brand-soft); }
+    #speciesSelector.msp-has-selection:hover { background: #CDEFD7; }
+    #speciesSelector.msp-has-selection #speciesLabel { color: var(--brand-hover); font-weight: 600; }
+
+    /* Picker panel — overrides .dropdown base */
+    .msp-panel {
+      position: absolute; top: calc(100% + 8px); left: 0;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: var(--shadow-lg);
+      width: 380px; max-width: calc(100vw - 24px);
+      z-index: 60; display: none; flex-direction: column;
+      max-height: 560px; overflow: hidden; padding: 0;
+    }
+    .msp-panel.open { display: flex; animation: fadeUp .2s ease both; }
+    .msp-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .msp-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .msp-clear { background: none; border: none; color: var(--brand); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+    .msp-clear:hover { background: var(--brand-soft); }
+    .msp-clear[hidden] { display: none !important; }
+
+    .msp-search { position: sticky; top: 0; background: #fff; padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; z-index: 2; flex-shrink: 0; }
+    .msp-search i[data-lucide="search"] { color: var(--text-muted); width: 16px; height: 16px; flex-shrink: 0; }
+    .msp-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text); min-width: 0; }
+    .msp-search-clear { width: 20px; height: 20px; border-radius: 999px; background: #E5E7EB; border: none; cursor: pointer; display: none; align-items: center; justify-content: center; color: var(--text-muted); padding: 0; flex-shrink: 0; }
+    .msp-search-clear.show { display: inline-flex; }
+    .msp-search-clear i { width: 12px; height: 12px; }
+
+    .msp-list { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px 6px; min-height: 0; }
+    .msp-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 10px;
+      cursor: pointer; transition: background-color .12s ease;
+      user-select: none;
+      border: 1.5px solid transparent;
+    }
+    .msp-row:hover { background: #F4F5F7; }
+    .msp-row.selected { background: var(--brand-soft); }
+    .msp-row.selected:hover { background: #CDEFD7; }
+    .msp-row .msp-avatar { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: #F1F2F4; }
+    .msp-row .msp-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .msp-row .msp-text { flex: 1; min-width: 0; }
+    .msp-row .msp-name { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .msp-row .msp-latin { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); font-style: italic; margin-top: 2px; }
+    .msp-row .msp-cb {
+      width: 20px; height: 20px; border-radius: 6px;
+      border: 2px solid var(--border-strong); background: #fff;
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background-color .12s, border-color .12s, transform .12s;
+    }
+    .msp-row .msp-cb i { width: 12px; height: 12px; color: #fff; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s; }
+    .msp-row.selected .msp-cb { background: var(--brand); border-color: var(--brand); }
+    .msp-row.selected .msp-cb i { opacity: 1; transform: scale(1); }
+    .msp-row.selected .msp-name { color: var(--brand-hover); }
+
+    .msp-empty { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+    .msp-footer {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      background: #fff; flex-shrink: 0;
+    }
+    .msp-footer-count { font-size: 13px; font-weight: 600; color: var(--text); }
+    .msp-footer-count.empty { color: var(--text-muted); font-weight: 500; }
+    .msp-apply {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 9px 20px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      border: none; cursor: pointer;
+      font-size: 13px; font-weight: 600;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.45);
+      transition: background .15s, transform .1s;
+    }
+    .msp-apply:hover { background: var(--brand-hover); }
+    .msp-apply:active { transform: scale(.97); }
+
+    /* Chip rail under sub-bar */
+    .msp-chiprail-wrap { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 128px; z-index: 39; display: none; }
+    .msp-chiprail-wrap.show { display: block; }
+    .msp-chiprail {
+      max-width: 1400px; margin: 0 auto; padding: 10px 32px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      box-sizing: border-box;
+    }
+    .msp-chiprail-label { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.02em; margin-right: 2px; }
+    .msp-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 4px 4px 4px; border-radius: 999px;
+      background: var(--brand-soft); color: var(--brand-hover);
+      font-size: 12px; font-weight: 600;
+      border: 1px solid transparent;
+      animation: msp-chip-in .25s cubic-bezier(.2,.8,.25,1) both;
+    }
+    @keyframes msp-chip-in { from { opacity: 0; transform: translateY(-4px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .msp-chip img { width: 22px; height: 22px; border-radius: 999px; object-fit: cover; }
+    .msp-chip span { padding: 0 2px 0 2px; }
+    .msp-chip button {
+      width: 20px; height: 20px; border-radius: 999px;
+      background: rgba(55,189,105,.22); border: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--brand-hover); margin-right: 2px; padding: 0; transition: background .12s;
+    }
+    .msp-chip button:hover { background: var(--brand); color: #fff; }
+    .msp-chip button i { width: 12px; height: 12px; }
+    .msp-chiprail-clear { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 999px; margin-left: auto; }
+    .msp-chiprail-clear:hover { color: var(--text); background: #F1F2F4; }
+
+    /* Mobile bottom-sheet transform */
+    @media (max-width: 760px) {
+      .msp-chiprail-wrap { top: 110px; }
+      .msp-chiprail { padding: 10px 14px; }
+      .msp-panel {
+        position: fixed !important;
+        top: auto !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100vw !important; max-width: 100vw !important;
+        border-radius: 18px 18px 0 0 !important;
+        max-height: 86vh;
+        transform: translateY(100%);
+        transition: transform .25s cubic-bezier(.2,.8,.25,1);
+        display: flex !important;
+        animation: none !important;
+        pointer-events: none;
+      }
+      .msp-panel.open { transform: translateY(0); pointer-events: auto; }
+      .msp-panel::before {
+        content: ''; position: absolute; top: 8px; left: 50%;
+        transform: translateX(-50%);
+        width: 40px; height: 4px; border-radius: 999px; background: var(--border-strong);
+      }
+      .msp-header { padding-top: 22px; }
+      .msp-list { max-height: calc(86vh - 240px); }
+      .msp-backdrop {
+        position: fixed; inset: 0; background: rgba(15,23,42,.5);
+        backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+        z-index: 59; opacity: 0; pointer-events: none; transition: opacity .22s ease;
+      }
+      .msp-backdrop.show { opacity: 1; pointer-events: auto; }
+    }
+    @media (min-width: 761px) {
+      .msp-backdrop { display: none !important; }
+    }
+
     /* =========== Add-to-cart species picker modal =========== */
-    .atc-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 100; }
+    /* =========== Add-to-cart species picker modal — gallery grid redesign =========== */
+    .atc-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); opacity: 0; pointer-events: none; transition: opacity .22s ease; z-index: 100; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
     .atc-overlay.open { opacity: 1; pointer-events: auto; }
-    .atc-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-46%) scale(.98); opacity: 0; pointer-events: none; transition: .2s; z-index: 110; background: #fff; border: 1px solid var(--border); border-radius: 18px; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
-    .atc-modal.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
-    .atc-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-    .atc-thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--card-subtle); }
-    .atc-heading { flex: 1; min-width: 0; }
-    .atc-title { font-size: 15px; font-weight: 600; color: var(--text); }
-    .atc-sub { font-size: 12px; color: var(--text-muted); }
-    .atc-close { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    .atc-body { padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-    .atc-field { display: flex; flex-direction: column; gap: 6px; }
-    .atc-lab { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; display: flex; justify-content: space-between; }
-    .atc-lab .req { color: var(--danger); }
-    .atc-lab .opt { font-weight: 500; color: var(--text-subtle); text-transform: none; letter-spacing: 0; }
-    .atc-search-wrap { display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 10px; }
-    .atc-search-wrap input { flex: 1; height: 40px; border: none; outline: none; background: transparent; font-size: 14px; }
-    .atc-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
-    .atc-list .row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; margin: 0; }
-    .atc-list .row:hover { background: #F4F5F7; }
-    .atc-list .row.selected { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
-    .atc-list .row img { width: 28px; height: 28px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
-    .atc-list .row .latin { color: var(--text-subtle); font-style: italic; font-size: 11px; }
-    .atc-list .row.compat .compat-badge { margin-left: auto; color: var(--brand); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-    /* Styled checkbox on each species row */
-    .atc-list .row .row-cb {
-      -webkit-appearance: none !important;
-      appearance: none !important;
-      width: 18px !important;
-      height: 18px !important;
-      min-width: 18px;
-      border: 1.5px solid var(--border-strong, #cbd5e1);
-      border-radius: 5px;
+    .atc-modal {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-46%) scale(.98);
+      opacity: 0; pointer-events: none;
+      transition: transform .22s cubic-bezier(.2,.8,.25,1), opacity .22s ease;
+      z-index: 110;
       background: #fff;
-      cursor: pointer;
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: .15s;
-      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: min(760px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px);
+      display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .atc-modal.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
+    .atc-grab { display: none; }
+    .atc-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
       flex-shrink: 0;
     }
-    .atc-list .row .row-cb:hover { border-color: var(--brand); }
-    .atc-list .row .row-cb:checked {
-      background: var(--brand);
-      border-color: var(--brand);
+    .atc-thumb { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
+    .atc-heading { flex: 1; min-width: 0; }
+    .atc-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .atc-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .atc-close { width: 40px; height: 40px; border-radius: 999px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: background .15s, color .15s; flex-shrink: 0; }
+    .atc-close:hover { background: #F1F2F4; color: var(--text); }
+    .atc-close i { width: 18px; height: 18px; }
+    .atc-body {
+      padding: 16px 18px 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex; flex-direction: column; gap: 18px;
+      flex: 1;
     }
-    .atc-list .row .row-cb:checked::after {
+    .atc-field { display: flex; flex-direction: column; gap: 8px; }
+    .atc-lab { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+    .atc-lab .req { color: var(--danger); }
+    .atc-lab .opt { font-weight: 500; color: var(--text-subtle); text-transform: none; letter-spacing: 0; }
+
+    /* --- Search pill --- */
+    .atc-search-wrap { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: 999px; padding: 0 14px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .atc-search-wrap:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .atc-search-wrap i[data-lucide="search"] { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+    .atc-search-wrap input { flex: 1; height: 40px; border: none; outline: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); min-width: 0; }
+    .atc-search-wrap input::-webkit-search-cancel-button { display: none; }
+    .atc-search-clear { display: none; width: 22px; height: 22px; border-radius: 999px; background: #E5E7EB; border: none; cursor: pointer; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; padding: 0; }
+    .atc-search-clear.show { display: inline-flex; }
+    .atc-search-clear:hover { background: #D1D5DB; color: var(--text); }
+    .atc-search-clear i { width: 12px; height: 12px; }
+
+    /* --- Filter chips row --- */
+    .atc-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .atc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; white-space: nowrap; }
+    .atc-chip:hover { border-color: var(--brand); color: var(--brand); }
+    .atc-chip.active { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 10px -3px rgba(55,189,105,.35); }
+
+    /* --- Selection meta row --- */
+    .atc-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .atc-count-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 12px; font-weight: 600; transition: transform .18s cubic-bezier(.2,.8,.25,1); }
+    .atc-count-chip.pulse { animation: atc-count-pulse .4s ease-out; }
+    @keyframes atc-count-pulse { 0% { transform: scale(1);} 40% { transform: scale(1.12);} 100% { transform: scale(1);} }
+    .atc-count-chip .sp-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); }
+    .atc-count-chip.empty { background: #F1F2F4; color: var(--text-muted); }
+    .atc-count-chip.empty .sp-dot { background: var(--text-muted); }
+    .atc-select-all { background: none; border: none; color: var(--brand); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 2px; text-decoration: none; }
+    .atc-select-all:hover { text-decoration: underline; }
+    .atc-select-all[disabled] { color: var(--text-subtle); cursor: default; text-decoration: none; }
+
+    /* --- Species gallery grid --- */
+    .sp-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .sp-card {
+      position: relative;
+      display: flex; flex-direction: column;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: sp-enter .32s cubic-bezier(.2,.8,.25,1) forwards;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    @keyframes sp-enter { to { opacity: 1; transform: translateY(0); } }
+    .sp-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--border-strong); }
+    .sp-card:active { transform: scale(.98); transition-duration: .1s; }
+    .sp-card.selected { border: 2px solid var(--brand); padding: 9px; background: var(--card); }
+    .sp-card.selected:hover { border-color: var(--brand); box-shadow: 0 6px 16px -6px rgba(55,189,105,.45); }
+    .sp-card[data-compatible="false"] { opacity: .55; cursor: not-allowed; }
+    .sp-card[data-compatible="false"]:hover { transform: none; box-shadow: none; border-color: var(--border); }
+    .sp-card[data-compatible="false"]:active { transform: none; }
+
+    .sp-img-wrap {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card-subtle);
+      margin-bottom: 8px;
+    }
+    .sp-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: transform .3s ease, opacity .3s ease;
+    }
+    .sp-img-wrap.is-loaded img { opacity: 1; }
+    .sp-card:hover .sp-img-wrap.is-loaded img { transform: scale(1.03); }
+
+    /* Selected-state overlay on image area (not on placeholder card bg) */
+    .sp-img-wrap::after {
       content: '';
       position: absolute;
-      width: 5px;
-      height: 9px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) translate(-1px, -1px);
+      inset: 0;
+      background: rgba(55,189,105,0);
+      pointer-events: none;
+      transition: background .2s ease;
+      z-index: 1;
     }
-    .atc-field select, .atc-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; }
+    .sp-card.selected .sp-img-wrap::after { background: rgba(55,189,105,.12); }
+
+    /* Neutral placeholder (shown when image fails to load) */
+    .sp-ph {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--card-subtle);
+      color: var(--text-subtle);
+      padding: 8px;
+      text-align: center;
+      z-index: 0;
+    }
+    .sp-ph i, .sp-ph svg { width: 32px; height: 32px; color: var(--text-subtle) !important; stroke: var(--text-subtle) !important; }
+    .sp-ph .sp-ph-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Legacy top-left checkbox — hidden; kept as CSS rule in case any stray nodes exist */
+    .sp-cb { display: none !important; }
+
+    .sp-check-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 28px; height: 28px;
+      border-radius: 999px;
+      background: var(--brand);
+      display: none;
+      align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.5), 0 0 0 3px rgba(255,255,255,.9);
+      transform: scale(0);
+      transition: transform .25s cubic-bezier(.2,1.4,.4,1.1);
+      z-index: 2;
+    }
+    .sp-check-badge i, .sp-check-badge svg { width: 16px; height: 16px; color: #fff !important; stroke: #fff !important; stroke-width: 3px; }
+    .sp-card.selected .sp-check-badge { display: inline-flex; transform: scale(1); }
+
+    .sp-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.5em;
+    }
+    .sp-latin {
+      font-size: 12px;
+      font-weight: 500;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sp-pill {
+      margin-top: 8px;
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-hover);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .sp-pill .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--brand); }
+    .sp-card[data-compatible="false"] .sp-pill { background: #FFE5EA; color: #B00020; }
+    .sp-card[data-compatible="false"] .sp-pill .dot { background: transparent; border: 1.5px solid #B00020; width: 6px; height: 6px; border-radius: 0; }
+
+    .sp-empty { padding: 36px 12px; text-align: center; color: var(--text-muted); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .sp-empty .ic { width: 40px; height: 40px; border-radius: 999px; background: #F1F2F4; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .sp-empty .ic i { width: 20px; height: 20px; }
+
+    .atc-field select, .atc-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .atc-field select:focus, .atc-field textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
     .atc-field select { height: 40px; }
     .atc-field textarea { resize: none; }
     .atc-count { text-align: right; font-size: 11px; color: var(--text-subtle); }
-    .atc-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .atc-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
     .atc-foot .btn-outline {
       background: #fff !important;
       color: var(--brand) !important;
@@ -147,6 +468,76 @@
     .atc-foot .btn-outline:hover { background: var(--brand-soft) !important; }
     .atc-foot .btn-outline i { width: 14px; height: 14px; }
     .atc-field--hidden { display: none !important; }
+
+    /* ========== Tablet (600-759px) ========== */
+    @media (max-width: 759px) and (min-width: 600px) {
+      .atc-modal { width: min(600px, calc(100vw - 24px)); }
+      .sp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    }
+
+    /* ========== Mobile bottom sheet (<=599px) ========== */
+    @media (max-width: 599px) {
+      .atc-overlay { background: rgba(15,23,42,.55); }
+      .atc-modal {
+        top: auto !important; left: 0 !important; right: 0; bottom: 0;
+        transform: translateY(100%);
+        width: 100%;
+        max-width: 100%;
+        max-height: 92vh;
+        height: 92vh;
+        border-radius: 20px 20px 0 0;
+        border: none;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -16px 40px -10px rgba(15,23,42,.22);
+        transition: transform .3s cubic-bezier(.2,.85,.25,1), opacity .25s ease;
+      }
+      .atc-modal.open { transform: translateY(0) !important; }
+      .atc-grab {
+        display: block;
+        width: 36px; height: 4px;
+        border-radius: 999px;
+        background: #D1D5DB;
+        margin: 8px auto 4px;
+        flex-shrink: 0;
+        cursor: grab;
+      }
+      .atc-grab:active { cursor: grabbing; }
+      .atc-head { position: sticky; top: 0; padding: 10px 14px 12px; z-index: 3; }
+      .atc-body { padding: 14px 14px 18px; }
+      .atc-foot {
+        position: sticky; bottom: 0;
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+        z-index: 3;
+        box-shadow: 0 -6px 14px -10px rgba(15,23,42,.18);
+      }
+      .atc-foot .btn { flex: 1; min-height: 44px; justify-content: center; }
+      .sp-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .sp-name { font-size: 13px; min-height: 2.4em; }
+      .sp-latin { font-size: 11px; }
+      .sp-pill { font-size: 10px; padding: 2px 7px; }
+      .sp-card { padding: 8px; }
+      .sp-card.selected { padding: 7px; }
+    }
+
+    /* ========== Tiny mobile (<=374px) ========== */
+    @media (max-width: 374px) {
+      .atc-body { padding: 12px 10px 14px; }
+      .atc-head { padding: 10px 10px 10px; gap: 8px; }
+      .atc-foot { padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
+      .sp-grid { gap: 8px; }
+      .sp-card { padding: 7px; border-radius: 12px; }
+      .sp-card.selected { padding: 6px; }
+      .sp-name { font-size: 12px; min-height: 2.4em; }
+      .sp-latin { font-size: 10px; }
+    }
+
+    /* ========== Reduced motion ========== */
+    @media (prefers-reduced-motion: reduce) {
+      .sp-card { animation: none; opacity: 1; transform: none; }
+      .atc-modal, .atc-overlay { transition-duration: .01ms; }
+      .sp-check-badge { transition: none; }
+      .atc-count-chip.pulse { animation: none; }
+    }
 
     /* =========== Cart drawer — species chip + line detail styling =========== */
     .cart-species-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 11px; font-weight: 600; margin-top: 4px; }
@@ -293,9 +684,87 @@
     .main-scroll::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
     .filter-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
     .filter-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .filter-head .title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .filter-head .title { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: .06em; text-transform: uppercase; }
     .filter-head .reset { font-size: 12px; color: var(--text-muted); cursor: pointer; }
     .filter-head .reset:hover { color: var(--brand); }
+
+    /* Collapsible filter-group header (button reset to appear as row) */
+    button.filter-head.collapsible {
+      width: 100%; background: transparent; border: none; padding: 0; cursor: pointer;
+      font-family: inherit; text-align: left;
+    }
+    button.filter-head.collapsible:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+    .filter-head-right { display: inline-flex; align-items: center; gap: 8px; }
+    .filter-head-right .chev { color: var(--text-muted); transition: transform .2s ease; }
+    button.filter-head.collapsible[aria-expanded="false"] .chev { transform: rotate(180deg); }
+    .filter-card .filter-body { overflow: hidden; transition: max-height .25s ease, opacity .2s ease, margin-top .2s ease; }
+    .filter-card .filter-body.collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; margin-top: -4px; }
+    .count-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 6px;
+      border-radius: 999px; background: var(--brand); color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 1;
+    }
+
+    /* Clear-all pill above filter groups */
+    .filters-clear-all { margin: -4px 0 2px; }
+    .filters-clear-all button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 999px;
+      background: var(--brand-soft); color: var(--brand);
+      border: 1px solid transparent; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: .15s;
+    }
+    .filters-clear-all button:hover { background: var(--brand); color: #fff; }
+    .filters-clear-all .pill-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 16px; height: 16px; padding: 0 5px;
+      border-radius: 999px; background: rgba(0,0,0,.14); color: inherit;
+      font-size: 10px; font-weight: 700;
+    }
+
+    /* Material / Scent — tight checkbox list with subtle scroll cap */
+    .check-list { display: flex; flex-direction: column; gap: 2px; max-height: 196px; overflow-y: auto; padding-right: 4px; }
+    .check-list::-webkit-scrollbar { width: 6px; }
+    .check-list::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 999px; }
+
+    /* Size — chip-style select (reuse .pill-seg styling, defined below) */
+
+    /* Engagement — star rating picker */
+    .eng-rows { display: flex; flex-direction: column; gap: 4px; }
+    .eng-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 8px; border-radius: 10px; cursor: pointer;
+      border: 1px solid transparent; transition: .15s;
+      background: transparent;
+    }
+    .eng-row:hover { background: var(--brand-soft); }
+    .eng-row.active { background: var(--brand-soft); border-color: var(--brand); }
+    .eng-row .eng-stars { display: inline-flex; gap: 2px; color: var(--warning); }
+    .eng-row .eng-stars .off { color: #E5E7EB; }
+    .eng-row .eng-label { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+    .eng-row.active .eng-label { color: var(--brand); font-weight: 600; }
+
+    /* Color swatch grid */
+    .swatch-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+    }
+    .swatch-grid .swatch {
+      width: 100%; aspect-ratio: 1 / 1; min-width: 0; height: auto;
+      border-radius: 10px; border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--border), 0 1px 2px rgba(0,0,0,.04);
+      cursor: pointer; transition: transform .15s, box-shadow .15s;
+      position: relative;
+    }
+    .swatch-grid .swatch:hover { transform: scale(1.06); box-shadow: 0 0 0 1px var(--brand), 0 2px 6px rgba(0,0,0,.1); }
+    .swatch-grid .swatch.active { box-shadow: 0 0 0 2px var(--brand), 0 2px 6px rgba(55,189,105,.3); transform: scale(1.08); }
+    .swatch-grid .swatch.active::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 8px; height: 8px; border-radius: 999px; background: #fff;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.12);
+    }
+    .swatch-grid .swatch.swatch-white { border-color: #F3F4F6; }
 
     .range-slider { position: relative; height: 44px; margin-top: 14px; padding: 0 12px; }
     .range-slider .track { position: absolute; top: 20px; left: 12px; right: 12px; height: 4px; background: #E5E7EB; border-radius: 999px; }
@@ -445,15 +914,16 @@
     .prod-cat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .prod-cat .tag-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); flex-shrink: 0; }
 
-    /* Sold-by vendor line */
-    .sold-by {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin-top: 4px; text-decoration: none;
-      min-width: 0; max-width: 100%;
-      overflow: hidden;
-    }
-    .sold-by span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    .sold-by:hover { color: var(--brand); }
-    .sold-by img { width: 14px; height: 14px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
+    /* Product rating — Flipkart-style compact green pill */
+    .prod-rating { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1; }
+    .prod-rating .stars { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; color: var(--text-muted); }
+    .prod-rating .stars i,
+    .prod-rating .stars svg { width: 10px !important; height: 10px !important; color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .prod-rating .stars svg *,
+    .prod-rating .stars svg polygon,
+    .prod-rating .stars svg path { fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .prod-rating .rating-count { color: var(--text-muted); font-weight: 500; font-size: 11px; }
+    .prod-rating .no-rating { color: var(--text-subtle); font-size: 11px; font-style: italic; }
 
     /* Avatar dropdown */
     .avatar-wrap { position: relative; margin-left: 8px; }
@@ -586,9 +1056,11 @@
       .sub-bar { top: 60px !important; }
       .sub-bar .filter-row { gap: 8px !important; padding: 10px 0 !important; }
 
-      /* Species selector — shrink to avatar+chevron */
+      /* Species selector — shrink to avatar+chevron (label hides on mobile) */
       #speciesSelector { padding: 6px 8px 6px 6px !important; }
       #speciesLabel { display: none !important; }
+      /* But show label when selections exist so the "+N" or "All" cue is visible */
+      #speciesSelector.msp-has-selection #speciesLabel { display: inline !important; font-size: 12px !important; }
 
       /* Sort selector — hidden on mobile (moved to bottom action bar) */
       #sortSelector { display: none !important; }
@@ -616,7 +1088,10 @@
       .prod-meta { min-height: 44px !important; margin-bottom: 8px !important; }
       .prod-name { font-size: 13px !important; line-height: 1.25 !important; }
       .prod-cat { font-size: 11px !important; }
-      .sold-by { font-size: 11px !important; }
+      .prod-rating { font-size: 11px !important; gap: 4px !important; }
+      .prod-rating .stars { font-size: 11px !important; }
+      .prod-rating .stars i, .prod-rating .stars svg { width: 9px !important; height: 9px !important; }
+      .prod-rating .rating-count { font-size: 10px !important; }
       .prod-price { font-size: 14px !important; }
       .prod-price .unit { font-size: 10px !important; }
 
@@ -936,6 +1411,9 @@
       </label>
 
       <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
         <!-- Mobile search icon (≤767px) -->
         <button class="header-btn mobile-only-btn" id="mobileSearchBtn" type="button" aria-label="Search" style="min-width:40px; padding:8px;">
           <i data-lucide="search" class="w-5 h-5"></i>
@@ -969,6 +1447,10 @@
               <span class="dd-avatar"><i data-lucide="heart" class="w-4 h-4"></i></span>
               <span class="dd-label">Saved</span>
             </div>
+            <div class="dd-item" id="adminNavItem" data-nav="admin_products_1.html">
+              <span class="dd-avatar"><i data-lucide="shield" class="w-4 h-4"></i></span>
+              <span class="dd-label">Admin</span>
+            </div>
             <div class="dd-item" id="vendorDashLink" style="display:none">
               <span class="dd-avatar"><i data-lucide="layout-dashboard" class="w-4 h-4"></i></span>
               <span class="dd-label">Go to vendor dashboard</span>
@@ -987,14 +1469,14 @@
   <!-- =============== SUB-BAR — single filter row =============== -->
   <div class="sub-bar">
     <div class="page-wrap filter-row">
-      <!-- Species selector -->
-      <div class="selector-pill" id="speciesSelector">
-        <span class="img-frame img-frame-sm" style="width:28px; height:28px; display:inline-block;">
-          <img class="pill-avatar" id="speciesAvatar" alt="" loading="eager"/>
+      <!-- Species selector (multi-select) -->
+      <div class="selector-pill" id="speciesSelector" role="combobox" aria-haspopup="listbox" aria-expanded="false">
+        <span class="msp-trigger-stack" id="speciesAvatarStack">
+          <span class="pill-ico"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
         </span>
-        <span id="speciesLabel">Bengal Tiger</span>
+        <span id="speciesLabel">All species</span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
-        <div class="dropdown" id="speciesDropdown"></div>
+        <div class="msp-panel" id="speciesDropdown" role="dialog" aria-label="Filter by species"></div>
       </div>
 
       <!-- Inline Filters pill (tablet/mobile only) -->
@@ -1022,6 +1504,18 @@
     </div>
   </div>
 
+  <!-- Mobile backdrop for species picker bottom-sheet -->
+  <div class="msp-backdrop" id="speciesBackdrop" aria-hidden="true"></div>
+
+  <!-- Species selection chip rail -->
+  <div class="msp-chiprail-wrap" id="speciesChipRail" aria-label="Selected species">
+    <div class="msp-chiprail">
+      <span class="msp-chiprail-label">Species:</span>
+      <div id="speciesChipList" style="display:contents"></div>
+      <button type="button" class="msp-chiprail-clear" id="speciesChipClear">Clear all</button>
+    </div>
+  </div>
+
   <!-- =============== MAIN GRID =============== -->
   <div class="page-wrap">
     <div class="grid-wrap">
@@ -1035,71 +1529,105 @@
 
         <!-- Collapsed rail — visible when .grid-wrap has .collapsed -->
         <div class="collapsed-rail">
-          <button class="rail-btn" data-rail="price" aria-label="Price"><i data-lucide="indian-rupee" class="w-4 h-4"></i></button>
+          <button class="rail-btn" data-rail="material"   aria-label="Material"><i data-lucide="layers" class="w-4 h-4"></i></button>
+          <button class="rail-btn" data-rail="size"       aria-label="Size"><i data-lucide="ruler" class="w-4 h-4"></i></button>
           <button class="rail-btn" data-rail="engagement" aria-label="Engagement"><i data-lucide="star" class="w-4 h-4"></i></button>
-          <button class="rail-btn" data-rail="attrs" aria-label="Attributes"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
-          <button class="rail-btn" data-rail="delivery" aria-label="Delivery"><i data-lucide="truck" class="w-4 h-4"></i></button>
+          <button class="rail-btn" data-rail="scent"      aria-label="Scent"><i data-lucide="flask-conical" class="w-4 h-4"></i></button>
+          <button class="rail-btn" data-rail="color"      aria-label="Color"><i data-lucide="palette" class="w-4 h-4"></i></button>
+          <button class="rail-btn" data-rail="price"      aria-label="Price"><i data-lucide="indian-rupee" class="w-4 h-4"></i></button>
         </div>
 
-        <!-- + Add filter -->
-        <div class="filter-card add-filter-wrap">
-          <button class="add-filter-btn" id="addFilterBtn" type="button">
-            <i data-lucide="plus" class="w-4 h-4"></i> Add filter
+        <!-- Clear-all link (shown only when any filter is active) -->
+        <div class="filters-clear-all" id="filtersClearAll" style="display:none;">
+          <button type="button" id="filtersClearAllBtn">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            <span>Clear all filters</span>
+            <span class="pill-count" id="filtersActiveCount">0</span>
           </button>
-          <div class="dropdown" id="addFilterDropdown" style="left: 18px; right: 18px;">
-            <input class="add-filter-search" id="addFilterSearch" type="text" placeholder="Search attributes…"/>
-            <div class="add-filter-list" id="addFilterList"></div>
-            <div class="add-filter-divider"></div>
-            <div class="create-attr-row" id="createAttrRow">
-              <i data-lucide="sparkles" class="w-4 h-4"></i> Create new attribute
-            </div>
-          </div>
         </div>
 
-        <!-- Cost Range -->
-        <div class="filter-card" id="costRangeCard">
-          <div class="filter-head">
-            <div class="title">Cost range</div>
-            <div class="reset" id="priceResetBtn">Reset</div>
-          </div>
-          <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px">Average <strong style="color:var(--text)" id="priceAvg">₹0</strong></div>
-          <div class="histogram" id="histogram"></div>
-          <div class="range-slider" id="priceSlider">
-            <div class="track"></div>
-            <div class="fill" id="priceFill"></div>
-            <div class="handle" id="priceHandleMin" data-handle="min" role="slider" tabindex="0" aria-label="Minimum price"><span class="tip" id="priceTipMin">₹0</span></div>
-            <div class="handle" id="priceHandleMax" data-handle="max" role="slider" tabindex="0" aria-label="Maximum price"><span class="tip" id="priceTipMax">₹0</span></div>
-          </div>
-          <div class="range-readout">
-            <span>Range</span>
-            <span class="range-vals"><span id="priceReadMin">₹0</span> – <span id="priceReadMax">₹0</span></span>
-          </div>
-        </div>
-
-        <!-- Engagement -->
-        <div class="filter-card">
-          <div class="filter-head"><div class="title">Engagement score</div></div>
-          <div style="display:flex; align-items:center">
-            <span class="stars">
-              <i data-lucide="star" class="w-4 h-4" fill="currentColor"></i>
-              <i data-lucide="star" class="w-4 h-4" fill="currentColor"></i>
-              <i data-lucide="star" class="w-4 h-4" fill="currentColor"></i>
-              <i data-lucide="star" class="w-4 h-4" fill="currentColor"></i>
-              <i data-lucide="star" class="w-4 h-4 off"></i>
+        <!-- 1. Material type -->
+        <div class="filter-card" data-filter-group="material">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Material type</span>
+            <span class="filter-head-right">
+              <span class="count-chip" id="materialCountChip" style="display:none;">0</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
             </span>
-            <span style="font-size:13px; color:var(--text-muted)">4 stars & up</span>
-          </div>
+          </button>
+          <div class="filter-body" id="materialBody"></div>
         </div>
 
-        <!-- Dynamic attribute filter cards -->
-        <div id="dynamicFilters"></div>
+        <!-- 2. Size -->
+        <div class="filter-card" data-filter-group="size">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Size</span>
+            <span class="filter-head-right">
+              <span class="count-chip" id="sizeCountChip" style="display:none;">0</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
+            </span>
+          </button>
+          <div class="filter-body" id="sizeBody"></div>
+        </div>
 
-        <!-- Delivery -->
-        <div class="filter-card">
-          <div class="filter-head"><div class="title">Delivery</div></div>
-          <div class="seg-control">
-            <button class="active" type="button">Standard</button>
-            <button type="button">Rush</button>
+        <!-- 3. Engagement score -->
+        <div class="filter-card" data-filter-group="engagement">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Engagement score</span>
+            <span class="filter-head-right">
+              <span class="count-chip" id="engagementCountChip" style="display:none;">1</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
+            </span>
+          </button>
+          <div class="filter-body" id="engagementBody"></div>
+        </div>
+
+        <!-- 4. Scent -->
+        <div class="filter-card" data-filter-group="scent">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Scent</span>
+            <span class="filter-head-right">
+              <span class="count-chip" id="scentCountChip" style="display:none;">0</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
+            </span>
+          </button>
+          <div class="filter-body" id="scentBody"></div>
+        </div>
+
+        <!-- 5. Color -->
+        <div class="filter-card" data-filter-group="color">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Color</span>
+            <span class="filter-head-right">
+              <span class="count-chip" id="colorCountChip" style="display:none;">0</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
+            </span>
+          </button>
+          <div class="filter-body" id="colorBody"></div>
+        </div>
+
+        <!-- 6. Price (kept at bottom — existing slider) -->
+        <div class="filter-card" id="costRangeCard" data-filter-group="price">
+          <button class="filter-head collapsible" type="button" aria-expanded="true">
+            <span class="title">Price</span>
+            <span class="filter-head-right">
+              <span class="reset" id="priceResetBtn">Reset</span>
+              <i data-lucide="chevron-up" class="chev w-4 h-4"></i>
+            </span>
+          </button>
+          <div class="filter-body">
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px">Average <strong style="color:var(--text)" id="priceAvg">₹0</strong></div>
+            <div class="histogram" id="histogram"></div>
+            <div class="range-slider" id="priceSlider">
+              <div class="track"></div>
+              <div class="fill" id="priceFill"></div>
+              <div class="handle" id="priceHandleMin" data-handle="min" role="slider" tabindex="0" aria-label="Minimum price"><span class="tip" id="priceTipMin">₹0</span></div>
+              <div class="handle" id="priceHandleMax" data-handle="max" role="slider" tabindex="0" aria-label="Maximum price"><span class="tip" id="priceTipMax">₹0</span></div>
+            </div>
+            <div class="range-readout">
+              <span>Range</span>
+              <span class="range-vals"><span id="priceReadMin">₹0</span> – <span id="priceReadMax">₹0</span></span>
+            </div>
           </div>
         </div>
       </aside>
@@ -1112,8 +1640,8 @@
           <span>Show filters</span>
         </button>
 
-        <!-- Featured banner -->
-        <section class="hero anim-in">
+        <!-- Featured banner — HIDDEN for first phase. Remove style="display:none" to restore. -->
+        <section class="hero anim-in" style="display:none">
           <div class="hero-content">
             <div class="hero-eyebrow">· April Edit ·</div>
             <h1>Sensory enrichment<br/>tuned for spring</h1>
@@ -1208,6 +1736,7 @@
     <div class="nav-item" data-nav="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</div>
     <div class="nav-item" data-nav="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</div>
     <div class="nav-item" data-nav="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</div>
+    <div class="nav-item" id="mobileNavAdmin" data-nav="#"><i data-lucide="shield" class="w-4 h-4"></i> Admin</div>
     <div class="nav-item" id="mobileNavVendorLink" style="display:none"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Vendor dashboard</div>
     <div class="nav-divider"></div>
     <div class="nav-item" id="mobileNavSignOut"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</div>
@@ -1224,7 +1753,8 @@
 
 <!-- =============== ADD-TO-CART SPECIES PICKER MODAL =============== -->
 <div class="atc-overlay" id="atcOverlay"></div>
-<aside class="atc-modal" id="atcModal" role="dialog" aria-hidden="true">
+<aside class="atc-modal" id="atcModal" role="dialog" aria-hidden="true" aria-labelledby="atcTitle">
+  <div class="atc-grab" id="atcGrab" aria-hidden="true"></div>
   <div class="atc-head">
     <img class="atc-thumb" id="atcThumb" alt=""/>
     <div class="atc-heading">
@@ -1234,23 +1764,32 @@
     <button class="atc-close" id="atcClose" aria-label="Close"><i data-lucide="x"></i></button>
   </div>
   <div class="atc-body">
-    <label class="atc-field">
-      <div class="atc-lab">Species <span class="req">*</span></div>
+    <div class="atc-field">
+      <div class="atc-lab"><span>Species <span class="req">*</span></span></div>
       <div class="atc-search-wrap">
         <i data-lucide="search"></i>
         <input id="atcSpeciesInput" type="search" placeholder="Search species…" autocomplete="off"/>
+        <button type="button" class="atc-search-clear" id="atcSearchClear" aria-label="Clear search"><i data-lucide="x"></i></button>
       </div>
-      <div class="atc-list" id="atcSpeciesList"></div>
-    </label>
-    <label class="atc-field atc-field--hidden" id="atcEnclosureField">
-      <div class="atc-lab">Enclosure <span class="opt">optional</span></div>
+      <div class="atc-chips" role="tablist" aria-label="Filter species">
+        <button type="button" class="atc-chip" id="atcChipAll" data-filter="all" role="tab">All</button>
+        <button type="button" class="atc-chip active" id="atcChipCompat" data-filter="compat" role="tab">Compatible only</button>
+      </div>
+      <div class="atc-meta-row">
+        <span class="atc-count-chip empty" id="atcCountChip"><span class="sp-dot"></span><span id="atcCountText">0 selected · 0 species</span></span>
+        <button type="button" class="atc-select-all" id="atcSelectAll">Select all compatible</button>
+      </div>
+      <div class="sp-grid" id="atcSpeciesList" role="listbox" aria-multiselectable="true"></div>
+    </div>
+    <div class="atc-field atc-field--hidden" id="atcEnclosureField">
+      <div class="atc-lab"><span>Enclosure <span class="opt">optional</span></span></div>
       <select id="atcEnclosure"><option value="">— Not specified —</option></select>
-    </label>
-    <label class="atc-field">
-      <div class="atc-lab">Customization note <span class="opt">optional</span></div>
+    </div>
+    <div class="atc-field">
+      <div class="atc-lab"><span>Customization note <span class="opt">optional</span></span></div>
       <textarea id="atcNote" rows="2" maxlength="200" placeholder="e.g. Smaller size for cubs, unscented for nursery"></textarea>
       <div class="atc-count"><span id="atcNoteCount">0</span>/200</div>
-    </label>
+    </div>
   </div>
   <div class="atc-foot">
     <button class="btn btn-ghost" id="atcCancel" type="button">Cancel</button>
@@ -1315,8 +1854,26 @@
   const AVG_PRICE = Math.round(ALL_PRICES.reduce((a,b) => a+b, 0) / ALL_PRICES.length);
 
   /* ---------- State ---------- */
+  // speciesIds: [] = All species (no filter). Multi-select (OR logic on filter).
+  // Persisted to localStorage under SPECIES_SEL_KEY so selection survives navigation.
+  const SPECIES_SEL_KEY = 'ze_species_selection_v1';
+  function readSpeciesSelection() {
+    try {
+      const raw = localStorage.getItem(SPECIES_SEL_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [];
+      // Filter out any ids that no longer exist
+      const valid = new Set(DB.SPECIES.map(s => s.id));
+      return arr.filter(id => valid.has(id));
+    } catch { return []; }
+  }
+  function writeSpeciesSelection(arr) {
+    try { localStorage.setItem(SPECIES_SEL_KEY, JSON.stringify(arr || [])); } catch {}
+  }
+
   let state = {
-    species: DB.SPECIES[0].id,
+    speciesIds: readSpeciesSelection(), // [] = All
     category: 'all',
     sort: 'popular',
     search: '',
@@ -1324,7 +1881,15 @@
     page: 1,
     showAllFilters: false,
     priceMin: MIN_PRICE,
-    priceMax: MAX_PRICE
+    priceMax: MAX_PRICE,
+    // Sidebar filter selections (Material / Size / Engagement / Scent / Color)
+    filterSelections: {
+      material:  [],  // multi-select
+      size:      '',  // single-select
+      engagement: 0,  // 0 = any, 1..5 = N-and-up
+      scent:     [],  // multi-select
+      color:     []   // multi-select
+    }
   };
 
   /* ---------- Tiny toast ---------- */
@@ -1346,10 +1911,12 @@
     if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ---------- Add-to-cart species picker modal ---------- */
+  /* ---------- Add-to-cart species picker modal (gallery redesign) ---------- */
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const atc = {
     overlay:        document.getElementById('atcOverlay'),
     modal:          document.getElementById('atcModal'),
+    grab:           document.getElementById('atcGrab'),
     thumb:          document.getElementById('atcThumb'),
     title:          document.getElementById('atcTitle'),
     sub:            document.getElementById('atcSub'),
@@ -1358,73 +1925,188 @@
     confirmBtn:     document.getElementById('atcConfirm'),
     speciesInput:   document.getElementById('atcSpeciesInput'),
     speciesList:    document.getElementById('atcSpeciesList'),
+    searchClear:    document.getElementById('atcSearchClear'),
+    chipAll:        document.getElementById('atcChipAll'),
+    chipCompat:     document.getElementById('atcChipCompat'),
+    countChip:      document.getElementById('atcCountChip'),
+    countText:      document.getElementById('atcCountText'),
+    selectAllBtn:   document.getElementById('atcSelectAll'),
     enclosureField: document.getElementById('atcEnclosureField'),
     enclosureSel:   document.getElementById('atcEnclosure'),
     noteInput:      document.getElementById('atcNote'),
     noteCount:      document.getElementById('atcNoteCount'),
   };
-  let atcState = { product: null, selectedSet: new Set() };
+  let atcState = { product: null, selectedSet: new Set(), filter: 'compat' };
+
+  /* ---------- Species image loader: shimmer → real image, or retry once then neutral placeholder ---------- */
+  function atcRenderSpeciesPlaceholder(wrap) {
+    const name = wrap.getAttribute('data-sp-name') || '';
+    // Safe: name was escaped when written to the data attribute, no need to re-escape on readback
+    wrap.classList.remove('is-loaded', 'img-loaded');
+    wrap.innerHTML = `
+      <div class="sp-ph">
+        <i data-lucide="paw-print"></i>
+        <div class="sp-ph-name">${esc(name)}</div>
+      </div>`;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
+  }
+
+  function atcLoadSpeciesImage(wrap) {
+    if (!wrap || wrap.dataset.loading === '1') return;
+    wrap.dataset.loading = '1';
+    const q = wrap.getAttribute('data-sp-q') || '';
+    const baseSeed = parseInt(wrap.getAttribute('data-sp-seed') || '0', 10) || 0;
+    const alt = wrap.getAttribute('data-sp-name') || '';
+    let attempt = 0;
+
+    function tryLoad(seed) {
+      const url = (typeof DB.img === 'function')
+        ? DB.img(q, 360, 270, seed)
+        : `https://image.pollinations.ai/prompt/${encodeURIComponent(q)}?width=360&height=270&seed=${seed}&nologo=true`;
+      const probe = new Image();
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        probe.onload = probe.onerror = null;
+        onFail();
+      }, 8000);
+
+      probe.onload = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (probe.naturalWidth === 0) return onFail();
+        // Build the real <img> element — flag it so global installImageFallback won't overwrite it.
+        wrap.innerHTML = '';
+        const img = document.createElement('img');
+        img.alt = alt;
+        img.loading = 'lazy';
+        img.dataset.zeFallback = '1';    // opt out of global SVG fallback
+        img.dataset.zeBound = '1';       // opt out of global bindLoad
+        img.src = url;
+        img.classList.add('is-loaded');
+        wrap.appendChild(img);
+        wrap.classList.add('is-loaded', 'img-loaded');
+      };
+      probe.onerror = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        onFail();
+      };
+      probe.src = url;
+    }
+
+    function onFail() {
+      attempt += 1;
+      if (attempt === 1) {
+        // Retry ONCE with a new randomized seed
+        const newSeed = Math.floor(Math.random() * 100000) + baseSeed + 1;
+        tryLoad(newSeed);
+      } else {
+        atcRenderSpeciesPlaceholder(wrap);
+      }
+    }
+
+    tryLoad(baseSeed);
+  }
 
   function atcClose() {
     atc.overlay.classList.remove('open');
     atc.modal.classList.remove('open');
     atc.modal.setAttribute('aria-hidden', 'true');
-    atcState = { product: null, selectedSet: new Set() };
+    atc.modal.style.transform = '';
+    atcState = { product: null, selectedSet: new Set(), filter: 'compat' };
+  }
+
+  function atcCompatSet() {
+    const prod = atcState.product;
+    if (!prod) return new Set();
+    const ids = Array.isArray(prod.compatibleSpecies) ? prod.compatibleSpecies : [];
+    if (!ids.length) return new Set(DB.SPECIES.map(s => s.id));
+    return new Set(ids);
+  }
+
+  function atcUpdateCountChip(pulse) {
+    const totalShown = atc.speciesList.querySelectorAll('.sp-card').length;
+    const n = atcState.selectedSet.size;
+    atc.countText.textContent = `${n} selected · ${totalShown} species`;
+    atc.countChip.classList.toggle('empty', n === 0);
+    if (pulse) {
+      atc.countChip.classList.remove('pulse');
+      void atc.countChip.offsetWidth;
+      atc.countChip.classList.add('pulse');
+    }
+  }
+
+  function atcUpdateSelectAllState() {
+    const compatIds = Array.from(atcCompatSet());
+    const allSelected = compatIds.length > 0 && compatIds.every(id => atcState.selectedSet.has(id));
+    atc.selectAllBtn.textContent = allSelected ? 'Clear selection' : 'Select all compatible';
+    atc.selectAllBtn.disabled = compatIds.length === 0;
   }
 
   function atcRenderSpeciesList(query) {
     const p = atcState.product;
     if (!p) return;
     const q = (query || '').trim().toLowerCase();
-    const compatIds = Array.isArray(p.compatibleSpecies) ? p.compatibleSpecies.slice() : [];
-    // Sort: compatible first (preserving their order), then the rest
-    const compat = compatIds
-      .map(id => DB.byId(DB.SPECIES, id))
-      .filter(Boolean);
-    const compatSet = new Set(compat.map(s => s.id));
-    const rest = DB.SPECIES.filter(s => !compatSet.has(s.id));
-    let ordered = compat.concat(rest);
+    const compatSet = atcCompatSet();
+    const ordered = DB.SPECIES.slice().sort((a, b) => {
+      const ac = compatSet.has(a.id) ? 0 : 1;
+      const bc = compatSet.has(b.id) ? 0 : 1;
+      return ac - bc;
+    });
+    let list = ordered;
+    if (atcState.filter === 'compat') {
+      list = list.filter(s => compatSet.has(s.id));
+    }
     if (q) {
-      ordered = ordered.filter(s =>
+      list = list.filter(s =>
         s.name.toLowerCase().indexOf(q) !== -1 ||
         (s.latin && s.latin.toLowerCase().indexOf(q) !== -1)
       );
     }
-    if (!ordered.length) {
-      atc.speciesList.innerHTML = `<div class="dd-empty">No species found</div>`;
+    if (!list.length) {
+      atc.speciesList.innerHTML = `
+        <div class="sp-empty" style="grid-column: 1 / -1;">
+          <span class="ic"><i data-lucide="search-x"></i></span>
+          <div>No species match your search</div>
+        </div>`;
+      ZE.refreshIcons();
+      atcUpdateCountChip(false);
+      atcUpdateSelectAllState();
       return;
     }
-    atc.speciesList.innerHTML = ordered.map(s => {
-      const isSel     = atcState.selectedSet.has(s.id);
-      const selectCls = isSel ? 'selected' : '';
-      const compatCls = compatSet.has(s.id) ? 'compat' : '';
-      const compatBadge = compatSet.has(s.id) ? `<span class="compat-badge">compatible</span>` : '';
+    atc.speciesList.innerHTML = list.map((s, idx) => {
+      const isSel = atcState.selectedSet.has(s.id);
+      const isCompat = compatSet.has(s.id);
+      const selCls = isSel ? 'selected' : '';
+      const delay = Math.min(idx, 8) * 30;
+      const pillInner = isCompat ? `<span class="dot"></span>Compatible` : `<span class="dot"></span>Not compatible`;
       return `
-        <label class="row ${selectCls} ${compatCls}" data-sp-id="${s.id}">
-          <input type="checkbox" class="row-cb" ${isSel ? 'checked' : ''} />
-          <img src="${DB.img(s.imgQ, 60, 60, s.seed)}" alt="" loading="lazy"/>
-          <div style="display:flex; flex-direction:column; min-width:0">
-            <span class="name">${s.name}</span>
-            <span class="latin">${s.latin || ''}</span>
-          </div>
-          ${compatBadge}
-        </label>`;
+        <article class="sp-card ${selCls}" data-sp-id="${s.id}" data-compatible="${isCompat ? 'true' : 'false'}" role="option" aria-selected="${isSel ? 'true' : 'false'}" style="animation-delay:${delay}ms">
+          <div class="sp-img-wrap img-frame" data-sp-img data-sp-name="${esc(s.name)}" data-sp-q="${esc(s.imgQ || '')}" data-sp-seed="${s.seed || 0}"></div>
+          <span class="sp-check-badge" aria-hidden="true"><i data-lucide="check"></i></span>
+          <div class="sp-name">${esc(s.name)}</div>
+          <div class="sp-latin">${esc(s.latin || '')}</div>
+          <span class="sp-pill">${pillInner}</span>
+        </article>`;
     }).join('');
-    atc.speciesList.querySelectorAll('.row[data-sp-id]').forEach(row => {
-      const cb = row.querySelector('.row-cb');
-      const toggleFn = (e) => {
-        e.stopPropagation();
-        atcToggleSpecies(row.dataset.spId);
-      };
-      // Prevent label->checkbox double-toggle: handle it ourselves.
-      row.addEventListener('click', (e) => {
-        // Allow native checkbox click to propagate as-is; we handle state centrally.
-        if (e.target === cb) return;
+    atc.speciesList.querySelectorAll('.sp-card[data-sp-id]').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (card.dataset.compatible === 'false') return;
         e.preventDefault();
-        atcToggleSpecies(row.dataset.spId);
+        atcToggleSpecies(card.dataset.spId);
       });
-      cb.addEventListener('change', toggleFn);
     });
+    // Kick off per-card image loader with shimmer + single retry + neutral placeholder
+    atc.speciesList.querySelectorAll('[data-sp-img]').forEach(atcLoadSpeciesImage);
+    ZE.refreshIcons();
+    atcUpdateCountChip(false);
+    atcUpdateSelectAllState();
   }
 
   function atcPopulateEnclosures(speciesId) {
@@ -1451,7 +2133,6 @@
       atc.enclosureField.classList.add('atc-field--hidden');
       atc.enclosureSel.innerHTML = '<option value="">— Not specified —</option>';
     }
-    // Confirm button state + label
     atc.confirmBtn.disabled = false;
     if (size >= 2) {
       atc.confirmBtn.textContent = `Add ${size} to cart`;
@@ -1462,23 +2143,24 @@
 
   function atcToggleSpecies(speciesId) {
     if (!speciesId) return;
-    if (atcState.selectedSet.has(speciesId)) atcState.selectedSet.delete(speciesId);
+    const wasSel = atcState.selectedSet.has(speciesId);
+    if (wasSel) atcState.selectedSet.delete(speciesId);
     else atcState.selectedSet.add(speciesId);
-    // Update row visuals without full re-render so search/scroll position is preserved
-    atc.speciesList.querySelectorAll('.row[data-sp-id]').forEach(r => {
-      const id = r.dataset.spId;
-      const on = atcState.selectedSet.has(id);
-      r.classList.toggle('selected', on);
-      const cb = r.querySelector('.row-cb');
-      if (cb) cb.checked = on;
-    });
+    const card = atc.speciesList.querySelector(`.sp-card[data-sp-id="${speciesId}"]`);
+    if (card) {
+      card.classList.toggle('selected', !wasSel);
+      card.setAttribute('aria-selected', !wasSel ? 'true' : 'false');
+    }
     atcUpdateFieldVisibility();
+    atcUpdateCountChip(true);
+    atcUpdateSelectAllState();
   }
 
   function openAddToCartModal(product) {
     if (!product) return;
-    // Fresh state on each open — no stale selections
-    atcState = { product: product, selectedSet: new Set() };
+    const compatIds = Array.isArray(product.compatibleSpecies) ? product.compatibleSpecies : [];
+    const defaultFilter = compatIds.length > 0 ? 'compat' : 'all';
+    atcState = { product: product, selectedSet: new Set(), filter: defaultFilter };
     atc.thumb.src = product.imgSmall || product.img || '';
     atc.thumb.alt = product.name || '';
     atc.title.textContent = product.name || 'Add to cart';
@@ -1486,12 +2168,15 @@
     const price = product.price.material + product.price.labor;
     atc.sub.textContent = `${cat ? cat.name + ' · ' : ''}${DB.fmtINR(price)}`;
     atc.speciesInput.value = '';
+    atc.searchClear.classList.remove('show');
     atc.noteInput.value = '';
     atc.noteCount.textContent = '0';
     atc.enclosureSel.innerHTML = '<option value="">— Not specified —</option>';
     atc.enclosureField.classList.add('atc-field--hidden');
     atc.confirmBtn.disabled = false;
     atc.confirmBtn.textContent = 'Add to cart';
+    atc.chipAll.classList.toggle('active', atcState.filter === 'all');
+    atc.chipCompat.classList.toggle('active', atcState.filter === 'compat');
 
     atcRenderSpeciesList('');
     atcUpdateFieldVisibility();
@@ -1500,9 +2185,10 @@
     atc.modal.classList.add('open');
     atc.modal.setAttribute('aria-hidden', 'false');
     ZE.refreshIcons();
-    setTimeout(() => atc.speciesInput.focus(), 60);
+    setTimeout(() => {
+      if (!matchMedia('(pointer: coarse)').matches) atc.speciesInput.focus();
+    }, 60);
   }
-  // Expose for other page areas (if needed)
   window.openAddToCartModal = openAddToCartModal;
 
   // Wire modal controls once
@@ -1516,11 +2202,79 @@
     atc.speciesInput.addEventListener('input', () => {
       clearTimeout(searchTimer);
       const v = atc.speciesInput.value;
+      atc.searchClear.classList.toggle('show', v.length > 0);
       searchTimer = setTimeout(() => atcRenderSpeciesList(v), 80);
     });
     atc.speciesInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') e.preventDefault();
     });
+    atc.searchClear.addEventListener('click', () => {
+      atc.speciesInput.value = '';
+      atc.searchClear.classList.remove('show');
+      atcRenderSpeciesList('');
+      atc.speciesInput.focus();
+    });
+
+    const setFilter = (f) => {
+      atcState.filter = f;
+      atc.chipAll.classList.toggle('active', f === 'all');
+      atc.chipCompat.classList.toggle('active', f === 'compat');
+      atcRenderSpeciesList(atc.speciesInput.value);
+    };
+    atc.chipAll.addEventListener('click', () => setFilter('all'));
+    atc.chipCompat.addEventListener('click', () => setFilter('compat'));
+
+    atc.selectAllBtn.addEventListener('click', () => {
+      const compatIds = Array.from(atcCompatSet());
+      const allSelected = compatIds.length > 0 && compatIds.every(id => atcState.selectedSet.has(id));
+      if (allSelected) atcState.selectedSet.clear();
+      else compatIds.forEach(id => atcState.selectedSet.add(id));
+      atc.speciesList.querySelectorAll('.sp-card[data-sp-id]').forEach(c => {
+        const on = atcState.selectedSet.has(c.dataset.spId);
+        c.classList.toggle('selected', on);
+        c.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      atcUpdateFieldVisibility();
+      atcUpdateCountChip(true);
+      atcUpdateSelectAllState();
+    });
+
+    // Mobile swipe-down on grab-bar
+    (function wireGrab(){
+      if (!atc.grab) return;
+      let startY = null, dragging = false;
+      const onStart = (e) => {
+        const y = (e.touches ? e.touches[0].clientY : e.clientY);
+        startY = y; dragging = true;
+        atc.modal.style.transition = 'none';
+      };
+      const onMove = (e) => {
+        if (!dragging || startY == null) return;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY);
+        const dy = Math.max(0, y - startY);
+        atc.modal.style.transform = `translateY(${dy}px)`;
+      };
+      const onEnd = (e) => {
+        if (!dragging) return;
+        dragging = false;
+        atc.modal.style.transition = '';
+        const y = (e.changedTouches ? e.changedTouches[0].clientY : e.clientY);
+        const dy = startY != null ? y - startY : 0;
+        startY = null;
+        if (dy > 90) {
+          atc.modal.style.transform = '';
+          atcClose();
+        } else {
+          atc.modal.style.transform = '';
+        }
+      };
+      atc.grab.addEventListener('touchstart', onStart, { passive: true });
+      atc.grab.addEventListener('touchmove', onMove, { passive: true });
+      atc.grab.addEventListener('touchend', onEnd);
+      atc.grab.addEventListener('mousedown', onStart);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+    })();
 
     atc.enclosureSel.addEventListener('change', () => { /* no-op; read on confirm */ });
 
@@ -1758,31 +2512,131 @@
     ZE.refreshIcons();
   })();
 
-  /* ---------- Species dropdown (with sticky search) ---------- */
-  (function initSpecies(){
-    const dd = document.getElementById('speciesDropdown');
-    const av = document.getElementById('speciesAvatar');
-    const lb = document.getElementById('speciesLabel');
-    const setSpecies = (sp) => {
-      state.species = sp.id;
-      av.src = DB.img(sp.imgQ, 60, 60, sp.seed);
-      lb.textContent = sp.name;
-    };
-    setSpecies(DB.SPECIES[0]);
+  /* ---------- Species multi-select picker (Flipkart/Myntra-style) ---------- */
+  (function initSpeciesMulti(){
+    const dd         = document.getElementById('speciesDropdown');
+    const sel        = document.getElementById('speciesSelector');
+    const stackEl    = document.getElementById('speciesAvatarStack');
+    const lb         = document.getElementById('speciesLabel');
+    const backdrop   = document.getElementById('speciesBackdrop');
+    const chipRail   = document.getElementById('speciesChipRail');
+    const chipListEl = document.getElementById('speciesChipList');
+    const chipClear  = document.getElementById('speciesChipClear');
 
-    // Build the dropdown: sticky search + section header + list container
-    dd.innerHTML =
-      `<div class="dd-search">
-         <i data-lucide="search" class="w-4 h-4"></i>
-         <input id="speciesSearchInput" type="search" placeholder="Search species…" autocomplete="off"/>
-       </div>
-       <div class="dd-section">Species (${DB.SPECIES.length})</div>
-       <div id="speciesList"></div>`;
+    // Draft selection (edited in panel) vs committed selection (state.speciesIds).
+    // On mobile we commit on Apply. On desktop we live-apply for Myntra-style UX,
+    // but still show Apply to close-and-confirm.
+    let draftSet = new Set(state.speciesIds);
 
-    const listEl = dd.querySelector('#speciesList');
-    const searchInput = dd.querySelector('#speciesSearchInput');
+    // ---------- Trigger rendering (avatars + label + count) ----------
+    function renderTrigger() {
+      const ids = state.speciesIds;
+      sel.classList.toggle('msp-has-selection', ids.length > 0);
+      stackEl.innerHTML = '';
 
-    function renderSpeciesList(query) {
+      if (ids.length === 0) {
+        // All species — generic paw avatar
+        const span = document.createElement('span');
+        span.className = 'pill-ico';
+        span.innerHTML = '<i data-lucide="paw-print" class="w-4 h-4"></i>';
+        stackEl.appendChild(span);
+        lb.textContent = 'All species';
+      } else {
+        // Up to 2 overlapping avatars + count badge (if >2)
+        const showAvatars = ids.slice(0, Math.min(2, ids.length));
+        showAvatars.forEach(id => {
+          const sp = DB.byId(DB.SPECIES, id);
+          if (!sp) return;
+          const img = document.createElement('img');
+          img.className = 'pill-avatar';
+          img.src = DB.img(sp.imgQ, 60, 60, sp.seed);
+          img.alt = sp.name;
+          img.loading = 'eager';
+          stackEl.appendChild(img);
+        });
+        if (ids.length > 2) {
+          const badge = document.createElement('span');
+          badge.className = 'msp-count-badge';
+          badge.textContent = '+' + (ids.length - 2);
+          stackEl.appendChild(badge);
+        }
+        if (ids.length === 1) {
+          const sp = DB.byId(DB.SPECIES, ids[0]);
+          lb.textContent = sp ? sp.name : '1 species';
+        } else if (ids.length === 2) {
+          const sp = DB.byId(DB.SPECIES, ids[0]);
+          lb.textContent = (sp ? sp.name : '') + ' +1';
+        } else {
+          lb.textContent = ids.length + ' species';
+        }
+      }
+      ZE.refreshIcons();
+    }
+
+    // ---------- Chip rail rendering ----------
+    function renderChipRail() {
+      const ids = state.speciesIds;
+      if (!ids.length) {
+        chipRail.classList.remove('show');
+        chipListEl.innerHTML = '';
+        return;
+      }
+      chipRail.classList.add('show');
+      chipListEl.innerHTML = ids.map(id => {
+        const sp = DB.byId(DB.SPECIES, id);
+        if (!sp) return '';
+        return `<span class="msp-chip" data-sp="${sp.id}">
+          <img src="${DB.img(sp.imgQ, 60, 60, sp.seed)}" alt=""/>
+          <span>${esc(sp.name)}</span>
+          <button type="button" aria-label="Remove ${esc(sp.name)}" data-remove="${sp.id}">
+            <i data-lucide="x"></i>
+          </button>
+        </span>`;
+      }).join('');
+      chipListEl.querySelectorAll('button[data-remove]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.remove;
+          state.speciesIds = state.speciesIds.filter(x => x !== id);
+          draftSet.delete(id);
+          writeSpeciesSelection(state.speciesIds);
+          applyAll();
+        });
+      });
+      ZE.refreshIcons();
+    }
+
+    // ---------- Panel (dropdown + mobile bottom-sheet) ----------
+    function buildPanel() {
+      dd.innerHTML = `
+        <div class="msp-header">
+          <span class="msp-title">Select species</span>
+          <button type="button" class="msp-clear" id="mspClear" hidden>Clear</button>
+        </div>
+        <div class="msp-search">
+          <i data-lucide="search"></i>
+          <input id="mspSearch" type="search" placeholder="Search species…" autocomplete="off" aria-label="Search species"/>
+          <button type="button" class="msp-search-clear" id="mspSearchClear" aria-label="Clear search">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="msp-list" id="mspList" role="listbox" aria-multiselectable="true"></div>
+        <div class="msp-footer">
+          <span class="msp-footer-count empty" id="mspCount">0 selected</span>
+          <button type="button" class="msp-apply" id="mspApply">Apply</button>
+        </div>
+      `;
+    }
+    buildPanel();
+
+    const searchInput = dd.querySelector('#mspSearch');
+    const searchClear = dd.querySelector('#mspSearchClear');
+    const listEl      = dd.querySelector('#mspList');
+    const applyBtn    = dd.querySelector('#mspApply');
+    const clearBtn    = dd.querySelector('#mspClear');
+    const countEl     = dd.querySelector('#mspCount');
+
+    function renderList(query) {
       const q = (query || '').trim().toLowerCase();
       const filtered = !q
         ? DB.SPECIES.slice()
@@ -1791,69 +2645,159 @@
             (sp.latin && sp.latin.toLowerCase().indexOf(q) !== -1)
           );
       if (!filtered.length) {
-        listEl.innerHTML = `<div class="dd-empty">No species found</div>`;
+        listEl.innerHTML = `<div class="msp-empty">No species match "${esc(query)}"</div>`;
         return;
       }
-      listEl.innerHTML = filtered.map(sp => `
-        <div class="dd-item ${sp.id===state.species?'active':''}" data-sp="${sp.id}">
-          <span class="dd-avatar img-frame img-frame-sm"><img src="${DB.img(sp.imgQ, 60, 60, sp.seed)}" alt="" loading="lazy"/></span>
-          <span class="dd-label">
-            <div>${sp.name}</div>
-            <div style="font-size:10px; color:var(--text-subtle); font-style:italic">${sp.latin}</div>
-          </span>
-          <span class="dd-count">${sp.count}</span>
-        </div>
-      `).join('');
-      // Re-bind item clicks after each render
-      listEl.querySelectorAll('.dd-item').forEach(it => {
-        it.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const sp = DB.SPECIES.find(x => x.id === it.dataset.sp);
-          if (!sp) return;
-          setSpecies(sp);
-          state.page = 1;
-          listEl.querySelectorAll('.dd-item').forEach(x => x.classList.remove('active'));
-          it.classList.add('active');
-          dd.classList.remove('open');
-          // Species changed → re-evaluate the filter bank (keeps consistency with category-scoped bank)
-          purgeStaleFilters();
-          renderDynamicFilters();
-          renderProducts();
-          scrollMainToTop();
+      listEl.innerHTML = filtered.map(sp => {
+        const sel = draftSet.has(sp.id);
+        return `<div class="msp-row ${sel ? 'selected' : ''}" data-sp="${sp.id}" role="option" tabindex="0" aria-selected="${sel}">
+          <div class="msp-avatar"><img src="${DB.img(sp.imgQ, 80, 80, sp.seed)}" alt="" loading="lazy"/></div>
+          <div class="msp-text">
+            <div class="msp-name">${esc(sp.name)}</div>
+            <div class="msp-latin">${esc(sp.latin || '')}</div>
+          </div>
+          <span class="msp-cb"><i data-lucide="check"></i></span>
+        </div>`;
+      }).join('');
+      listEl.querySelectorAll('.msp-row').forEach(row => {
+        const toggle = (e) => {
+          e && e.stopPropagation();
+          const id = row.dataset.sp;
+          if (draftSet.has(id)) draftSet.delete(id);
+          else draftSet.add(id);
+          const nowSel = draftSet.has(id);
+          row.classList.toggle('selected', nowSel);
+          row.setAttribute('aria-selected', String(nowSel));
+          syncFooter();
+          // Desktop: instant-apply for Myntra-style live filtering
+          if (window.matchMedia('(min-width: 761px)').matches) {
+            commitDraftLive();
+          }
+        };
+        row.addEventListener('click', toggle);
+        row.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(e); }
         });
       });
       ZE.refreshIcons();
     }
 
-    renderSpeciesList('');
+    function syncFooter() {
+      const n = draftSet.size;
+      countEl.textContent = n + ' selected';
+      countEl.classList.toggle('empty', n === 0);
+      if (n > 0) clearBtn.hidden = false; else clearBtn.hidden = true;
+    }
 
-    const sel = document.getElementById('speciesSelector');
+    function commitDraftLive() {
+      // Desktop live-apply: updates state + downstream but keeps panel open
+      const next = Array.from(draftSet);
+      state.speciesIds = next;
+      writeSpeciesSelection(next);
+      state.page = 1;
+      renderTrigger();
+      renderChipRail();
+      purgeStaleFilters();
+      renderDynamicFilters();
+      renderProducts();
+    }
+
+    function applyAll() {
+      // Commit, render everything, close panel (used by chip removal + mobile Apply)
+      state.page = 1;
+      renderTrigger();
+      renderChipRail();
+      purgeStaleFilters();
+      renderDynamicFilters();
+      renderProducts();
+    }
+
+    // Open / close
+    function openPanel() {
+      closeAllDropdowns(dd);
+      // Sync draft to latest committed state when opening
+      draftSet = new Set(state.speciesIds);
+      searchInput.value = '';
+      searchClear.classList.remove('show');
+      renderList('');
+      syncFooter();
+      dd.classList.add('open');
+      sel.setAttribute('aria-expanded', 'true');
+      if (window.matchMedia('(max-width: 760px)').matches) {
+        backdrop.classList.add('show');
+      }
+      if (!matchMedia('(pointer: coarse)').matches) {
+        setTimeout(() => searchInput.focus(), 50);
+      }
+    }
+    function closePanel() {
+      dd.classList.remove('open');
+      backdrop.classList.remove('show');
+      sel.setAttribute('aria-expanded', 'false');
+    }
+
     sel.addEventListener('click', (e) => {
       e.stopPropagation();
-      closeAllDropdowns(dd);
-      dd.classList.toggle('open');
-      if (dd.classList.contains('open')) {
-        // Reset search when opening so user sees full list
-        searchInput.value = '';
-        renderSpeciesList('');
-        setTimeout(() => searchInput.focus(), 30);
-      }
+      if (dd.classList.contains('open')) closePanel();
+      else openPanel();
     });
-
-    // Keep clicks inside the dropdown (including the search input) from closing it
     dd.addEventListener('click', (e) => e.stopPropagation());
+    backdrop.addEventListener('click', () => closePanel());
 
-    // Debounced live filter
+    // Search
     let searchTimer = null;
     searchInput.addEventListener('input', () => {
       clearTimeout(searchTimer);
-      const val = searchInput.value;
-      searchTimer = setTimeout(() => renderSpeciesList(val), 100);
+      const v = searchInput.value;
+      searchClear.classList.toggle('show', v.length > 0);
+      searchTimer = setTimeout(() => renderList(v), 80);
     });
-    // Prevent Enter from submitting any enclosing form
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') e.preventDefault();
+      if (e.key === 'Escape') { e.preventDefault(); closePanel(); }
     });
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchClear.classList.remove('show');
+      renderList('');
+      searchInput.focus();
+    });
+
+    // Clear (inside panel) — clears draft, and on desktop live-applies
+    clearBtn.addEventListener('click', () => {
+      draftSet.clear();
+      renderList(searchInput.value);
+      syncFooter();
+      if (window.matchMedia('(min-width: 761px)').matches) {
+        commitDraftLive();
+      }
+    });
+
+    // Apply — commits draft and closes
+    applyBtn.addEventListener('click', () => {
+      const next = Array.from(draftSet);
+      state.speciesIds = next;
+      writeSpeciesSelection(next);
+      applyAll();
+      closePanel();
+    });
+
+    // Global Esc to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dd.classList.contains('open')) closePanel();
+    });
+
+    // Chip rail "Clear all"
+    chipClear.addEventListener('click', () => {
+      state.speciesIds = [];
+      draftSet.clear();
+      writeSpeciesSelection([]);
+      applyAll();
+    });
+
+    // Initial paint
+    renderTrigger();
+    renderChipRail();
   })();
 
   /* ---------- Sort dropdown ---------- */
@@ -1881,7 +2825,13 @@
   })();
 
   function closeAllDropdowns(except) {
-    document.querySelectorAll('.dropdown.open').forEach(d => { if (d !== except) d.classList.remove('open'); });
+    document.querySelectorAll('.dropdown.open, .msp-panel.open').forEach(d => { if (d !== except) d.classList.remove('open'); });
+    // Also hide the mobile species-picker backdrop if the species panel was the one closing
+    const bd = document.getElementById('speciesBackdrop');
+    const sp = document.getElementById('speciesDropdown');
+    if (bd && sp && !sp.classList.contains('open')) bd.classList.remove('show');
+    const sel = document.getElementById('speciesSelector');
+    if (sel && sp && !sp.classList.contains('open')) sel.setAttribute('aria-expanded', 'false');
   }
   document.addEventListener('click', () => closeAllDropdowns(null));
 
@@ -1924,6 +2874,14 @@
 
   function filterSort(products) {
     let list = products.slice();
+    // Species multi-select (OR logic — product matches if ANY selected species is compatible)
+    if (Array.isArray(state.speciesIds) && state.speciesIds.length > 0) {
+      const sel = state.speciesIds;
+      list = list.filter(p => {
+        const compat = Array.isArray(p.compatibleSpecies) ? p.compatibleSpecies : [];
+        return sel.some(id => compat.indexOf(id) !== -1);
+      });
+    }
     // Category / tag
     if (state.category !== 'all') {
       if (state.category === 'deals') list = list.filter(p => (p.price.material + p.price.labor) < 300);
@@ -1942,6 +2900,11 @@
     }
     // Attribute filters
     list = list.filter(productMatchesAttrFilters);
+
+    // Sidebar filter-selections (Material / Size / Engagement / Scent / Color)
+    // Soft-no-op when product data is missing: we only filter OUT a product if
+    // its attribute EXISTS and does NOT match — otherwise keep it in the list.
+    list = list.filter(p => productMatchesSidebarSelections(p));
 
     switch (state.sort) {
       case 'newest':     list.sort((a,b) => b.id.localeCompare(a.id)); break;
@@ -1975,22 +2938,19 @@
       // Total quantity of this product across ALL species lines.
       const qty = ZE.cart.countForProduct(p.id);
       const fav = ZE.saved.has(p.id);
-      const vendor = (DB.VENDORS && p.vendorId) ? DB.byId(DB.VENDORS, p.vendorId) : null;
-
       // Hover-carousel gallery (5 angles). Fallback to [imgSmall] if no gallery available.
       const gallery = (DB && typeof DB.galleryFor === 'function')
         ? DB.galleryFor(p)
         : (Array.isArray(p.gallery) && p.gallery.length ? p.gallery : [p.imgSmall]);
 
-      // Sold-by line
-      let soldBy = '';
-      if (vendor) {
-        const logo = (typeof DB.vendorLogo === 'function') ? DB.vendorLogo(vendor) : '';
-        soldBy = `<a class="sold-by" href="vendor_store_1.html?id=${vendor.id}" data-vendor-link="1">
-                    ${logo ? `<img src="${logo}" alt=""/>` : ''}
-                    <span>Sold by ${vendor.name}</span>
-                  </a>`;
-      }
+      // Rating pill (Flipkart-style). Falls back to "New — be the first to review" when count is 0.
+      const r = (DB && typeof DB.productRating === 'function') ? DB.productRating(p.id) : { avg: 0, count: 0 };
+      const ratingHtml = r && r.count > 0
+        ? `<div class="prod-rating">
+             <span class="stars"><i data-lucide="star"></i> ${r.avg.toFixed(1)}</span>
+             <span class="rating-count">(${r.count})</span>
+           </div>`
+        : `<div class="prod-rating"><span class="no-rating">No reviews yet</span></div>`;
 
       // Action slot — card always opens species modal on Add; stock gating lives on PDP.
       let actionSlot;
@@ -2021,7 +2981,7 @@
           <div class="prod-meta">
             <div class="prod-name">${p.name}</div>
             <div class="prod-cat"><span class="tag-dot"></span>${cat ? cat.name : ''}</div>
-            ${soldBy}
+            ${ratingHtml}
           </div>
           <div class="prod-bottom">
             <div class="prod-price">${DB.fmtINR(price)}<span class="unit">/ unit</span></div>
@@ -2040,14 +3000,10 @@
 
     grid.querySelectorAll('.prod-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.fav-btn') || e.target.closest('.add-btn') || e.target.closest('.stepper-mini') || e.target.closest('.sold-by')) return;
+        if (e.target.closest('.fav-btn') || e.target.closest('.add-btn') || e.target.closest('.stepper-mini')) return;
         window.location.href = 'product_detail_1.html?id=' + card.dataset.id;
       });
       bindHoverCarousel(card);
-    });
-    // Vendor "Sold by" link — don't bubble up to the card click
-    grid.querySelectorAll('.sold-by').forEach(link => {
-      link.addEventListener('click', (e) => { e.stopPropagation(); });
     });
     grid.querySelectorAll('.fav-btn').forEach(b => {
       b.addEventListener('click', (e) => {
@@ -3036,8 +3992,342 @@
     window.addEventListener('resize', apply);
   })();
 
+  /* =========================================================
+     Sidebar filter bodies — Material / Size / Engagement /
+     Scent / Color. Populated on init; wired to state and to
+     filterSort via productMatchesSidebarSelections(p).
+     ========================================================= */
+  const SIDEBAR_FILTER_OPTIONS = {
+    material: ['Wood', 'Stainless', 'Rope', 'Rubber', 'HDPE', 'Natural fibre', 'Bamboo'],
+    size:     ['Small', 'Medium', 'Large', 'XL', 'Custom'],
+    scent:    ['Unscented', 'Mild', 'Herbal', 'Citrus', 'Musk', 'Custom blend'],
+    color: [
+      { id:'natural', label:'Natural wood', hex:'#C8A882' },
+      { id:'charcoal',label:'Charcoal',     hex:'#3A3A3A' },
+      { id:'brown',   label:'Brown',        hex:'#6B4423' },
+      { id:'green',   label:'Green',        hex:'#37BD69' },
+      { id:'red',     label:'Red',          hex:'#B0342A' },
+      { id:'yellow',  label:'Yellow',       hex:'#E4B819' },
+      { id:'blue',    label:'Blue',         hex:'#2B6CB0' },
+      { id:'white',   label:'White',        hex:'#F5F5F5', border:true },
+      { id:'black',   label:'Black',        hex:'#0F172A' },
+      { id:'multi',   label:'Multi',        hex:'linear-gradient(135deg,#ef4444 0%,#f59e0b 25%,#fbbf24 45%,#37BD69 65%,#3b82f6 85%,#a855f7 100%)' }
+    ]
+  };
+
+  function starIconRow(filled, total) {
+    let out = '';
+    for (let i = 0; i < total; i++) {
+      const isOn = i < filled;
+      out += `<i data-lucide="star" class="w-3.5 h-3.5 ${isOn ? '' : 'off'}" ${isOn ? 'style="fill:var(--warning)"' : ''}></i>`;
+    }
+    return out;
+  }
+
+  function renderFilterBodies() {
+    // --- MATERIAL — checkbox list ---
+    const matBody = document.getElementById('materialBody');
+    if (matBody) {
+      matBody.innerHTML = `<div class="check-list">${
+        SIDEBAR_FILTER_OPTIONS.material.map(m => {
+          const checked = state.filterSelections.material.indexOf(m) !== -1 ? 'checked' : '';
+          return `<label class="check-row">
+            <input type="checkbox" data-sb-material="${esc(m)}" ${checked}/>
+            <span>${m}</span>
+          </label>`;
+        }).join('')
+      }</div>`;
+      matBody.querySelectorAll('input[data-sb-material]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const v = inp.dataset.sbMaterial;
+          const arr = state.filterSelections.material;
+          const idx = arr.indexOf(v);
+          if (inp.checked && idx === -1) arr.push(v);
+          else if (!inp.checked && idx !== -1) arr.splice(idx, 1);
+          afterSidebarSelectionChange();
+        });
+      });
+    }
+
+    // --- SIZE — single-select pill chips ---
+    const sizeBody = document.getElementById('sizeBody');
+    if (sizeBody) {
+      sizeBody.innerHTML = `<div class="pill-seg" data-sb-size-wrap>${
+        SIDEBAR_FILTER_OPTIONS.size.map(s => {
+          const active = state.filterSelections.size === s ? 'active' : '';
+          return `<button type="button" class="${active}" data-sb-size="${esc(s)}">${s}</button>`;
+        }).join('')
+      }</div>`;
+      sizeBody.querySelectorAll('button[data-sb-size]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const v = btn.dataset.sbSize;
+          state.filterSelections.size = (state.filterSelections.size === v) ? '' : v;
+          sizeBody.querySelectorAll('button[data-sb-size]').forEach(b => b.classList.remove('active'));
+          if (state.filterSelections.size) btn.classList.add('active');
+          afterSidebarSelectionChange();
+        });
+      });
+    }
+
+    // --- ENGAGEMENT — N-and-up star rating rows ---
+    const engBody = document.getElementById('engagementBody');
+    if (engBody) {
+      const rows = [5, 4, 3, 2, 1];
+      engBody.innerHTML = `<div class="eng-rows">${
+        rows.map(n => {
+          const active = state.filterSelections.engagement === n ? 'active' : '';
+          const label = n === 5 ? 'only' : '&amp; up';
+          return `<button type="button" class="eng-row ${active}" data-sb-eng="${n}">
+            <span class="eng-stars">${starIconRow(n, 5)}</span>
+            <span class="eng-label">${n}★ ${label}</span>
+          </button>`;
+        }).join('')
+      }</div>`;
+      engBody.querySelectorAll('button[data-sb-eng]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const v = parseInt(btn.dataset.sbEng, 10);
+          state.filterSelections.engagement = (state.filterSelections.engagement === v) ? 0 : v;
+          engBody.querySelectorAll('.eng-row').forEach(b => b.classList.remove('active'));
+          if (state.filterSelections.engagement) btn.classList.add('active');
+          afterSidebarSelectionChange();
+        });
+      });
+    }
+
+    // --- SCENT — checkbox list ---
+    const scentBody = document.getElementById('scentBody');
+    if (scentBody) {
+      scentBody.innerHTML = `<div class="check-list">${
+        SIDEBAR_FILTER_OPTIONS.scent.map(s => {
+          const checked = state.filterSelections.scent.indexOf(s) !== -1 ? 'checked' : '';
+          return `<label class="check-row">
+            <input type="checkbox" data-sb-scent="${esc(s)}" ${checked}/>
+            <span>${s}</span>
+          </label>`;
+        }).join('')
+      }</div>`;
+      scentBody.querySelectorAll('input[data-sb-scent]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const v = inp.dataset.sbScent;
+          const arr = state.filterSelections.scent;
+          const idx = arr.indexOf(v);
+          if (inp.checked && idx === -1) arr.push(v);
+          else if (!inp.checked && idx !== -1) arr.splice(idx, 1);
+          afterSidebarSelectionChange();
+        });
+      });
+    }
+
+    // --- COLOR — swatch grid (5 cols × 2 rows) ---
+    const colorBody = document.getElementById('colorBody');
+    if (colorBody) {
+      colorBody.innerHTML = `
+        <div class="swatch-grid" style="grid-template-columns: repeat(5, 1fr); gap: 10px;">${
+          SIDEBAR_FILTER_OPTIONS.color.map(c => {
+            const active = state.filterSelections.color.indexOf(c.id) !== -1 ? 'active' : '';
+            const extraClass = c.border ? 'swatch-white' : '';
+            const bg = c.hex.indexOf('gradient') !== -1 ? c.hex : c.hex;
+            return `<span class="swatch ${active} ${extraClass}"
+              data-sb-color="${c.id}"
+              title="${esc(c.label)}"
+              aria-label="${esc(c.label)}"
+              style="background: ${bg}; border-radius: 999px;"
+              role="button" tabindex="0"></span>`;
+          }).join('')
+        }</div>
+        <div style="margin-top:10px; font-size:11px; color:var(--text-muted);" id="colorSelectedLabel"></div>
+      `;
+      const updateLabel = () => {
+        const lbl = document.getElementById('colorSelectedLabel');
+        if (!lbl) return;
+        const sel = state.filterSelections.color;
+        if (!sel.length) { lbl.textContent = ''; return; }
+        const names = sel.map(id => {
+          const c = SIDEBAR_FILTER_OPTIONS.color.find(x => x.id === id);
+          return c ? c.label : id;
+        });
+        lbl.textContent = names.join(', ');
+      };
+      const toggle = (id, el) => {
+        const arr = state.filterSelections.color;
+        const idx = arr.indexOf(id);
+        if (idx === -1) arr.push(id); else arr.splice(idx, 1);
+        el.classList.toggle('active');
+        updateLabel();
+        afterSidebarSelectionChange();
+      };
+      colorBody.querySelectorAll('span[data-sb-color]').forEach(sw => {
+        sw.addEventListener('click', () => toggle(sw.dataset.sbColor, sw));
+        sw.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(sw.dataset.sbColor, sw); }
+        });
+      });
+      updateLabel();
+    }
+
+    ZE.refreshIcons();
+  }
+
+  /* ----- Count chips + clear-all visibility ----- */
+  function sidebarFilterCounts() {
+    const s = state.filterSelections;
+    return {
+      material:   s.material.length,
+      size:       s.size ? 1 : 0,
+      engagement: s.engagement ? 1 : 0,
+      scent:      s.scent.length,
+      color:      s.color.length,
+      price:      (state.priceMin !== MIN_PRICE || state.priceMax !== MAX_PRICE) ? 1 : 0
+    };
+  }
+  function sidebarFilterTotalActive() {
+    const c = sidebarFilterCounts();
+    return c.material + c.size + c.engagement + c.scent + c.color + c.price;
+  }
+  function updateFilterCountChips() {
+    const c = sidebarFilterCounts();
+    const map = {
+      material:   'materialCountChip',
+      size:       'sizeCountChip',
+      engagement: 'engagementCountChip',
+      scent:      'scentCountChip',
+      color:      'colorCountChip'
+    };
+    Object.keys(map).forEach(k => {
+      const el = document.getElementById(map[k]);
+      if (!el) return;
+      if (c[k] > 0) { el.textContent = c[k]; el.style.display = ''; }
+      else          { el.style.display = 'none'; }
+    });
+  }
+  function updateFiltersClearAllVisibility() {
+    const clearWrap = document.getElementById('filtersClearAll');
+    const countEl   = document.getElementById('filtersActiveCount');
+    if (!clearWrap) return;
+    const total = sidebarFilterTotalActive();
+    if (total > 0) {
+      clearWrap.style.display = '';
+      if (countEl) countEl.textContent = total;
+    } else {
+      clearWrap.style.display = 'none';
+    }
+  }
+
+  function afterSidebarSelectionChange() {
+    state.page = 1;
+    updateFilterCountChips();
+    updateFiltersClearAllVisibility();
+    renderProducts();
+  }
+
+  /* ----- Product match check (soft-no-op if data missing) ----- */
+  function productMatchesSidebarSelections(p) {
+    const s = state.filterSelections;
+    const specs = (p && p.specs) || {};
+    const attrs = (p && (p.attributes || p.attrs)) || {};
+
+    // Helper: pick value from multiple possible product shapes. If none of the
+    // expected keys exist on the product, we treat it as "no data" and keep
+    // the product in the list (soft-no-op).
+    function pick(keys) {
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (attrs[k] !== undefined) return { has: true, val: attrs[k] };
+        if (specs[k] !== undefined) return { has: true, val: specs[k] };
+        if (p && p[k] !== undefined) return { has: true, val: p[k] };
+      }
+      return { has: false };
+    }
+
+    // Material
+    if (s.material.length) {
+      const m = pick(['material', 'materialType']);
+      if (m.has) {
+        const vals = Array.isArray(m.val) ? m.val.map(String) : [String(m.val)];
+        const hit = s.material.some(sel => vals.indexOf(sel) !== -1);
+        if (!hit) return false;
+      }
+    }
+
+    // Size
+    if (s.size) {
+      const sz = pick(['size']);
+      if (sz.has && String(sz.val) !== s.size) return false;
+    }
+
+    // Engagement (N-and-up, rating or score)
+    if (s.engagement > 0) {
+      let avg = null;
+      if (DB && typeof DB.productRating === 'function') {
+        const r = DB.productRating(p.id);
+        if (r && typeof r.avg === 'number') avg = r.avg;
+      }
+      if (avg === null && typeof p.engagement === 'number') avg = p.engagement;
+      // Only filter when we have a value; otherwise soft-no-op.
+      if (avg !== null && avg < s.engagement) return false;
+    }
+
+    // Scent
+    if (s.scent.length) {
+      const sc = pick(['scent']);
+      if (sc.has) {
+        const vals = Array.isArray(sc.val) ? sc.val.map(String) : [String(sc.val)];
+        const hit = s.scent.some(sel => vals.indexOf(sel) !== -1);
+        if (!hit) return false;
+      }
+    }
+
+    // Color (match by id)
+    if (s.color.length) {
+      const co = pick(['color', 'colors']);
+      if (co.has) {
+        const vals = Array.isArray(co.val) ? co.val.map(String) : [String(co.val)];
+        const hit = s.color.some(sel => vals.indexOf(sel) !== -1);
+        if (!hit) return false;
+      }
+    }
+
+    return true;
+  }
+
+  /* ----- Clear-all for sidebar filters (including price) ----- */
+  function clearAllFilterSelections() {
+    state.filterSelections = { material: [], size: '', engagement: 0, scent: [], color: [] };
+    state.priceMin = MIN_PRICE;
+    state.priceMax = MAX_PRICE;
+    if (typeof updatePriceUI === 'function') updatePriceUI();
+    renderFilterBodies();
+    state.page = 1;
+    updateFilterCountChips();
+    updateFiltersClearAllVisibility();
+    renderProducts();
+  }
+
+  // Wire clear-all button + price-slider integration
+  (function wireSidebarFiltersClearAll(){
+    const btn = document.getElementById('filtersClearAllBtn');
+    if (btn) btn.addEventListener('click', clearAllFilterSelections);
+
+    // Keep price-range changes reflected in the clear-all pill
+    const sliderEl = document.getElementById('priceSlider');
+    if (sliderEl) {
+      sliderEl.addEventListener('pointerup', () => {
+        updateFilterCountChips();
+        updateFiltersClearAllVisibility();
+      });
+    }
+    const resetPrice = document.getElementById('priceResetBtn');
+    if (resetPrice) resetPrice.addEventListener('click', () => {
+      updateFilterCountChips();
+      updateFiltersClearAllVisibility();
+    });
+  })();
+
   /* ---------- Initial render ---------- */
   renderDynamicFilters();
+  renderFilterBodies();
+  updateFilterCountChips();
+  updateFiltersClearAllVisibility();
   renderProducts();
   renderCartCount();
   renderOrdersBadge();

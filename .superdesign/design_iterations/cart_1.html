@@ -150,9 +150,17 @@
     .vendor-name { font-size: 13px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
     .vendor-name .v-logo { width: 18px; height: 18px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
     .vendor-name.unknown-vendor { color: var(--text-muted); font-style: italic; }
-    .change-vendor-btn { background: transparent; border: none; color: var(--brand); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; transition: .15s; flex-shrink: 0; }
-    .change-vendor-btn:hover { background: var(--brand-soft); color: var(--brand-hover); }
-    .change-vendor-btn i { width: 13px; height: 13px; }
+    /* Cart-wide vendor dropdown (replaces per-line Change vendor + bulk Change vendor button) */
+    .cart-vendor-dd { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; max-width: 360px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 6px; display: none; z-index: 80; max-height: 320px; overflow-y: auto; }
+    .cart-vendor-dd.open { display: block; }
+    .cart-vendor-dd .dd-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background .12s; }
+    .cart-vendor-dd .dd-item:hover { background: #F1F2F4; }
+    .cart-vendor-dd .dd-item.active { background: var(--brand-soft); }
+    .cart-vendor-dd .dd-item img { width: 28px; height: 28px; border-radius: 999px; object-fit: cover; flex-shrink: 0; background: var(--card-subtle); }
+    .cart-vendor-dd .dd-item .dd-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .cart-vendor-dd .dd-item .dd-check { margin-left: auto; color: var(--brand); opacity: 0; }
+    .cart-vendor-dd .dd-item.active .dd-check { opacity: 1; }
+    .cart-vendor-dd .dd-hint { padding: 10px 12px; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border); margin-bottom: 4px; }
 
     .line-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
     .line-stepper { display: inline-flex; align-items: center; background: var(--brand); color: #fff; border-radius: 999px; padding: 3px; gap: 2px; }
@@ -313,6 +321,9 @@
       </label>
 
       <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
         <button class="header-btn" type="button" id="ordersBtn">
           <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
           <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
@@ -364,9 +375,14 @@
             </label>
             <span class="bulk-count" id="bulkCountLabel">0 selected</span>
             <div class="bulk-actions">
-              <button class="btn btn-outline" id="bulkChangeVendor" disabled>
-                <i data-lucide="store" class="w-4 h-4"></i> Change vendor
-              </button>
+              <div class="cart-vendor-wrap" style="position:relative;">
+                <button class="btn btn-outline" id="cartVendorBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <i data-lucide="store" class="w-4 h-4"></i>
+                  <span id="cartVendorLabel">Change vendor</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div class="cart-vendor-dd" id="cartVendorDropdown" role="listbox" aria-label="Select vendor for this order"></div>
+              </div>
               <button class="btn btn-ghost danger" id="bulkRemove" disabled>
                 <i data-lucide="trash-2" class="w-4 h-4"></i> Remove
               </button>
@@ -530,6 +546,7 @@
           <a href="profile_1.html" role="menuitem"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
           <a href="orders_1.html" role="menuitem"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
           <a href="saved_1.html" role="menuitem"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
+          <a href="admin_products_1.html" id="adminNavItem" role="menuitem"><i data-lucide="shield" class="w-4 h-4"></i> Admin</a>
           <div class="menu-sep"></div>
           <button type="button" class="sign-out" id="signOutBtn" role="menuitem">
             <i data-lucide="log-out" class="w-4 h-4"></i> Sign out
@@ -619,9 +636,6 @@
                 <span class="vendor-eyebrow">Sold by</span>
                 ${vendorHtml}
               </div>
-              <button class="change-vendor-btn" data-change-vendor="${line.id}">
-                <i data-lucide="refresh-cw"></i> Change vendor
-              </button>
             </div>
             <div class="line-bottom">
               <div class="line-stepper" data-line="${line.id}">
@@ -673,14 +687,6 @@
       });
     });
 
-    // Per-line change vendor
-    list.querySelectorAll('.change-vendor-btn[data-change-vendor]').forEach(b => {
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openVendorPicker([b.dataset.changeVendor]);
-      });
-    });
-
     // Per-line select species
     list.querySelectorAll('.btn-select-species[data-select-species]').forEach(b => {
       b.addEventListener('click', (e) => {
@@ -725,8 +731,10 @@
     selAll.indeterminate = sel > 0 && sel < total;
 
     document.getElementById('bulkCountLabel').textContent = `${sel} selected`;
-    document.getElementById('bulkChangeVendor').disabled = sel === 0;
+    // Cart-wide vendor dropdown is always enabled (not tied to selection).
     document.getElementById('bulkRemove').disabled = sel === 0;
+    // Keep dropdown label fresh (shows current cart vendor)
+    try { wireCartVendorDropdown(); } catch (e) {}
   }
 
   /* ---------- Wire top-level actions ---------- */
@@ -740,11 +748,50 @@
     render();
   });
 
-  document.getElementById('bulkChangeVendor').addEventListener('click', () => {
-    const ids = Array.from(state.selected);
-    if (ids.length === 0) return;
-    openVendorPicker(ids);
+  /* ---------- Cart-wide vendor dropdown (single vendor per order) ---------- */
+  function wireCartVendorDropdown() {
+    const btn = document.getElementById('cartVendorBtn');
+    const dd  = document.getElementById('cartVendorDropdown');
+    const label = document.getElementById('cartVendorLabel');
+    if (!btn || !dd) return;
+    const vendors = DB.VENDORS || [];
+    const lines = ZE.cart.lines();
+    const effIds = new Set(lines.map(l => (ZE.cart.effectiveVendorId ? ZE.cart.effectiveVendorId(l) : (l.selectedVendorId || (DB.byId(DB.PRODUCTS, l.productId) || {}).vendorId))).filter(Boolean));
+    const curVendorId = effIds.size === 1 ? [...effIds][0] : null;
+    const curVendor = curVendorId ? DB.byId(DB.VENDORS, curVendorId) : null;
+    if (label) label.textContent = curVendor ? curVendor.name : (effIds.size > 1 ? `${effIds.size} vendors — pick one` : 'Change vendor');
+    dd.innerHTML = `<div class="dd-hint">One vendor per order — pick one to apply to every item.</div>` +
+      vendors.map(v => `
+        <div class="dd-item ${v.id === curVendorId ? 'active' : ''}" data-vendor-id="${v.id}" role="option" aria-selected="${v.id === curVendorId}">
+          <img src="${DB.vendorLogo ? DB.vendorLogo(v) : (v.logo || '')}" alt=""/>
+          <span class="dd-name">${v.name}</span>
+          <i data-lucide="check" class="w-4 h-4 dd-check"></i>
+        </div>`).join('');
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const open = dd.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    dd.querySelectorAll('.dd-item').forEach(item => item.addEventListener('click', () => {
+      const vid = item.dataset.vendorId;
+      ZE.cart.lines().forEach(l => ZE.cart.setLineVendor(l.id, vid));
+      dd.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      const v = DB.byId(DB.VENDORS, vid);
+      showToast(`Order now sold by ${v ? v.name : 'selected vendor'}`);
+    }));
+    if (ZE.refreshIcons) ZE.refreshIcons();
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('cartVendorDropdown');
+    const btn = document.getElementById('cartVendorBtn');
+    if (!dd || !btn) return;
+    if (!dd.contains(e.target) && !btn.contains(e.target)) {
+      dd.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
   });
+  wireCartVendorDropdown();
 
   document.getElementById('bulkRemove').addEventListener('click', () => {
     const ids = Array.from(state.selected);
@@ -1024,9 +1071,14 @@
               </label>
               <span class="bulk-count" id="bulkCountLabel">0 selected</span>
               <div class="bulk-actions">
-                <button class="btn btn-outline" id="bulkChangeVendor" disabled>
-                  <i data-lucide="store" class="w-4 h-4"></i> Change vendor
-                </button>
+                <div class="cart-vendor-wrap" style="position:relative;">
+                  <button class="btn btn-outline" id="cartVendorBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                    <i data-lucide="store" class="w-4 h-4"></i>
+                    <span id="cartVendorLabel">Change vendor</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                  </button>
+                  <div class="cart-vendor-dd" id="cartVendorDropdown" role="listbox" aria-label="Select vendor for this order"></div>
+                </div>
                 <button class="btn btn-ghost danger" id="bulkRemove" disabled>
                   <i data-lucide="trash-2" class="w-4 h-4"></i> Remove
                 </button>
@@ -1062,11 +1114,8 @@
         else state.selected.clear();
         render();
       });
-      document.getElementById('bulkChangeVendor').addEventListener('click', () => {
-        const ids = Array.from(state.selected);
-        if (!ids.length) return;
-        openVendorPicker(ids);
-      });
+      // Re-wire cart-wide vendor dropdown for rebuilt mobile bar
+      wireCartVendorDropdown();
       document.getElementById('bulkRemove').addEventListener('click', () => {
         const ids = Array.from(state.selected);
         if (!ids.length) return;

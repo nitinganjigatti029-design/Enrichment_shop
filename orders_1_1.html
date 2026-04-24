@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Orders (populated)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+
+    /* Header */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; padding: 6px 10px; border-radius: 10px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 60px; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .badge-dot { position: absolute; top: 4px; right: 10px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+
+    /* Crumbs + head */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; }
+    .page-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .page-head-row h1 { font-size: 28px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 12px; }
+    .page-head-row h1 .count-badge { font-size: 12px; font-weight: 600; background: #F1F2F4; color: var(--text-muted); padding: 4px 10px; border-radius: 999px; }
+
+    .tabs-wrap { margin-bottom: 22px; overflow-x: auto; }
+    .tabs { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; }
+    .tabs button { padding: 9px 18px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .tabs button:hover { color: var(--text); }
+    .tabs button.active { background: var(--brand); color: #fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
+    .tabs button .count-pill { font-size: 11px; font-weight: 700; background: rgba(255,255,255,.25); padding: 1px 7px; border-radius: 999px; }
+    .tabs button:not(.active) .count-pill { background: #fff; color: var(--text-muted); }
+
+    /* Card */
+    .orders-list { display: flex; flex-direction: column; gap: 18px; padding-bottom: 60px; }
+    .order-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow-xs); transition: .2s ease; cursor: pointer; }
+    .order-card:hover { box-shadow: var(--shadow-sm); border-color: var(--border-strong); transform: translateY(-1px); }
+
+    .oc-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .oc-top-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .oc-date { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+    .oc-idrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .oc-id { font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    /* Status chips (full map) */
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    .chip-pending_approval { background: #FFF9DB; color: #A16207; }
+    .chip-placed           { background: #F1F2F4; color: #6B7280; }
+    .chip-quoted           { background: #E0F2FE; color: #0369A1; }
+    .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
+    .chip-queued           { background: #FEF3C7; color: #A16207; }
+    .chip-in_production    { background: #FEF3C7; color: #A16207; }
+    .chip-packed           { background: #FEF3C7; color: #A16207; }
+    .chip-shipped          { background: #CFFAFE; color: #0891B2; }
+    .chip-out_for_delivery { background: #A7F3D0; color: #065F46; }
+    .chip-delivered        { background: var(--brand); color: #fff; }
+    .chip-cancelled        { background: var(--danger); color: #fff; }
+    .chip-rejected         { background: var(--danger); color: #fff; }
+    .chip-returned         { background: #FDE68A; color: #92400E; }
+    .chip-priority { background: #FFE5EA; color: #B00020; }
+    .chip-priority.high { background: #FFF8CC; color: #8A6D00; }
+    .chip-priority.critical { background: var(--danger); color: #fff; }
+    .chip-species { background: var(--brand-soft); color: var(--brand-hover); padding: 4px 10px 4px 4px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+    .chip-species .sp-avatar { width: 20px; height: 20px; border-radius: 999px; object-fit: cover; }
+
+    .approval-strip { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; margin-bottom: 10px; line-height: 1.45; }
+    .approval-strip.pending  { background: #FFF9DB; border-left: 3px solid #E4B819; color: #6D4B00; font-style: italic; }
+    .approval-strip.approved { background: var(--brand-soft); border-left: 3px solid var(--brand); color: #006D35; }
+    .approval-strip.rejected { background: #FFE5EA; border-left: 3px solid var(--danger); color: #B00020; }
+
+    .oc-vendor-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .sold-by { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 12px; }
+    .sold-by img.vendor-logo { width: 16px; height: 16px; border-radius: 999px; object-fit: cover; }
+    .sold-by .vendor-name { color: var(--text); font-weight: 600; }
+    .ready-by-chip { background: var(--brand-soft); color: var(--brand-hover); padding: 3px 9px; border-radius: 999px; font-size: 11px; display: inline-flex; gap: 4px; align-items: center; font-weight: 600; }
+    .awaiting-vendor-note { font-size: 12px; font-style: italic; color: #A16207; display: inline-flex; align-items: center; gap: 5px; }
+    .offer-chip { background: #E0F2FE; color: #0369A1; padding: 3px 9px; border-radius: 999px; font-size: 11px; display: inline-flex; gap: 4px; align-items: center; font-weight: 700; }
+    .queue-chip { background: #FEF3C7; color: #A16207; padding: 3px 9px; border-radius: 999px; font-size: 11px; display: inline-flex; gap: 4px; align-items: center; font-weight: 700; }
+
+    .shipping-to { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 12px; }
+
+    .oc-tracking { background: var(--card-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .oc-tracking .track-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+    .oc-tracking .track-row .awb { font-family: ui-monospace, Menlo, monospace; color: var(--text); font-weight: 600; }
+    .oc-tracking .track-row .carrier-name { color: var(--text); font-weight: 600; }
+    .oc-tracking .track-row .sep-dot { color: var(--text-subtle); }
+    .oc-tracking .event-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text); }
+    .oc-tracking .event-row .evt-loc, .oc-tracking .event-row .evt-time { color: var(--text-muted); font-size: 12px; }
+    .oc-tracking.awaiting { background: #FFFBEB; border-color: #FCD34D; }
+    .oc-tracking.awaiting .event-row { color: #A16207; font-weight: 500; }
+    .oc-tracking.cancelled { background: #FFF1F2; border-color: #FECDD3; }
+    .oc-tracking.cancelled .event-row { color: #B00020; font-weight: 500; }
+    .oc-tracking.quoted { background: #EFF6FF; border-color: #BFDBFE; }
+    .oc-tracking.quoted .event-row { color: #0369A1; font-weight: 500; }
+
+    .oc-items { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .oc-thumbs { display: flex; align-items: center; }
+    .oc-thumbs .thumb { position: relative; width: 56px; height: 56px; border-radius: 12px; overflow: hidden; background: var(--card-subtle); border: 2px solid #fff; margin-left: -8px; box-shadow: var(--shadow-xs); }
+    .oc-thumbs .thumb:first-child { margin-left: 0; }
+    .oc-thumbs .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .oc-thumbs .thumb .qty-ov { position: absolute; right: 3px; bottom: 3px; background: rgba(15,23,42,.85); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 6px; }
+    .oc-thumbs .more { width: 56px; height: 56px; border-radius: 12px; background: #F1F2F4; color: var(--text-muted); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-left: -8px; border: 2px solid #fff; }
+    .oc-item-names { font-size: 13px; color: var(--text-muted); flex: 1; min-width: 0; }
+    .oc-item-names strong { color: var(--text); font-weight: 600; }
+    .oc-item-count { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+    .oc-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px dashed var(--border); flex-wrap: wrap; }
+    .oc-total { font-size: 22px; font-weight: 700; color: var(--text); }
+    .oc-total .sub-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-right: 6px; display: block; }
+    .oc-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn-sm { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; transition: .15s; }
+    .btn-sm-primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .btn-sm-primary:hover { background: var(--brand-hover); }
+    .btn-sm-ghost { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-sm-ghost:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .btn-sm-danger { background: #fff; color: var(--danger); border-color: #F5C2CB; }
+    .btn-sm-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+    .btn-sm-chat { background: #fff; color: var(--brand); border-color: var(--brand); }
+    .btn-sm-chat:hover { background: var(--brand-soft); }
+
+    .empty-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 80px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
+    .empty-wrap .big-ico { width: 96px; height: 96px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+
+    @media (max-width: 700px) {
+      .oc-bottom { flex-direction: column; align-items: stretch; }
+      .oc-actions { flex-wrap: wrap; }
+      .oc-actions .btn-sm { flex: 1; justify-content: center; min-height: 40px; }
+      .order-card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="index_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <label class="search-pill">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input type="text" placeholder="Search orders…"/>
+    </label>
+    <div class="header-actions">
+      <button class="header-btn active">
+        <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+        <span class="badge-dot">18</span>
+      </button>
+      <a href="chat_1.html" class="header-btn" style="text-decoration:none">
+        <i data-lucide="message-square" class="w-5 h-5"></i><span>Chat</span>
+        <span class="badge-dot">4</span>
+      </a>
+      <button class="header-btn">
+        <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+      </button>
+      <button class="header-btn">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="page-wrap">
+  <div class="crumbs"><span>Home</span><span style="color:var(--text-subtle)">·</span><span style="color:var(--text);font-weight:600">Orders</span></div>
+
+  <div class="page-head-row">
+    <h1>Your orders <span class="count-badge" id="totalBadge">18 orders</span></h1>
+    <div style="display:inline-flex; gap:8px;">
+      <button class="btn-sm btn-sm-ghost"><i data-lucide="filter" class="w-4 h-4"></i> Filter</button>
+      <button class="btn-sm btn-sm-ghost"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>
+    </div>
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tabs" id="tabsRow">
+      <button data-tab="all" class="active">All <span class="count-pill" data-count="all">18</span></button>
+      <button data-tab="pending_approval">Awaiting approval <span class="count-pill" data-count="pending_approval">3</span></button>
+      <button data-tab="in_chat">In chat <span class="count-pill" data-count="in_chat">4</span></button>
+      <button data-tab="in_production">In production <span class="count-pill" data-count="in_production">3</span></button>
+      <button data-tab="in_transit">In transit <span class="count-pill" data-count="in_transit">3</span></button>
+      <button data-tab="delivered">Delivered <span class="count-pill" data-count="delivered">3</span></button>
+      <button data-tab="cancelled">Cancelled / Returned <span class="count-pill" data-count="cancelled">2</span></button>
+    </div>
+  </div>
+
+  <div class="orders-list" id="ordersList"></div>
+</main>
+
+<script>
+/* -------- Demo orders covering every status -------- */
+const VENDORS = {
+  teakcraft: { name: 'TeakCraft Wildlife Studio', logo: 'https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true' },
+  safeloom:  { name: 'SafeLoom Enrichments',      logo: 'https://image.pollinations.ai/prompt/minimal%20enrichment%20rope%20logo%20green?width=60&height=60&seed=702&nologo=true' },
+  wildforge: { name: 'WildForge Fabrication',      logo: 'https://image.pollinations.ai/prompt/minimal%20industrial%20zoo%20logo%20metal?width=60&height=60&seed=703&nologo=true' },
+  clawplay:  { name: 'ClawPlay Puzzles',           logo: 'https://image.pollinations.ai/prompt/puzzle%20toy%20logo%20minimal%20brown?width=60&height=60&seed=704&nologo=true' },
+  browsebox: { name: 'BrowseBox Feeds',            logo: 'https://image.pollinations.ai/prompt/leafy%20browse%20feed%20logo%20minimal?width=60&height=60&seed=705&nologo=true' }
+};
+const SPECIES = {
+  macaque: { name: 'Bonnet macaque', img: 'https://image.pollinations.ai/prompt/bonnet%20macaque%20portrait?width=60&height=60&seed=801&nologo=true' },
+  tiger:   { name: 'Bengal tiger',   img: 'https://image.pollinations.ai/prompt/bengal%20tiger%20portrait?width=60&height=60&seed=802&nologo=true' },
+  otter:   { name: 'Asian otter',    img: 'https://image.pollinations.ai/prompt/asian%20small-clawed%20otter?width=60&height=60&seed=803&nologo=true' },
+  lion:    { name: 'Asiatic lion',   img: 'https://image.pollinations.ai/prompt/asiatic%20lion%20portrait?width=60&height=60&seed=804&nologo=true' },
+  elephant:{ name: 'Asian elephant', img: 'https://image.pollinations.ai/prompt/asian%20elephant%20portrait?width=60&height=60&seed=805&nologo=true' },
+  hornbill:{ name: 'Great hornbill', img: 'https://image.pollinations.ai/prompt/great%20hornbill%20portrait?width=60&height=60&seed=806&nologo=true' },
+  rhino:   { name: 'Indian rhino',   img: 'https://image.pollinations.ai/prompt/indian%20rhino%20portrait?width=60&height=60&seed=807&nologo=true' }
+};
+const P = (name, seed) => ({ name, img: `https://image.pollinations.ai/prompt/${encodeURIComponent(name+' zoo enrichment product studio shot')}?width=140&height=140&seed=${seed}&nologo=true` });
+
+const ORDERS = [
+  // ==== AWAITING APPROVAL (3) ====
+  { id:'ORD-9012', status:'pending_approval', priority:'High', species:'tiger', vendor:'wildforge',
+    approval:{ state:'pending', name:'Dr. Ramesh K.' }, requiresApproval:true,
+    createdAt:'2026-04-23T10:12:00', total:186500,
+    items:[ {p:P('Reinforced steel scratch post',101), qty:2}, {p:P('Anti-slip resting platform',102), qty:1} ],
+    site:'Mysuru Zoo · 570002' },
+  { id:'ORD-9008', status:'pending_approval', priority:'Normal', species:'macaque', vendor:'teakcraft',
+    approval:{ state:'pending', name:'Dr. S. Ramesh' }, requiresApproval:true,
+    createdAt:'2026-04-22T15:33:00', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Bannerghatta Biological Park · 560083',
+    chatTag:'offer-accepted'
+  },
+  { id:'ORD-9004', status:'pending_approval', priority:'Critical', species:'elephant', vendor:'browsebox',
+    approval:{ state:'pending', name:'Dr. Anita Patel' }, requiresApproval:true,
+    createdAt:'2026-04-22T08:44:00', total:68400,
+    items:[ {p:P('Bamboo browse bundle XXL',104), qty:40}, {p:P('Sugarcane log feeder',105), qty:8} ],
+    site:'Nehru Zoological Park · 500253' },
+
+  // ==== IN CHAT (4): placed w/ vendor-response states ====
+  { id:'ORD-8996', status:'placed', priority:'Normal', species:'macaque', vendor:'teakcraft',
+    createdAt:'2026-04-23T10:05:00', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Bannerghatta · 560083',
+    chatTag:'clarifying', vendorResponse:{ state:'clarifying' } },
+  { id:'ORD-8990', status:'placed', priority:'High', species:'otter', vendor:'clawplay',
+    createdAt:'2026-04-22T17:20:00', total:24500,
+    items:[ {p:P('Floating puzzle feeder',106), qty:3}, {p:P('Aqua food-finder ball',107), qty:6} ],
+    site:'Alipore Zoo · 700027',
+    chatTag:'offer-sent', vendorResponse:{ state:'offer', etaDays:9, quote:26800 } },
+  { id:'ORD-8985', status:'placed', priority:'Normal', species:'hornbill', vendor:'safeloom',
+    createdAt:'2026-04-21T11:00:00', total:18900,
+    items:[ {p:P('Woven foraging canopy',108), qty:4} ],
+    site:'Sakkarbaug Zoo · 362001',
+    chatTag:'queued', vendorResponse:{ state:'queued', revisitBy:'2026-05-01' } },
+  { id:'ORD-8979', status:'placed', priority:'Normal', species:'rhino', vendor:'wildforge',
+    createdAt:'2026-04-20T09:14:00', total:94200,
+    items:[ {p:P('Mud-wallow liner heavy-gauge',109), qty:1} ],
+    site:'Kaziranga · 785609',
+    chatTag:'counter-offered', vendorResponse:{ state:'offer', etaDays:21, quote:101500 } },
+
+  // ==== IN PRODUCTION (3): confirmed / in_production / packed ====
+  { id:'ORD-8960', status:'confirmed', priority:'Normal', species:'lion', vendor:'wildforge',
+    approval:{ state:'approved', name:'Dr. S. Ramesh', on:'2026-04-18' }, requiresApproval:true,
+    createdAt:'2026-04-17T14:00:00', total:234000, readyBy:'2026-04-30',
+    items:[ {p:P('Reinforced lion scratch tower',110), qty:1}, {p:P('Stainless scent diffuser',111), qty:2} ],
+    site:'Gir Reserve · 362150' },
+  { id:'ORD-8954', status:'in_production', priority:'Normal', species:'macaque', vendor:'teakcraft',
+    createdAt:'2026-04-15T11:00:00', total:142000, readyBy:'2026-04-29',
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Mysuru Zoo · 570002' },
+  { id:'ORD-8948', status:'packed', priority:'Normal', species:'tiger', vendor:'wildforge',
+    createdAt:'2026-04-12T09:45:00', total:78000,
+    items:[ {p:P('Swing-log enrichment',112), qty:2} ],
+    site:'Nandankanan · 754005',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-7H29-8842' } },
+
+  // ==== IN TRANSIT (3) ====
+  { id:'ORD-8932', status:'shipped', priority:'Normal', species:'otter', vendor:'clawplay',
+    createdAt:'2026-04-10T10:00:00', total:24500,
+    items:[ {p:P('Floating puzzle feeder',106), qty:3}, {p:P('Aqua food-finder ball',107), qty:6} ],
+    site:'Alipore Zoo · 700027',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-4291-5566', event:{ note:'Reached Kolkata hub', loc:'Kolkata', rel:'6h ago' } } },
+  { id:'ORD-8928', status:'shipped', priority:'High', species:'hornbill', vendor:'safeloom',
+    createdAt:'2026-04-09T14:00:00', total:37800,
+    items:[ {p:P('Woven foraging canopy',108), qty:8} ],
+    site:'Vandalur · 600048',
+    tracking:{ carrier:'XpressBees', awb:'XB-8822-4401', event:{ note:'In transit to Chennai', loc:'Bengaluru', rel:'12h ago' } } },
+  { id:'ORD-8921', status:'out_for_delivery', priority:'Normal', species:'elephant', vendor:'browsebox',
+    createdAt:'2026-04-08T08:00:00', total:68400,
+    items:[ {p:P('Bamboo browse bundle XXL',104), qty:40}, {p:P('Sugarcane log feeder',105), qty:8} ],
+    site:'Nehru Zoological Park · 500253',
+    tracking:{ carrier:'Porter Freight', awb:'PRT-LH82-0091', event:{ note:'Out for delivery', loc:'Hyderabad', rel:'40m ago' } } },
+
+  // ==== DELIVERED (3) ====
+  { id:'ORD-8890', status:'delivered', priority:'Normal', species:'macaque', vendor:'teakcraft',
+    createdAt:'2026-04-02T11:20:00', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Bannerghatta · 560083',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-3101-7720', event:{ note:'Delivered to site', loc:'Bengaluru', rel:'12d ago' } } },
+  { id:'ORD-8871', status:'delivered', priority:'Normal', species:'tiger', vendor:'wildforge',
+    createdAt:'2026-03-25T09:30:00', total:78000,
+    items:[ {p:P('Swing-log enrichment',112), qty:2} ],
+    site:'Mysuru Zoo · 570002',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-3341-9921', event:{ note:'Delivered', loc:'Mysuru', rel:'20d ago' } } },
+  { id:'ORD-8842', status:'delivered', priority:'Normal', species:'otter', vendor:'clawplay',
+    createdAt:'2026-03-12T10:00:00', total:24500,
+    items:[ {p:P('Floating puzzle feeder',106), qty:3}, {p:P('Aqua food-finder ball',107), qty:6} ],
+    site:'Alipore Zoo · 700027',
+    tracking:{ carrier:'XpressBees', awb:'XB-7842-0011', event:{ note:'Delivered', loc:'Kolkata', rel:'5 weeks ago' } } },
+
+  // ==== CANCELLED / REJECTED / RETURNED (2) ====
+  { id:'ORD-8830', status:'cancelled', priority:'Normal', species:'lion', vendor:'safeloom',
+    createdAt:'2026-03-08T12:30:00', total:18900,
+    items:[ {p:P('Woven foraging canopy',108), qty:4} ],
+    site:'Gir Reserve · 362150',
+    cancelReason:'Rejected by approver — budget exhausted for Q4' },
+  { id:'ORD-8815', status:'returned', priority:'High', species:'rhino', vendor:'wildforge',
+    createdAt:'2026-03-02T14:00:00', total:94200,
+    items:[ {p:P('Mud-wallow liner heavy-gauge',109), qty:1} ],
+    site:'Kaziranga · 785609',
+    returnTag:{ reason:'Dimensions did not match spec', resolution:'Rework offered · in progress' } }
+];
+
+const STATUS_LABEL = {
+  pending_approval:'Awaiting approval',
+  placed:'Placed',
+  quoted:'Offer sent',
+  confirmed:'Confirmed',
+  in_production:'In production',
+  packed:'Packed',
+  shipped:'Shipped',
+  out_for_delivery:'Out for delivery',
+  delivered:'Delivered',
+  cancelled:'Cancelled',
+  rejected:'Rejected',
+  returned:'Return in progress'
+};
+const STATUS_ICON = {
+  pending_approval:'hourglass', placed:'clipboard-list', quoted:'sparkles', confirmed:'check-circle',
+  in_production:'hammer', packed:'package', shipped:'truck', out_for_delivery:'navigation',
+  delivered:'check-check', cancelled:'x', rejected:'x-circle', returned:'rotate-ccw'
+};
+const IN_TRANSIT = new Set(['shipped','out_for_delivery']);
+const IN_PROD    = new Set(['confirmed','in_production','packed']);
+const CANC_SET   = new Set(['cancelled','rejected','returned']);
+
+/* Render */
+let state = { tab:'all' };
+function inINR(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+function statusChip(s){ return `<span class="chip chip-${s}"><i data-lucide="${STATUS_ICON[s]}" class="w-3 h-3"></i> ${STATUS_LABEL[s]}</span>`; }
+function priorityChip(p){ if(!p||p==='Normal') return ''; const cls = p==='Critical'?'critical':(p==='High'?'high':''); return `<span class="chip chip-priority ${cls}"><i data-lucide="alert-triangle" class="w-3 h-3"></i> ${p}</span>`; }
+function speciesChip(spId){ const s = SPECIES[spId]; if(!s) return ''; return `<span class="chip-species"><img class="sp-avatar" src="${s.img}" alt=""/>${s.name}</span>`; }
+
+function trackingBlock(o){
+  if (o.status === 'pending_approval') {
+    return `<div class="oc-tracking awaiting"><div class="event-row"><i data-lucide="hourglass" class="w-4 h-4"></i><span class="evt-note">Awaiting ${o.approval?.name || 'approver'}'s approval before dispatch</span></div></div>`;
+  }
+  if (o.chatTag === 'clarifying') {
+    return `<div class="oc-tracking quoted"><div class="event-row"><i data-lucide="message-circle" class="w-4 h-4"></i><span class="evt-note">Vendor is clarifying spec in chat</span></div></div>`;
+  }
+  if (o.chatTag === 'offer-sent' && o.vendorResponse?.state === 'offer') {
+    const vr = o.vendorResponse;
+    return `<div class="oc-tracking quoted"><div class="event-row"><i data-lucide="sparkles" class="w-4 h-4"></i><span class="evt-note">Vendor sent offer — ${inINR(vr.quote)} · ${vr.etaDays} days</span><span class="sep-dot">·</span><span class="evt-time">Expires in 6d</span></div></div>`;
+  }
+  if (o.chatTag === 'counter-offered' && o.vendorResponse?.state === 'offer') {
+    const vr = o.vendorResponse;
+    return `<div class="oc-tracking quoted"><div class="event-row"><i data-lucide="repeat" class="w-4 h-4"></i><span class="evt-note">Counter offer from vendor — ${inINR(vr.quote)} · ${vr.etaDays} days</span></div></div>`;
+  }
+  if (o.chatTag === 'queued' && o.vendorResponse?.state === 'queued') {
+    return `<div class="oc-tracking awaiting"><div class="event-row"><i data-lucide="timer" class="w-4 h-4"></i><span class="evt-note">Vendor queued this request — revisiting by ${fmtDate(o.vendorResponse.revisitBy)}</span></div></div>`;
+  }
+  if (o.status === 'cancelled') {
+    return `<div class="oc-tracking cancelled"><div class="event-row"><i data-lucide="x-circle" class="w-4 h-4"></i><span class="evt-note">${o.cancelReason || 'Order cancelled'}</span></div></div>`;
+  }
+  if (o.status === 'returned') {
+    return `<div class="oc-tracking cancelled" style="background:#FFFBEB;border-color:#FCD34D;"><div class="event-row" style="color:#A16207;"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span class="evt-note">Return in progress: ${o.returnTag?.reason} · ${o.returnTag?.resolution}</span></div></div>`;
+  }
+  if (o.status === 'confirmed' || o.status === 'in_production') {
+    return `<div class="oc-tracking"><div class="track-row"><i data-lucide="hammer" class="w-4 h-4"></i><span class="carrier-name">In production</span>${o.readyBy?`<span class="sep-dot">·</span><span>Ready by ${fmtDate(o.readyBy)}</span>`:''}</div><div class="event-row"><i data-lucide="clock" class="w-4 h-4"></i><span class="evt-note">Vendor working on fabrication</span></div></div>`;
+  }
+  if (o.status === 'packed' && !o.tracking?.event) {
+    return `<div class="oc-tracking"><div class="track-row"><i data-lucide="package" class="w-4 h-4"></i><span class="carrier-name">Packed</span>${o.tracking?.carrier?`<span class="sep-dot">·</span><span>Awaiting pickup by ${o.tracking.carrier}</span>`:''}</div><div class="event-row"><i data-lucide="clock" class="w-4 h-4"></i><span class="evt-note">Awaiting courier pickup</span></div></div>`;
+  }
+  if (o.tracking?.event) {
+    const t = o.tracking;
+    return `<div class="oc-tracking"><div class="track-row"><i data-lucide="truck" class="w-3.5 h-3.5"></i><span class="carrier-name">${t.carrier}</span>${t.awb?`<span class="sep-dot">·</span><span class="awb">AWB ${t.awb}</span>`:''}</div><div class="event-row"><i data-lucide="map-pin" class="w-4 h-4" style="color:var(--brand)"></i><span class="evt-note">${t.event.note}</span>${t.event.loc?`<span class="sep-dot">·</span><span class="evt-loc">${t.event.loc}</span>`:''}${t.event.rel?`<span class="sep-dot">·</span><span class="evt-time">${t.event.rel}</span>`:''}</div></div>`;
+  }
+  return '';
+}
+
+function approvalStrip(o){
+  if (!o.requiresApproval) return '';
+  if (o.approval?.state === 'pending')  return `<div class="approval-strip pending"><i data-lucide="hourglass" class="w-4 h-4"></i><span>Awaiting approval from ${o.approval.name}</span></div>`;
+  if (o.approval?.state === 'approved') return `<div class="approval-strip approved"><i data-lucide="check-circle" class="w-4 h-4"></i><span>Approved by ${o.approval.name}${o.approval.on?' on '+fmtDate(o.approval.on):''}</span></div>`;
+  if (o.approval?.state === 'rejected') return `<div class="approval-strip rejected"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Rejected by ${o.approval.name}</span></div>`;
+  return '';
+}
+
+function chatCtaLabel(o){
+  if (o.chatTag === 'clarifying') return 'Continue chat';
+  if (o.chatTag === 'offer-sent' || o.chatTag === 'counter-offered') return 'Review offer';
+  if (o.chatTag === 'queued') return 'Nudge vendor';
+  return 'Chat';
+}
+
+function renderCard(o){
+  const firstThree = o.items.slice(0,3);
+  const more = o.items.length - firstThree.length;
+  const totalItems = o.items.reduce((s,it)=>s+it.qty,0);
+  const thumbs = firstThree.map(it => `<div class="thumb img-frame"><img src="${it.p.img}" alt="${it.p.name}" loading="lazy"/>${it.qty>1?`<span class="qty-ov">×${it.qty}</span>`:''}</div>`).join('');
+  const moreHtml = more>0 ? `<div class="more">+${more}</div>` : '';
+  const names = o.items.slice(0,2).map(it=>it.p.name);
+  const namesLine = `<strong>${names.join('</strong>, <strong>')}</strong>${(o.items.length-names.length)>0 ? ' and '+(o.items.length-names.length)+' more' : ''}`;
+  const vendor = VENDORS[o.vendor];
+
+  const readyByChip = o.readyBy && !['delivered','cancelled','returned'].includes(o.status) ? `<span class="ready-by-chip"><i data-lucide="clock" class="w-3 h-3"></i> Ready by ${fmtDate(o.readyBy)}</span>` : '';
+  const awaitingNote = (o.status==='placed' && (!o.vendorResponse || o.chatTag==='clarifying')) ? `<span class="awaiting-vendor-note"><i data-lucide="hourglass" class="w-3 h-3"></i> Awaiting vendor response</span>` : '';
+  const offerChip = (o.chatTag==='offer-sent' || o.chatTag==='counter-offered') ? `<span class="offer-chip"><i data-lucide="sparkles" class="w-3 h-3"></i> Offer in chat</span>` : '';
+  const queueChip = (o.chatTag==='queued') ? `<span class="queue-chip"><i data-lucide="timer" class="w-3 h-3"></i> Vendor queued</span>` : '';
+
+  // Action buttons
+  let actions = '';
+  if (o.status === 'placed' || ['offer-sent','counter-offered','clarifying','queued'].includes(o.chatTag)) {
+    actions = `<a href="chat_1.html" class="btn-sm btn-sm-primary" data-stop><i data-lucide="message-square" class="w-4 h-4"></i> ${chatCtaLabel(o)}</a>
+               <button class="btn-sm btn-sm-danger" data-stop><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>`;
+  } else if (o.status === 'pending_approval') {
+    actions = `<button class="btn-sm btn-sm-primary" data-stop><i data-lucide="bell" class="w-4 h-4"></i> Nudge approver</button>
+               <a href="chat_1.html" class="btn-sm btn-sm-chat" data-stop><i data-lucide="message-square" class="w-4 h-4"></i> Chat vendor</a>
+               <button class="btn-sm btn-sm-danger" data-stop><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>`;
+  } else if (IN_PROD.has(o.status)) {
+    actions = `<button class="btn-sm btn-sm-primary" data-stop><i data-lucide="map-pin" class="w-4 h-4"></i> Track</button>
+               <a href="chat_1.html" class="btn-sm btn-sm-chat" data-stop><i data-lucide="message-square" class="w-4 h-4"></i> Chat vendor</a>`;
+  } else if (IN_TRANSIT.has(o.status)) {
+    actions = `<button class="btn-sm btn-sm-primary" data-stop><i data-lucide="map-pin" class="w-4 h-4"></i> Track order</button>
+               <a href="chat_1.html" class="btn-sm btn-sm-chat" data-stop><i data-lucide="message-square" class="w-4 h-4"></i> Chat vendor</a>`;
+  } else if (o.status === 'delivered') {
+    actions = `<button class="btn-sm btn-sm-primary" data-stop><i data-lucide="star" class="w-4 h-4"></i> Rate order</button>
+               <a href="returns_buyer_1.html" class="btn-sm btn-sm-ghost" data-stop><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Request return</a>
+               <button class="btn-sm btn-sm-ghost" data-stop><i data-lucide="repeat" class="w-4 h-4"></i> Reorder</button>`;
+  } else if (o.status === 'returned') {
+    actions = `<a href="returns_buyer_1.html" class="btn-sm btn-sm-primary" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View return</a>
+               <a href="chat_1.html" class="btn-sm btn-sm-chat" data-stop><i data-lucide="message-square" class="w-4 h-4"></i> Chat vendor</a>`;
+  } else if (o.status === 'cancelled') {
+    actions = `<button class="btn-sm btn-sm-ghost" data-stop><i data-lucide="repeat" class="w-4 h-4"></i> Reorder</button>`;
+  }
+
+  return `
+    <article class="order-card" data-id="${o.id}">
+      <div class="oc-top">
+        <div class="oc-top-left">
+          ${statusChip(o.status)}
+          ${priorityChip(o.priority)}
+          ${speciesChip(o.species)}
+        </div>
+        <span class="oc-date"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${fmtDate(o.createdAt)}</span>
+      </div>
+      <div class="oc-idrow"><span class="oc-id">${o.id}</span></div>
+
+      ${vendor ? `<div class="oc-vendor-row">
+        <a class="sold-by" href="vendor_store_1.html" data-stop>
+          <img class="vendor-logo" src="${vendor.logo}" alt=""/>
+          <span>Sold by <span class="vendor-name">${vendor.name}</span></span>
+        </a>
+        ${readyByChip}${awaitingNote}${offerChip}${queueChip}
+      </div>
+      <div class="oc-vendor-row" style="margin-top:-4px;"><span class="shipping-to"><i data-lucide="map-pin" class="w-4 h-4"></i> Shipping to: ${o.site}</span></div>` : ''}
+
+      ${approvalStrip(o)}
+      ${trackingBlock(o)}
+
+      <div class="oc-items">
+        <div class="oc-thumbs">${thumbs}${moreHtml}</div>
+        <div class="oc-item-names">${namesLine}</div>
+        <div class="oc-item-count">${totalItems} ${totalItems===1?'item':'items'}</div>
+      </div>
+
+      <div class="oc-bottom">
+        <div class="oc-total"><span class="sub-label">Order total</span>${inINR(o.total)}</div>
+        <div class="oc-actions">${actions}</div>
+      </div>
+    </article>`;
+}
+
+function render(){
+  const tab = state.tab;
+  const counts = { all: ORDERS.length, pending_approval:0, in_chat:0, in_production:0, in_transit:0, delivered:0, cancelled:0 };
+  ORDERS.forEach(o => {
+    if (o.status === 'pending_approval') counts.pending_approval++;
+    if (o.status === 'placed') counts.in_chat++;
+    if (IN_PROD.has(o.status)) counts.in_production++;
+    if (IN_TRANSIT.has(o.status)) counts.in_transit++;
+    if (o.status === 'delivered') counts.delivered++;
+    if (CANC_SET.has(o.status)) counts.cancelled++;
+  });
+  Object.entries(counts).forEach(([k,v])=>{ const el=document.querySelector(`[data-count="${k}"]`); if (el) el.textContent=v; });
+  document.getElementById('totalBadge').textContent = ORDERS.length + ' orders';
+
+  let list;
+  if (tab==='all') list = ORDERS;
+  else if (tab==='in_chat') list = ORDERS.filter(o=>o.status==='placed');
+  else if (tab==='in_production') list = ORDERS.filter(o=>IN_PROD.has(o.status));
+  else if (tab==='in_transit') list = ORDERS.filter(o=>IN_TRANSIT.has(o.status));
+  else if (tab==='cancelled') list = ORDERS.filter(o=>CANC_SET.has(o.status));
+  else list = ORDERS.filter(o=>o.status===tab);
+
+  const host = document.getElementById('ordersList');
+  if (!list.length) {
+    host.innerHTML = `<div class="empty-wrap"><span class="big-ico"><i data-lucide="package-search" class="w-10 h-10"></i></span><h3>Nothing here yet</h3><p style="color:var(--text-muted);font-size:14px;max-width:420px;margin-bottom:22px">Orders matching this filter will show up here.</p></div>`;
+  } else {
+    host.innerHTML = list.map(renderCard).join('');
+  }
+  host.querySelectorAll('.order-card').forEach(c => c.addEventListener('click', e => {
+    if (e.target.closest('[data-stop]')) { e.preventDefault(); return; }
+    window.location.href = 'order_detail_1.html?id=' + c.dataset.id;
+  }));
+  host.querySelectorAll('[data-stop]').forEach(b => b.addEventListener('click', e => e.stopPropagation()));
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+}
+
+document.querySelectorAll('#tabsRow button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#tabsRow button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.tab = b.dataset.tab;
+  render();
+}));
+
+render();
+</script>
+</body>
+</html>

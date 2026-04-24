@@ -222,6 +222,17 @@
     .prod-cat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
     .prod-cat .tag-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); }
 
+    /* Product rating — Flipkart-style compact green pill */
+    .prod-rating { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1; }
+    .prod-rating .stars { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; color: var(--text-muted); }
+    .prod-rating .stars i,
+    .prod-rating .stars svg { width: 10px !important; height: 10px !important; color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .prod-rating .stars svg *,
+    .prod-rating .stars svg polygon,
+    .prod-rating .stars svg path { fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .prod-rating .rating-count { color: var(--text-muted); font-weight: 500; font-size: 11px; }
+    .prod-rating .no-rating { color: var(--text-subtle); font-size: 11px; font-style: italic; }
+
     .prod-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
     .prod-price { font-size: 16px; font-weight: 700; color: var(--text); }
     .prod-price .unit { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-left: 2px; }
@@ -438,6 +449,9 @@
       </label>
 
       <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
         <button class="header-btn" type="button" id="ordersBtn">
           <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
           <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
@@ -797,6 +811,15 @@
     const fav = ZE.saved.has(p.id);
     const gallery = DB.galleryFor(p);
 
+    // Rating pill (Flipkart-style)
+    const r = (typeof DB.productRating === 'function') ? DB.productRating(p.id) : { avg: 0, count: 0 };
+    const ratingHtml = r && r.count > 0
+      ? `<div class="prod-rating">
+           <span class="stars"><i data-lucide="star"></i> ${r.avg.toFixed(1)}</span>
+           <span class="rating-count">(${r.count})</span>
+         </div>`
+      : `<div class="prod-rating"><span class="no-rating">No reviews yet</span></div>`;
+
     // In preview mode, vendors see no interactive Add / heart affordances
     const favBtn = previewMode
       ? ''
@@ -828,6 +851,7 @@
         <div class="prod-meta">
           <div class="prod-name">${esc(p.name)}</div>
           <div class="prod-cat"><span class="tag-dot"></span>${cat ? esc(cat.name) : ''}</div>
+          ${ratingHtml}
         </div>
         <div class="prod-bottom">
           <div class="prod-price">${DB.fmtINR(price)}<span class="unit">/ unit</span></div>
