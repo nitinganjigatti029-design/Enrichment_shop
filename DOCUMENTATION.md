@@ -1,637 +1,746 @@
-# ZooEnrich — Project Documentation
+# ZooEnrich — Product Documentation
 
-> **A prototype e-commerce platform for zoo-animal enrichment products.**
-> Built with plain HTML, Tailwind (CDN), and vanilla JavaScript. No build step, no framework — just open `index_1.html` in a browser.
+**Status:** Living document — reflects the prototype as of 2026-04-27
+**Audience:** Engineering, design, product, support, prospective hires
+**Companion:** `PRD.md` (the *why*); this doc covers the *what* and *how*
 
 ---
 
 ## Table of Contents
 
-1. [What is ZooEnrich?](#1-what-is-zooenrich)
-2. [Who uses it?](#2-who-uses-it)
-3. [How the site is organised](#3-how-the-site-is-organised)
-4. [Pages in detail](#4-pages-in-detail)
-5. [Key user journeys](#5-key-user-journeys)
-6. [Design system](#6-design-system)
-7. [Technical architecture](#7-technical-architecture)
-8. [The data layer (`data.js`)](#8-the-data-layer-datajs)
-9. [The shared helpers layer (`app.js`)](#9-the-shared-helpers-layer-appjs)
-10. [Key design decisions and why](#10-key-design-decisions-and-why)
-11. [How to extend the prototype](#11-how-to-extend-the-prototype)
-12. [File reference](#12-file-reference)
-13. [Change log — what this session delivered](#13-change-log--what-this-session-delivered)
+1. [Overview](#1-overview)
+2. [Information Architecture](#2-information-architecture)
+3. [Personas & Roles](#3-personas--roles)
+4. [Screen Reference](#4-screen-reference)
+5. [Core Flows](#5-core-flows)
+6. [Data Model](#6-data-model)
+7. [State, Storage & Persistence](#7-state-storage--persistence)
+8. [Design System](#8-design-system)
+9. [Technical Architecture](#9-technical-architecture)
+10. [Conventions & Gotchas](#10-conventions--gotchas)
+11. [How to Extend the Prototype](#11-how-to-extend-the-prototype)
+12. [Glossary](#12-glossary)
 
 ---
 
-## 1. What is ZooEnrich?
+## 1. Overview
 
-ZooEnrich is a **shopping and ordering platform for zoo-enrichment products** — the items zookeepers, biologists, and vets use to keep captive animals mentally and physically stimulated (puzzle feeders, scent sacks, climbing ropes, frozen treats, etc.).
+ZooEnrich is a **two-sided marketplace prototype** for animal-enrichment products: things like puzzle feeders, scent boxes, climbing rigs and ice treats that zoos give their animals to keep them mentally stimulated.
 
-Think Amazon, but every product is tagged to animal species, reviewed by biologists, and produced either by a third-party vendor or by the zoo's own internal "Enrichment Lab".
+Two roles meet on the platform:
 
-The goal of the prototype is to let a biologist or keeper:
-- Browse a catalogue filtered by species, category, and product attributes.
-- Add items to a cart.
-- Submit the cart as a **lab ticket** (an internal production request).
-- Track those tickets through submission → in-progress → completed.
-- Save items to a wishlist for later.
+- **Buyers** — biologists, keepers, vets, curators inside a zoo
+- **Vendors** — small specialist makers who fulfil the order
+- (plus **approvers** and **admins**, who are buyers with elevated permissions)
 
----
+The prototype is a **no-build static web app**: plain HTML, vanilla JavaScript, Tailwind via CDN. Open any `*_1.html` file in a browser and it runs. State lives on `window.DB` (seeded data) and `localStorage` (per-user cart, saved items, orders, custom attributes).
 
-## 2. Who uses it?
-
-The platform is multi-role. Roles baked into the data model (`DB.USERS`):
-
-| Role           | Example title           | What they do                                   |
-|----------------|-------------------------|------------------------------------------------|
-| `biologist`    | Senior Biologist        | Designs enrichment plans; submits tickets.     |
-| `keeper`       | Primate Keeper          | Requests items for their assigned species.     |
-| `vet`          | Senior Veterinarian     | Reviews safety of novel or risky items.        |
-| `curator`      | Curator of Animal Care  | Approves products into the catalogue.          |
-| `lab_manager`  | Enrichment Lab Manager  | Oversees production of the items.              |
-| `lab_tech`     | Lab Technician          | Actually builds the items.                     |
-| `admin`        | Site Director           | Full access; manages users, categories, etc.   |
-
-Each user is associated with the species they're responsible for, so the catalogue can be filtered contextually ("show me items for my tigers").
+There are **35 screens** in the prototype, covering the full marketplace surface from onboarding to returns, on both sides of the table.
 
 ---
 
-## 3. How the site is organised
+## 2. Information Architecture
 
-At the top level, the prototype exposes four main screens that are fully wired up:
+### 2.1 Sitemap (top-level)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  HEADER (Search · Orders · Saved · Cart · Avatar)  [sticky]     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐    ┌───────┐    ┌───────┐    ┌────────────┐   │
-│  │  Shop        │ →  │ Product│ →  │ Cart  │ →  │  Orders    │   │
-│  │ (index_1)    │    │ detail │    │(drawer│    │ (orders_1) │   │
-│  └──────────────┘    └───────┘    └───────┘    └────────────┘   │
-│         │                                                        │
-│         └──→ ♥ Save ──→ ┌────────────┐                           │
-│                         │  Saved     │                           │
-│                         │ (saved_1)  │                           │
-│                         └────────────┘                           │
-└─────────────────────────────────────────────────────────────────┘
+ZooEnrich
+├── Public
+│   └── login_1.html               (role + identity picker)
+│
+├── Buyer surface (zoo staff)
+│   ├── index_1.html               (catalogue / shop)
+│   ├── product_detail_1.html      (one product)
+│   ├── cart_1.html                (per-line cart)
+│   ├── checkout_1.html            (address, shipping, submit)
+│   ├── order_confirmation_1.html  (post-submit)
+│   ├── orders_1.html              (my orders list)
+│   ├── order_detail_1.html        (one order, with tracking)
+│   ├── saved_1.html               (wishlist)
+│   ├── customise_product_1.html   (custom-build request)
+│   ├── returns_buyer_1.html       (my returns)
+│   ├── chat_1.html                (vendor ↔ buyer messages)
+│   └── profile_1.html             (account, sites, addresses)
+│
+├── Approver surface (overlay on buyer)
+│   └── approvals_1.html           (orders + catalog items needing my sign-off)
+│
+├── Vendor surface
+│   ├── vendor_onboarding_1.html   (KYC + first product wizard)
+│   ├── vendor_dashboard_1.html    (home: orders, GMV, alerts)
+│   ├── vendor_products_1.html     (product list)
+│   ├── vendor_add_product_1.html  (add / edit product)
+│   ├── vendor_orders_1.html       (order inbox)
+│   ├── vendor_order_detail_1.html (one order — accept, ship, track)
+│   ├── vendor_store_1.html        (public-facing store)
+│   ├── vendor_analytics_1.html    (charts: orders, GMV, top species, top buyers)
+│   ├── vendor_notifications_1.html
+│   ├── returns_vendor_1.html      (RMA inbox)
+│   └── vendor_profile_1.html
+│
+└── Admin surface
+    ├── admin_products_1.html      (catalogue moderation list)
+    ├── admin_product_detail_1.html
+    ├── admin_add_product_1.html
+    ├── attribute_library_1.html   (manage attribute schemas)
+    └── analytics dashboards (in admin_*)
 ```
 
-Pages (all in `.superdesign/design_iterations/`):
+### 2.2 Header / global chrome
 
-| File                    | Purpose                                          |
-|-------------------------|--------------------------------------------------|
-| `index_1.html`          | Shop — product grid with filters & search        |
-| `product_detail_1.html` | One product's full details                       |
-| `saved_1.html`          | Wishlist / Saved-for-later                       |
-| `orders_1.html`         | Submitted orders + their status                  |
-
-Shared code: `data.js`, `app.js`, `tokens.css`.
+The buyer surface uses a **sticky header** with: search, *Orders*, *Saved*, *Cart* (with badge), avatar dropdown.
+The vendor surface uses a separate left rail with: Dashboard, Products, Orders, Returns, Analytics, Notifications, Store, Profile.
 
 ---
 
-## 4. Pages in detail
+## 3. Personas & Roles
 
-### 4.1 Shop (`index_1.html`)
+The data model (`DB.USERS`) defines seven roles. They map onto three permission planes (buyer / approver / admin) and one orthogonal axis (vendor).
 
-The main browse page. **Dual-pane layout**: a sticky header + sub-bar on top, then two scrollable panes below.
+| Role | Title (typical) | Buyer? | Can self-purchase? | Approves orders? | Approves catalogue? |
+|---|---|---|---|---|---|
+| `biologist` | Senior Biologist | ✓ | usually ✓ | ✓ for their juniors | — |
+| `keeper` | Primate / Big-cat Keeper | ✓ | ✗ | — | — |
+| `vet` | Senior Veterinarian | ✓ | ✓ | safety override | safety override |
+| `curator` | Curator of Animal Care | ✓ | ✓ | top-tier | ✓ |
+| `lab_manager` | Enrichment Lab Manager | ✓ | ✓ | for lab techs | — |
+| `lab_tech` | Lab Technician | ✓ | ✗ | — | — |
+| `admin` | Site Director | ✓ | ✓ | top-tier | ✓ |
 
-```
-┌───────────────────────────────────────────────────────────┐
-│ ZooEnrich · [search]           Orders  ♥  Cart  Avatar    │ ← sticky header
-├───────────────────────────────────────────────────────────┤
-│ [Bengal Tiger ▼]  All · Sensory · Cognitive · …  [Sort ▼] │ ← sticky sub-bar
-├───────────────────────────────────────────────────────────┤
-│                  │                                         │
-│   FILTERS        │   ┌───────────────────────────┐         │
-│   (scrolls on    │   │       HERO BANNER          │        │
-│    its own when  │   └───────────────────────────┘         │
-│    hovered)      │                                         │
-│                  │   Popular this week           See all →  │
-│  + Add filter    │   ┌──┐ ┌──┐ ┌──┐ ┌──┐                   │
-│  Cost range      │   │  │ │  │ │  │ │  │   ← product grid  │
-│  Engagement      │   └──┘ └──┘ └──┘ └──┘                   │
-│  Material        │                                         │
-│  Durability      │   (scrolls on its own when hovered)     │
-│  …               │                                         │
-│                  │                                         │
-└───────────────────────────────────────────────────────────┘
-```
+Two boolean flags on each user drive the gates:
+- `canPurchase` — submitted orders self-route to vendor (true) or to approver (false)
+- `approverId` — fk to the user who must sign off if `canPurchase === false`
 
-**Key interactions:**
-- **Species dropdown** — narrows the catalogue to items compatible with the chosen species.
-- **Inline category pills** — one-click filter by enrichment type (Sensory, Cognitive, Physical, Social, Food, Deals, Trending).
-- **Sort** — Popular, Newest, Price, Top rated.
-- **Dynamic filter sidebar** — built automatically from the attributes present in the products (see §8).
-- **"+ Add filter"** — lets the user add a filter for any attribute in the library, and stubs a "Create new attribute" flow for admins.
-- **Search** — debounced 150ms substring match on product name.
-- **Add button** — outlined by default (just a green border); once clicked, the button swaps into a filled green "+/−" quantity stepper. This inversion lets users see at a glance what's in the cart.
-- **Heart (♥)** — toggles the item into the wishlist, persisted in browser localStorage.
-- **Load more** — paginates 12 products per click.
+A user can also be associated with one or more **species** (`species: ['sp_tiger', ...]`) — keepers see only their species by default; biologists/curators see all.
 
-### 4.2 Product Detail (`product_detail_1.html`)
-
-One product's full info: gallery, description, category/tag badges, per-product specs (size, material, duration, etc.), compatible species, configurable options, Add-to-Cart, and "Save for later".
-
-Calls-to-action wired on this page:
-- **Add to cart** / quantity stepper — `ZE.cart.add(id, n)`.
-- **Save for later** (`#favBtn`) — toggles the item in `ZE.saved`. Button flips between "Save for later" ↔ "Saved" (filled heart).
-- **Header Orders button** — navigates to `orders_1.html`.
-- **Header ♥ button** — navigates to `saved_1.html` with a live count badge.
-- **Header Cart button** — opens the cart drawer.
-
-### 4.3 Saved (`saved_1.html`)
-
-A wishlist page. Grid of items the user has ♥-saved.
-
-- **Filter/sort sub-row**: Species, Category (only categories with saved items show up), Sort (Recently saved / Price / Rating).
-- **Cards** look identical to the shop's, so behaviour is consistent — heart removes, Add button inverts to stepper.
-- **"Add all to cart"** — bulk-adds every saved item.
-- **"Clear saved"** — empties the wishlist after confirmation.
-- **Undo toast** — after removing an item, a 4-second toast offers to undo the remove.
-- **Empty state** — friendly illustration + "Browse enrichments" CTA.
-
-### 4.4 Orders (`orders_1.html`)
-
-A ticket-history page. Shows user-submitted orders (from `ZE.orders`) merged with 12 demo tickets (from `DB.TICKETS`), sorted newest first.
-
-- **Tabs**: All · Submitted · In progress · Completed · Cancelled.
-- **Order card**: ID (e.g. `ORD-0001` or `TKT-0042`), status chip, priority chip (if not Normal), species tag, item thumbnails, subtotal.
-- **Actions per card**:
-  - **Reorder** — repopulates the cart with the order's items and navigates back to the shop.
-  - **View details** — expands the card, showing a full line-item table (product, config, qty, unit price, subtotal).
-  - **Cancel** — only for user orders that are still submitted/in-progress.
-- **Empty state** — "No orders yet · Submit a ticket and it'll appear here."
+Vendors live in a separate table (`DB.VENDORS`). The "vendor" role isn't a USER role — it's a separate identity dimension. A user can act as buyer **or** vendor; the active surface is determined by who they signed in as.
 
 ---
 
-## 5. Key user journeys
+## 4. Screen Reference
 
-### 5.1 Browse → Cart → Submit Ticket
+This section walks every screen, grouped by surface. Each entry: file, purpose, key interactions, state it reads/writes, notable patterns.
 
-1. User lands on `index_1.html`.
-2. Selects their species (e.g. "Bengal Tiger") from the sub-bar dropdown.
-3. Optionally filters by category ("Sensory") and attribute ("Material = Burlap").
-4. Clicks **Add** on a product card — outline button morphs into a filled quantity stepper.
-5. Opens the cart drawer (top-right), reviews items.
-6. Clicks **Submit as lab ticket** — order is saved via `ZE.orders.submit()`, cart is cleared.
-7. Navigates to Orders page and sees `ORD-0001` at the top with status *Submitted*.
+### 4.1 Buyer surface
 
-### 5.2 Save for later → Reorder
+#### 4.1.1 `login_1.html` — Identity picker
+- Picks a role and a specific user from the seeded list, plus the active site (for multi-site users).
+- Writes the choice to `localStorage` via `ZE.user.signIn(...)`.
+- Auto-redirects to `/index_1.html` on selection.
 
-1. User hearts a few products on the shop or detail page.
-2. Clicks the ♥ in the header — navigates to `saved_1.html`.
-3. Reviews saved items, filters by category if desired.
-4. Clicks **Add all to cart** — every saved item is queued.
-5. Returns to the shop, submits the cart as above.
+#### 4.1.2 `index_1.html` — Shop
+- **Layout:** sticky top header + sub-bar; left **Filters** rail, right product grid.
+- **Filters:** species, category, tags, attribute filters (dynamic — surfaces only attributes used by visible products).
+- **Sub-bar:** active species lens chip, category pills, sort dropdown.
+- **Hero banner** + curated row ("Popular this week"), then the full grid.
+- **Card actions:** save (♥), add-to-cart, opens product detail on click.
+- **Add-to-cart UX:** opens a *species + enclosure* modal (the line is fully configured before it lands in cart).
+- **Reads:** `DB.PRODUCTS`, `DB.CATEGORIES`, `DB.TAGS`, `DB.SPECIES`, `ZE.user.resolve()`.
+- **Writes:** cart and saved via `ZE.cart.*`, `ZE.saved.*`.
 
-### 5.3 View an older ticket → Reorder
+#### 4.1.3 `product_detail_1.html`
+- Image gallery + zoom; specs table built from the product's `attributes[]` against `ATTRIBUTES`; compatible-species chip row.
+- Vendor mini-card with link to vendor store.
+- Reviews list with verified-buyer badge and vendor reply.
+- Sticky CTA (info-panel last child, no transform ancestors — see §10).
+- "Customise this" jumps to `customise_product_1.html` with this product as seed.
 
-1. User clicks **Orders** in the header.
-2. Finds a completed ticket (e.g. `TKT-0042`).
-3. Clicks **Reorder** — that ticket's items are added back to the cart.
-4. Navigates to shop to review and submit.
+#### 4.1.4 `cart_1.html` — Per-line cart
+- Each line carries: productId, qty, vendorId (overridable), speciesId, enclosureId, optional note.
+- Lines are visually grouped by vendor for shipping calc.
+- Inline setters on every line: vendor picker, *Select species* CTA, enclosure dropdown.
+- Sticky bottom bar shows subtotal + Proceed to checkout.
+
+#### 4.1.5 `checkout_1.html`
+- Address block (defaulted to user's `siteId` shipping address; multi-site users can switch).
+- Shipping speed: Standard / Express (changes shipping fee).
+- Approval banner if `!user.canPurchase` ("This order will be sent to *Dr. Rao* for approval").
+- Submit triggers `ZE.orders.submit(...)`.
+
+#### 4.1.6 `order_confirmation_1.html`
+- Post-submit thank-you with order number, expected next step (depends on `requiresApproval`).
+- Deep links: View order, Continue shopping.
+
+#### 4.1.7 `orders_1.html` / `order_detail_1.html`
+- List view: my orders with status pill, date, vendor, total.
+- Detail view: status timeline (placed → confirmed → shipped → delivered), items, tracking link (built from `CARRIERS[].urlTemplate`), invoice download stub.
+- Buyer actions: Initiate return, Reorder, Cancel (only if state allows).
+
+#### 4.1.8 `saved_1.html` — Wishlist
+- Mirrors product card from index but read-only (no filters). Move-to-cart and remove actions.
+
+#### 4.1.9 `customise_product_1.html` — Custom request
+- Same form pattern as vendor add-product, but submits a buyer-side **request** (matched to vendors later).
+- Description field is mandatory (vs optional on the admin/vendor add-product screens).
+
+#### 4.1.10 `returns_buyer_1.html`
+- My returns list + initiate-return flow with reason picker and photo upload.
+
+#### 4.1.11 `chat_1.html`
+- Per-order or per-vendor messaging. Threaded; reads/writes a per-user thread store in `localStorage`.
+
+#### 4.1.12 `profile_1.html`
+- Personal info, sites, default shipping address, notification preferences.
+
+### 4.2 Approver surface
+
+#### 4.2.1 `approvals_1.html`
+- One inbox for two queues: **orders awaiting my sign-off** and **new catalogue items awaiting moderation** (admin only).
+- Order rows: buyer, items count, total, requested date, *Approve / Reject* buttons, reject opens reason dialog.
+- Filters: status, buyer, date range.
+
+### 4.3 Vendor surface
+
+#### 4.3.1 `vendor_onboarding_1.html`
+- Multi-step wizard: business info → KYC → bank → return policy → first product.
+- Persists to a draft vendor record; admin must approve before listing goes live.
+
+#### 4.3.2 `vendor_dashboard_1.html`
+- KPI strip (orders this week, GMV, returns, average rating).
+- Recent orders, low-stock alerts, pending RMAs.
+
+#### 4.3.3 `vendor_products_1.html`
+- Table: name, category, vendor SKU, price, stock, status pill (published / pending / rejected).
+- Bulk actions: publish, unpublish, delete.
+
+#### 4.3.4 `vendor_add_product_1.html`
+- Form: name → categories (single dropdown) + tags (multi-pick) → species → attributes (driven by category schema) → pricing/labour → stock → images.
+- (Distinct from `admin_add_product_1.html`, which uses a unified-taxonomy chip row split into Categories + Tags as of 2026-04-27.)
+
+#### 4.3.5 `vendor_orders_1.html` / `vendor_order_detail_1.html`
+- Inbox of incoming orders. State machine: *placed* → *confirmed* → *packed* → *shipped* → *delivered*.
+- Vendor can also: counter-offer (price / ETA / partial qty), decline with reason.
+- Tracking entry: pick carrier from `CARRIERS`, enter AWB, public URL is built from `urlTemplate`.
+
+#### 4.3.6 `vendor_store_1.html`
+- Public-facing vendor profile. Bio, cover image, products, reviews, ratings.
+
+#### 4.3.7 `vendor_analytics_1.html`
+- Charts: orders over time, GMV, top species by GMV, top buyers, return rate.
+
+#### 4.3.8 `vendor_notifications_1.html`
+- Per-vendor inbox of system events (new order, return raised, low stock, review posted).
+
+#### 4.3.9 `returns_vendor_1.html`
+- RMA inbox. Approve full / approve partial / reject. Replace creates a new linked order.
+
+#### 4.3.10 `vendor_profile_1.html`
+- Edit vendor identity, return policy, bank, KYC status.
+
+### 4.4 Admin surface
+
+#### 4.4.1 `admin_products_1.html`
+- All products across all vendors. Filter by vendor, category, status. Bulk moderation actions.
+
+#### 4.4.2 `admin_product_detail_1.html`
+- Same as product_detail but with admin override actions: force-unpublish, edit any field, reassign vendor.
+
+#### 4.4.3 `admin_add_product_1.html`
+- Admin can create products on behalf of any vendor. Form mirrors vendor's, with a vendor-picker on top.
+- **Categories** and **Tags** are now two separate chip rows (each with its own *+ Add category* / *+ Add tag* CTA, opening a kind-filtered side sheet).
+- **Description** is a single 280-char textarea below the product name.
+
+#### 4.4.4 `attribute_library_1.html`
+- Manage `ATTRIBUTES` and the per-category `categoryAttributeSchema` (which attributes are mandatory in which category).
 
 ---
 
-## 6. Design system
+## 5. Core Flows
 
-### 6.1 Colour tokens (in `tokens.css`)
+### 5.1 Add-to-cart with species + enclosure
 
-Defined as CSS custom properties on `:root`. Use these — **never hardcode hex values, and never use indigo or bootstrap blue** (project convention).
+```
+[Index card] ──Add──► [Species/enclosure modal]
+                               │
+                               ├─ pre-fill species from active lens (if any)
+                               ├─ pre-fill enclosure from user's siteId default
+                               └─ on confirm → ZE.cart.addLine({ productId, qty:1, vendorId, speciesId, enclosureId })
+                                                        │
+                                                        └─► [Cart drawer / cart_1.html]
+```
 
-| Token                    | Meaning                        |
-|--------------------------|--------------------------------|
-| `--brand`                | Primary green (~#37BD69)       |
-| `--brand-hover`          | Darker green for hover states  |
-| `--brand-soft`           | Pale green backgrounds         |
-| `--text`                 | Primary text                   |
-| `--text-muted`           | Secondary text                 |
-| `--text-subtle`          | Tertiary text                  |
-| `--card`                 | Card background                |
-| `--card-subtle`          | Alt card bg for nesting        |
-| `--border`               | Default border                 |
-| `--border-strong`        | Hover / focus border           |
-| `--danger`               | Destructive red                |
-| `--warning`              | Warning amber (stars)          |
-| `--shadow-xs` … `-lg`    | Elevation shadows              |
+The modal exists because **a cart line without species + enclosure is unusable** for fulfilment — the vendor doesn't know which animal it's for, the keeper doesn't know which enclosure to deliver to. Configuring at add-time avoids messy "fill these in later" UX.
 
-### 6.2 Typography
+### 5.2 Submit → Approval → Vendor
 
-Google Fonts; the default sans is Inter. For display headings, DM Sans or Plus Jakarta Sans are acceptable. No need to import — loaded via `tokens.css`.
+```
+[Cart] → [Checkout] → submit
+          │
+          ├─ user.canPurchase? ── yes ──► ORDER.status = 'placed'
+          │                               ORDER.requiresApproval = false
+          │                               (goes straight to vendor inbox)
+          │
+          └─ no ─► ORDER.status = 'pending_approval'
+                   ORDER.approverId = user.approverId
+                   (lands in approver's inbox)
+                              │
+                              ├─ approve ──► status = 'placed'
+                              │             approvedAt = now
+                              │             auto-flow to vendor
+                              │
+                              └─ reject ──► status = 'rejected'
+                                            rejectReason = ...
+                                            buyer notified
+```
 
-### 6.3 Layout patterns
+### 5.3 Vendor order lifecycle
 
-- **Page container**: `.page-wrap { max-width: 1400px; padding: 0 32px; }`
-- **Dual-pane scroll** (shop page): header and sub-bar are sticky; the content below is fixed to `calc(100vh - header - subbar)`, with both the filter sidebar and the product grid being independent `overflow-y: auto` panes. Wheel scrolling respects whichever pane the mouse is over.
-- **Card**: `background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow-xs);`
-- **Pill button**: rounded-full (`border-radius: 999px`), 40–48px height, 14–20px horizontal padding.
-- **Images**: `.img-frame` class plus Pollinations AI URLs (see §7.3).
+```
+placed → confirmed → packed → shipped → delivered
+          │              │       │           │
+          ↓              ↓       ↓           ↓
+       (vendor       (vendor   (carrier    (buyer
+        accepts)      packs)    AWB)        marks
+                                            received)
 
-### 6.4 Icons
+at any point: vendor can cancel with reason
+              buyer can cancel before 'shipped'
+              buyer can initiate return after 'delivered'
+```
 
-Lucide (`https://unpkg.com/lucide@latest/…`). Used as `<i data-lucide="icon-name"></i>`. Call `ZE.refreshIcons()` after dynamic insertion.
+### 5.4 Return / RMA
+
+```
+[order_detail] → Initiate return
+                 │
+                 └─► reason + photos + qty
+                            │
+                            └─► RMA created, status = 'return_requested'
+                                vendor sees on returns_vendor_1
+                                          │
+                                          ├─ approve full → refund (PO note) | replace (new linked order)
+                                          ├─ approve partial → partial refund
+                                          └─ reject + reason
+```
+
+### 5.5 Custom-build request
+
+```
+[customise_product] → buyer fills brief (species, enclosure, budget, refs)
+                       │
+                       └─► request published; system matches by category × species
+                                      │
+                                      └─► matched vendors quote
+                                                   │
+                                                   └─► buyer accepts one quote
+                                                              │
+                                                              └─► quote → standard order
+```
+
+### 5.6 Vendor onboarding
+
+```
+[login → vendor] → [onboarding wizard]
+                    business info → KYC → bank → return policy → first product
+                                                                    │
+                                                                    └─► admin moderation → published
+```
 
 ---
 
-## 7. Technical architecture
+## 6. Data Model
 
-### 7.1 Stack
+All entities live on `window.DB` (seeded by `data.js`). The shapes below are the canonical contract.
 
-- **HTML** — one static file per screen in `.superdesign/design_iterations/`.
-- **CSS** — Tailwind (CDN) + handcrafted styles per page + `tokens.css` for design tokens.
-- **JS** — no framework. Each page has inline `<script>` tags. Two shared files (`data.js`, `app.js`) expose globals `window.DB` and `window.ZE`.
-- **Persistence** — browser `localStorage` under keys `ze_cart_v2`, `ze_saved_v1`, `ze_orders_v1`.
-
-### 7.2 Page load order (every page)
-
-```html
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="tokens.css"/>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
-<!-- page-specific inline script at bottom -->
-```
-
-Order matters: `data.js` must run before any page code that references `window.DB`, and `app.js` must run before any code referencing `window.ZE`.
-
-### 7.3 Images
-
-Product and species photos are generated on-demand by Pollinations AI. The URL shape:
-
-```
-https://image.pollinations.ai/prompt/<urlencoded-query>?width=W&height=H&seed=S&nologo=true
-```
-
-First-time generation takes 5–15 seconds. To reduce perceived latency, every page calls `ZE.prewarm([...urls])` at the top of its script — this fires off parallel `<img>` downloads immediately, so by the time the DOM renders the cards, the network has already been working.
-
-If an image 404s or errors, `ZE.svgPlaceholder(alt, w, h)` inserts a coloured SVG card with the alt-text label.
-
----
-
-## 8. The data layer (`data.js`)
-
-All prototype data lives here, exposed as `window.DB`. Designed so the UI can be rebuilt from this one module.
-
-### 8.1 Core collections
+### 6.1 SPECIES
 
 ```js
-DB.SPECIES    // 12 species (Bengal Tiger, Asian Elephant, …)
-DB.TAGS       // 5 enrichment types (Sensory, Cognitive, Physical, Social, Food)
-DB.CATEGORIES // 8 product categories (Scent Boxes, Puzzle Feeders, …)
-DB.USERS      // 10 users across the 7 roles
-DB.PRODUCTS   // 20 products — each with full specs dictionary
-DB.PENDING    // 5 products awaiting approval
-DB.TICKETS    // 12 demo tickets, each with line items
-DB.SCREENS    // registry of all page routes (for future nav)
-DB.ATTRIBUTES // 22 attribute definitions (the "attribute library")
+{ id, name, latin, taxon, imgQ, seed, count }
 ```
+- `imgQ` + `seed` → deterministic image URL via `DB.img(q, w, h, seed)`.
+- `count` is the number of individual animals across all sites (display-only).
 
-### 8.2 Products — shape
+### 6.2 SITES (zoo facilities)
+
+```js
+{ id, name, city, state, pincode, addressLine1 }
+```
+- 10 seeded facilities across India.
+
+### 6.3 ENCLOSURES
+
+```js
+{ id, siteId, name, type, speciesIds: [] }
+```
+- `type ∈ { 'outdoor', 'indoor', 'water', 'aerial', 'nocturnal' }`
+- An enclosure can house multiple species.
+
+### 6.4 USERS
 
 ```js
 {
-  id: 'prod_001',
-  name: 'Burlap Scent Sack',
-  cat: 'cat_scent',               // → DB.CATEGORIES
-  tags: ['tag_sen', 'tag_cog'],   // → DB.TAGS
-  stars: 5,
-  uses: 12,
-  engagement: 8.4,                // 0–10 score
-  safety: 'safe',
-  hot: true,
-  compatibleSpecies: ['sp_tiger', 'sp_lion', …],
-  submittedBy: 'u_rao',
-  createdAt: '2026-01-10',
-  status: 'published',
-
-  // Legacy inline fields (kept for backwards compat):
-  mat: ['Burlap', 'Jute'],
-  size: 'L',
-  scent: ['Catnip'],
-  duration: '1 week',
-  prep: '< 15 min',
-
-  // Pricing
-  price: { material: 80, labor: 40, effortHrs: 0.5 },
-
-  // Images
-  img: 'https://image.pollinations.ai/...',
-  imgSmall: 'https://image.pollinations.ai/...',
-
-  // ★ Per-product attribute specs (the important bit):
-  specs: {
-    attr_size: 'L',
-    attr_material: ['Burlap', 'Jute'],
-    attr_scent: ['Catnip'],
-    attr_duration: '1 week',
-    attr_refillable: true,
-    attr_washable: false,
-    attr_weather: false,
-    attr_hang_type: 'Hanging',
-    attr_durability: '3',
-    attr_cert: ['Non-toxic']
-  }
+  id, name, role, title,
+  species: [],        // species this user is responsible for
+  siteId,             // home facility
+  additionalSites: [],// other facilities they can act for
+  email, phone,
+  canPurchase,        // boolean
+  approverId,         // fk to USER, null if top-tier
+  seed                // for avatar generation
 }
 ```
 
-### 8.3 Attributes — shape
+### 6.5 VENDORS
 
-The attribute library (`DB.ATTRIBUTES`) is a flat list of ~22 definitions. Each has a type that drives the filter-UI control.
-
-```js
-{ id: 'attr_material', name: 'Material', type: 'multi_select',
-  options: ['Cardboard','Wood','Jute','Rope','Rubber','Burlap','Ice','Fabric','Plastic','Metal','Paper'] }
-
-{ id: 'attr_refillable', name: 'Refillable', type: 'boolean' }
-
-{ id: 'attr_weight', name: 'Weight (kg)', type: 'number', unit: 'kg' }
-
-{ id: 'attr_durability', name: 'Durability', type: 'select',
-  options: ['1','2','3','4','5'] }
-```
-
-Types and their filter controls:
-| Type            | UI control                                |
-|-----------------|-------------------------------------------|
-| `select`        | Segment / radio / single pill             |
-| `multi_select`  | Checkbox list                             |
-| `boolean`       | Single "Yes only" checkbox                |
-| `number`        | Min / Max input pair                      |
-| `color`         | Swatch row                                |
-
-### 8.4 `DB.filterBankForProducts(products)`
-
-Returns `[{attr, valuesInSet}]` for every attribute present in at least one product in the given array. This is what powers the **dynamic filter sidebar** — instead of hardcoding filters, the page calls this helper, then renders one filter card per returned entry.
-
-Example return:
-```js
-[
-  { attr: {id:'attr_size', name:'Size', type:'select', ...},
-    valuesInSet: ['S','M','L','XL'] },
-  { attr: {id:'attr_refillable', ...},
-    valuesInSet: [true, false] },
-  ...
-]
-```
-
-### 8.5 Helpers
-
-```js
-DB.byId(arr, id)              // find-by-id in any collection
-DB.fmtINR(n)                  // '₹1,200' formatting
-DB.ticketCost(tk)             // sum of tk.lines material+labor+other
-DB.ticketEffortHrs(tk)
-DB.img(query, w, h, seed)     // build a Pollinations image URL
-```
-
----
-
-## 9. The shared helpers layer (`app.js`)
-
-Exposes `window.ZE` with three persistent stores and a small utility library.
-
-### 9.1 The three stores
-
-| Store        | localStorage key | Shape                   | Use                 |
-|--------------|------------------|-------------------------|---------------------|
-| `ZE.cart`    | `ze_cart_v2`     | `{[prodId]: qty}`       | Shopping cart       |
-| `ZE.saved`   | `ze_saved_v1`    | `string[]` of prod ids  | Wishlist            |
-| `ZE.orders`  | `ze_orders_v1`   | `Order[]` (newest-first)| Submitted orders    |
-
-All three are synchronised across tabs via the browser's `storage` event.
-
-### 9.2 Cart API
-
-```js
-ZE.cart.read()        // → {[id]: qty}
-ZE.cart.count()       // → total units
-ZE.cart.qty(id)       // → qty for one product
-ZE.cart.add(id, n=1)  // → n can be negative (decrement); 0 removes
-ZE.cart.set(id, n)
-ZE.cart.remove(id)
-ZE.cart.clear()
-```
-Emits `cart:change` on every mutation.
-
-### 9.3 Saved API
-
-```js
-ZE.saved.read()       // → string[]
-ZE.saved.has(id)      // → boolean
-ZE.saved.add(id)
-ZE.saved.remove(id)
-ZE.saved.toggle(id)   // → new has-state
-ZE.saved.count()
-ZE.saved.clear()
-```
-Emits `saved:change`.
-
-### 9.4 Orders API
-
-```js
-ZE.orders.read()            // → Order[] (newest first)
-ZE.orders.count()
-ZE.orders.byId(id)
-ZE.orders.submit({items, priority, notes, species, subtotal})
-                            // auto-creates ORD-XXXX, clears cart, returns new order
-ZE.orders.setStatus(id, status)
-ZE.orders.cancel(id)        // shortcut: setStatus to 'cancelled'
-ZE.orders.clear()
-```
-
-Order shape:
 ```js
 {
-  id: 'ORD-0001',
-  createdAt: '2026-04-21T10:15:00.000Z',
-  items: [ { productId, qty, config? } ],
-  subtotal: 240,
-  status: 'submitted' | 'in_progress' | 'completed' | 'cancelled',
-  priority: 'Normal' | 'High' | 'Critical',
-  notes?: string,
-  species?: string
+  id, name, tagline,
+  city, state,
+  rating, orders, yearFounded,
+  returnPolicy,
+  logoQ, seed,        // logo image
+  coverQ, coverSeed   // store cover image
 }
 ```
 
-### 9.5 Event bus
+### 6.6 CATEGORIES + TAGS
 
 ```js
-ZE.on('cart:change',   (cart)  => { … });
-ZE.on('saved:change',  (array) => { … });
-ZE.on('orders:change', (list)  => { … });
+CATEGORY: { id, name, icon, count, imgQ, seed }
+TAG:      { id, name, color }
+```
+- Categories represent *what kind of thing it is* (Scent Boxes, Puzzle Feeders).
+- Tags represent *what behaviour it elicits* (Sensory, Cognitive, Physical, Social, Food).
+- A product belongs to **one category** and **one or more tags**.
+
+### 6.7 ATTRIBUTES + per-category schema
+
+```js
+ATTRIBUTE: { id, name, type, options?, unit?, icon? }
+// type ∈ 'select' | 'multi_select' | 'number' | 'boolean' | 'color'
+
+categoryAttributeSchema = {
+  cat_scent: [
+    { id: 'attr_size',     mandatory: true },
+    { id: 'attr_material', mandatory: true },
+    { id: 'attr_scent',    mandatory: true },
+    { id: 'attr_duration', mandatory: false }
+  ],
+  // ...
+}
 ```
 
-### 9.6 Utilities
+The schema drives **which attributes appear (and which are required)** when adding a product in that category.
+
+### 6.8 PRODUCTS
 
 ```js
-ZE.init()          // installs image fallback, device bar, lucide icons
-ZE.refreshIcons()  // re-run lucide after DOM inserts
-ZE.prewarm(urls)   // kick off parallel image downloads
-ZE.svgPlaceholder(label, w, h)  // SVG data URI for failed images
+{
+  id, name, description,
+  cat, tags: [],                   // fks
+  vendorId,                        // fk
+  compatibleSpecies: [],           // species fks
+  attributes: [{ id, value }],     // canonical; the spec table is built from this
+  specs: { [attrId]: value },      // legacy mirror, kept for older screens
+  price: { material, labor, effortHrs },
+  stock,
+  stars, uses, engagement,         // social-proof / engagement metrics
+  safety,                          // 'safe' | 'review' | 'unsafe'
+  hot,                             // boolean — surfaces in "popular" curation
+  img, imgSmall, gallery: [],
+  imgQ, seed,                      // image generation hints
+  submittedBy,                     // user fk
+  createdAt,
+  status                           // 'published' | 'pending_review' | 'rejected'
+}
+```
+
+Notes:
+- `price.material + price.labor = unit price`. `effortHrs` is a separate display-only field.
+- `gallery[]` is the primary image source; `img` and `imgSmall` are convenience derivations.
+- `specs` and `attributes` mirror each other. Newer code reads `attributes`; older detail screens read `specs`. Both stay in sync at write time.
+
+### 6.9 ORDERS
+
+```js
+{
+  id, createdAt, createdBy,        // user fk
+  species, speciesId,              // primary species (display)
+  siteId, enclosureId,
+  requiresApproval, approvalStatus,// 'pending' | 'approved' | 'rejected' | null
+  approverId, approvedAt, rejectReason,
+  vendorId,                        // primary vendor (display; line vendor lives on items)
+  vendorResponse: { respondedAt, ... } | null,
+  items: [
+    { productId, qty, config: { size?, scent?, ... } }
+  ],
+  subtotal, shippingMethod, shippingFee, total,
+  status,                          // 'placed' | 'pending_approval' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'return_requested' | 'returned' | 'rejected'
+  priority,                        // 'Normal' | 'High' | 'Urgent'
+  notes,
+  shippingAddress: { name, site, line1, line2, city, state, pincode, phone },
+  tracking: { carrier, number, url, eta, events: [] },
+  source                           // 'demo' | 'user'
+}
+```
+
+The `tracking.events[]` array is the single source of truth for the order timeline.
+
+### 6.10 CARRIERS
+
+```js
+{ id, name, urlTemplate, prefix }
+// urlTemplate = 'https://www.bluedart.com/tracking?awb={number}'
+// vendor enters AWB → URL = urlTemplate.replace('{number}', awb)
+```
+
+### 6.11 REVIEWS
+
+```js
+{ id, productId, buyerId, stars, text, createdAt, vendorReply?: { text, at } }
+```
+
+### 6.12 PENDING (catalogue moderation queue)
+
+```js
+{ id, name, cat, tags, submittedBy, reason, imgQ, seed, daysPending, flags: [] }
+```
+
+### 6.13 Entity relationships (pictorial)
+
+```
+SITE ─┬─◄ ENCLOSURE
+      └─◄ USER ─┬─► (approverId) USER
+                ├─► (species[]) SPECIES
+                └─► creates ORDER
+
+VENDOR ─┬─► PRODUCT ──┬─► (cat) CATEGORY
+        │             ├─► (tags[]) TAG
+        │             ├─► (compatibleSpecies[]) SPECIES
+        │             └─► (attributes[]) ATTRIBUTE
+        │
+        └─► fulfils ORDER ──┬─► items[].productId → PRODUCT
+                             ├─► (siteId) SITE
+                             ├─► (enclosureId) ENCLOSURE
+                             ├─► (createdBy / approverId) USER
+                             └─► tracking.carrier → CARRIER
+
+ORDER ─◄ REVIEW (one-to-many via productId, written after delivery)
+ORDER ─◄ RETURN (zero-to-many)
 ```
 
 ---
 
-## 10. Key design decisions and why
+## 7. State, Storage & Persistence
 
-### 10.1 Per-product attributes, not per-category
+The prototype has no backend. State is split across three layers:
 
-**Problem.** Different product types need different attributes. A puzzle feeder needs "difficulty level" and "food capacity"; a scent sack needs "scent type" and "refillable". Treating attributes as category-level is coarse and forces irrelevant fields on every product.
+### 7.1 `window.DB` — seeded read-mostly data
 
-**Solution.** Every product carries its own `specs` dictionary of attr-id → value pairs drawn from a shared `ATTRIBUTES` library. The sidebar filter panel reads the current product set and renders only the attributes actually present (via `DB.filterBankForProducts()`).
+`data.js` runs once on page load and writes every entity to `window.DB`. Pages read from it directly. New products created by the user are pushed into `DB.PRODUCTS` in memory; they **survive only until refresh**, with one exception:
 
-**Benefit.** Future "add product" flows can suggest existing attributes (dropdown from the library) plus allow creating a brand-new attribute inline — no schema migration needed.
+### 7.2 `localStorage` — user state that must persist
 
-### 10.2 Outline-default Add button
+| Key | Owner | Shape |
+|---|---|---|
+| `ze_active_user_v1` | `ZE.user` | `{ userId, role, siteId }` |
+| `ze_cart_v3` | `ZE.cart` | `[{ productId, qty, vendorId, speciesId, enclosureId, note }]` |
+| `ze_saved_v1` | `ZE.saved` | `[productId, ...]` |
+| `ze_orders_v1` | `ZE.orders` | `[Order, ...]` (user-created; merged with `DB.DEMO_ORDERS` on read) |
+| `ze_custom_attrs_v1` | `admin_add_product` | custom attribute defs created via UI |
 
-**Problem.** Previously, the Add button was a filled green pill. When clicked, it became a filled green "+/−" stepper. Visually the two states were near-identical — users couldn't tell at a glance which items were already in the cart.
+### 7.3 `window.ZE` — shared helpers (`app.js`)
 
-**Solution.** Default = outlined button (white bg, green border + text). Once in cart, the button swaps to the filled green stepper. The visual difference between "empty state" (hollow) and "in cart" (solid) is now unambiguous.
+The single namespace for cross-screen behaviour. Surfaces:
 
-### 10.3 Dual-pane independent scroll on the shop
-
-**Problem.** With a single page scroll, the filter sidebar was pinned (`position: sticky`) but couldn't scroll its own tall content when hovered, and long filter lists were cut off.
-
-**Solution.** The shop's grid-wrap is fixed to `calc(100vh - header - subbar)` with `overflow: hidden`. Both children (`.filters` and `.main-scroll`) each get `overflow-y: auto` and `overscroll-behavior: contain`. Wheel input is trapped inside whichever pane the mouse is over.
-
-### 10.4 Sub-bar single row
-
-**Problem.** Previously the sub-bar had two rows: species + sort on top, category pills below. That's a lot of vertical chrome.
-
-**Solution.** Collapsed into one row: `[Species ▼] [All] [Sensory] [Cognitive] … [Sort ▼]`. Category pills scroll horizontally when they overflow. Saves ~50px of vertical space.
-
-### 10.5 localStorage for everything
-
-**Problem.** This is a prototype — no backend, no auth, no DB.
-
-**Solution.** Every persistent store (cart, saved, orders) lives in `localStorage` under well-versioned keys. Cross-tab sync is free via the `storage` event. Clearing site data resets the prototype.
-
----
-
-## 11. How to extend the prototype
-
-### 11.1 Add a new product
-
-In `data.js`, add an entry to `productsRaw`. Fill:
-- `name`, `cat`, `tags`, `stars`, `uses`, `engagement`
-- `price: { material, labor, effortHrs }`
-- `imgQ` (Pollinations prompt), `seed` (unique integer)
-- `specs: { … }` — pick 6–10 attributes from `DB.ATTRIBUTES` that are relevant to the product type
-
-The map at the bottom of `productsRaw` will automatically assign `id`, `img`, `imgSmall`, `compatibleSpecies`, etc.
-
-### 11.2 Add a new attribute
-
-In `data.js`, append to the `ATTRIBUTES` array:
-```js
-{ id: 'attr_my_new',
-  name: 'My New Attribute',
-  type: 'select',                       // or multi_select / boolean / number / color
-  options: ['Opt A', 'Opt B', 'Opt C'], // required for select/multi_select
-  icon: 'tag' }                         // optional lucide icon
 ```
-Then tag products with it via their `specs` dict. The shop's sidebar will pick it up automatically.
+ZE.cart       ── per-line cart API (read, addLine, setLineQty/Species/Vendor/Enclosure, …)
+ZE.saved      ── wishlist API (read, has, add, remove, toggle, count, clear)
+ZE.orders     ── orders API (read, byId, submit, setStatus, advanceStatus, cancel, respondAsVendor, …)
+ZE.user       ── user session (signIn, signOut, resolve, switchSite, …)
+ZE.emit/on    ── tiny pub/sub for cross-screen sync (e.g., 'cart:change', 'orders:change')
+```
 
-### 11.3 Add a new page
-
-1. Copy `index_1.html` as a starting skeleton.
-2. Keep the same `<head>` (Tailwind + tokens + lucide + data.js + app.js).
-3. Reuse the `.app-header` markup so the nav stays consistent.
-4. Wire up any CTAs via the `ZE` API.
-5. Call `ZE.init()` at the bottom of the page's script.
-6. (Optional) Register the page in `DB.SCREENS` in `data.js`.
+Pages re-render on relevant events instead of polling.
 
 ---
 
-## 12. File reference
+## 8. Design System
+
+### 8.1 Tokens
+
+`tokens.css` defines the canonical palette and spacing. Brand assets sourced from *Antz Colours.pdf* and *Antz Typography.pdf* (in repo root).
+
+Key tokens:
+- `--brand` (primary green)
+- `--brand-hover`, `--brand-dark`
+- `--bg`, `--surface`, `--card`
+- `--text`, `--text-muted`, `--text-subtle`
+- `--border`, `--border-soft`
+- `--danger`, `--warn`, `--success`
+
+### 8.2 Component patterns
+
+| Pattern | Where it lives | Notes |
+|---|---|---|
+| Sticky CTA bar | every product/cart/checkout | `position: sticky` as **last child** of `.info-panel` (no transform ancestors — see §10) |
+| Side sheet | admin + vendor add-product, product detail | overlay + translateX-in panel; `aria-hidden` toggling, body scroll lock |
+| Chip row with `+ Add` | categories, tags, species, attributes on add-product | `tx-wrap` container, `tx-chip` items, dashed `tx-add` button |
+| Empty state | every list view | icon + headline + sub-copy + primary action |
+| Status pill | orders, products, returns | colour driven by status enum |
+| Toast | every screen | `#toast` element + 2.4s auto-dismiss |
+| Drop zone | image uploader | drag-and-drop + click-to-browse; ≤ 4MB per image, ≤ 20 images |
+
+### 8.3 Iconography
+
+[Lucide](https://lucide.dev) via CDN. Re-render after every DOM mutation: `if (window.lucide?.createIcons) window.lucide.createIcons();`
+
+### 8.4 Imagery
+
+The prototype uses [Pollinations](https://image.pollinations.ai) for deterministic generated images: `DB.img(prompt, w, h, seed)`. Production will replace these with vendor-uploaded photos.
+
+---
+
+## 9. Technical Architecture
+
+### 9.1 Stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| Markup | Plain HTML5 | No build, no framework, scans fast |
+| Styling | Tailwind CDN + `tokens.css` overrides | Fast iteration, Antz brand applied via tokens |
+| Behaviour | Vanilla JS | Zero dependency surface; runs in any browser |
+| Data | `data.js` + `localStorage` | Demo-only; backend follows in v1 build |
+| Hosting | Vercel (static) | Free, instant, custom domain ready |
+
+### 9.2 File layout
 
 ```
 Enrichment/
-├── CLAUDE.md                     ← project-level superdesign workflow rules
-├── DOCUMENTATION.md              ← this file
-├── Antz Colours.pdf              ← brand reference (optional)
-├── Antz Typography.pdf           ← brand reference (optional)
-└── .superdesign/
-    └── design_iterations/
-        ├── tokens.css            ← design tokens (colours, shadows, radii, fonts)
-        ├── data.js               ← window.DB (the whole data model)
-        ├── app.js                ← window.ZE (cart / saved / orders / utilities)
-        ├── index_1.html          ← Shop
-        ├── product_detail_1.html ← Product detail
-        ├── saved_1.html          ← Wishlist
-        └── orders_1.html         ← Order history
+├── index.html                      (redirect to login_1.html)
+├── *_1.html                         (35 screens — see §2)
+├── data.js                          (seeded DB)
+├── app.js                           (ZE.* helpers)
+├── tokens.css                       (design tokens)
+├── DOCUMENTATION.md                 (this file)
+├── PRD.md                           (requirements)
+├── Antz Colours.pdf, Antz Typography.pdf
+├── Product Images/                  (legacy assets)
+└── .superdesign/design_iterations/  (canonical Super Design output;
+                                      mirrored to repo root for Vercel)
 ```
 
-**Global objects** once a page is loaded:
-- `window.DB` — all prototype data.
-- `window.ZE` — all persistent stores and utilities.
+### 9.3 Mirror & deploy
+
+Two copies of every screen exist:
+1. `.superdesign/design_iterations/<file>.html` — canonical, written by the Super Design VS Code extension
+2. `<file>.html` at repo root — deployment mirror (Vercel hides dot-prefixed paths)
+
+When editing a screen, update both. The local dev server (Python `http.server` on port 8765) is rooted in `.superdesign/design_iterations/` for compatibility with the extension's preview.
+
+### 9.4 Vercel notes
+
+- Vercel hides paths starting with `.` (so `.superdesign/...` is unreachable from the deployed site). The mirror at root solves this.
+- A "404" from Vercel is most often **401 Deployment Protection** — confirm with `curl -I` before debugging routes.
+- `index.html` at root redirects to `login_1.html`.
+
+### 9.5 Local development
+
+```
+# from repo root
+python3 -m http.server 8765 --directory .superdesign/design_iterations
+# open http://localhost:8765/login_1.html
+```
+
+For Playwright screenshots in agentic workflows: `npx playwright …` plus the `/tmp/node_modules` symlink (see Conventions §10.5).
 
 ---
 
-## 13. Change log — what this session delivered
+## 10. Conventions & Gotchas
 
-### 13.1 Layout changes to the shop page (`index_1.html`)
+### 10.1 Sticky CTAs and transform ancestors
 
-- **Removed Site filter** — dropped from both the sub-bar and the sidebar. Prototype no longer scopes by site.
-- **Collapsed sub-bar to one row** — `[Species ▼] [category pills] [Sort ▼]`. Pills scroll horizontally under constraint.
-- **Dual-pane independent scrolling** — filter sidebar and product grid each scroll independently, pinned under a sticky header + sub-bar.
+`position: sticky` **silently fails** if any ancestor has a `transform`, `filter`, `perspective`, or `will-change` property. Use `position: sticky` only as a direct child of `.info-panel`-style untransformed containers, and as the **last child** so it sticks to the bottom on scroll-up.
 
-### 13.2 Data-model expansion (`data.js`)
+### 10.2 The `categoryAttributeSchema` is the contract
 
-- Attribute library grown from 8 → **22 attributes** (durability, refillable, weather-resistant, washable, assembly, pack qty, difficulty, dimensions, hang type, age suitability, certifications, indoor/outdoor, capacity, noise level, etc.).
-- **All 20 products given a `specs` dictionary** — each with 6–16 realistic attribute values researched per product type.
-- New helper: `DB.filterBankForProducts(products)` — drives dynamic filter UI.
+When adding new attributes or categories, update `categoryAttributeSchema` in `data.js` first. The add-product forms read this to decide which attribute fields to render and which are mandatory. Forgetting this leaves attributes orphaned.
 
-### 13.3 Shared stores (`app.js`)
+### 10.3 Two product mirrors: `attributes[]` vs `specs{}`
 
-- Added `ZE.saved` (wishlist store, `ze_saved_v1`) with full CRUD + `saved:change` event + cross-tab sync.
-- Added `ZE.orders` (orders log, `ze_orders_v1`) with auto-incrementing `ORD-XXXX` ids, `submit()` / `setStatus()` / `cancel()` / `byId()`, and `orders:change` event.
-- Existing cart API untouched.
+Older detail screens read `product.specs` (an object keyed by attribute id). Newer screens read `product.attributes[]` (an array of `{ id, value }`). Always write **both** when creating/updating a product so all screens stay consistent.
 
-### 13.4 Shop page upgrades (`index_1.html`)
+### 10.4 Per-line cart vs legacy cart
 
-- **Outline-default Add button** (see §10.2).
-- **Dynamic filter sidebar** — reads `DB.filterBankForProducts()` and auto-renders controls matching each attribute's type (`select` / `multi_select` / `boolean` / `number` / `color`).
-- **"+ Add filter" popover** — searchable list of attributes not yet filtered, plus a "Create new attribute" stub that toasts "Coming soon".
-- **Wishlist persistence** — hearts now call `ZE.saved.toggle()` and reflect `ZE.saved.has()`; `state.favs` removed.
-- **Header buttons wired** — Orders → `orders_1.html`, Saved → `saved_1.html`, each with live count badges.
-- **Search** — debounced 150ms substring match on product name.
-- **Load-more** — true pagination, 12 per page, auto-hides when exhausted.
-- **Scroll-to-top** on the main pane when category / filter / sort changes.
+There are leftover `cartAdd` / `cartSet` / `cartRemove` helpers on `ZE.cart` that operate on (productId, qty) tuples. **Do not use them** for new code. The canonical line-item API is `cartAddLine`, `cartSetLineQty`, `cartSetLineVendor`, `cartSetLineSpecies`, `cartSetLineEnclosure`, `cartSetLineNote`, `cartIncLine`, `cartRemoveLine`.
 
-### 13.5 New pages
+### 10.5 Tooling on macOS
 
-#### `saved_1.html` (wishlist)
-- Sticky header (Saved button highlighted).
-- Breadcrumb + title with live count.
-- Filter/sort sub-row (species, dynamic category pills, sort).
-- Card grid reusing the outline-default Add button.
-- Heart removes with a 4-second Undo toast.
-- **Add all to cart** and **Clear saved** bulk CTAs.
-- Friendly empty state with "Browse enrichments" CTA.
+- **No `jq`** — use `/usr/bin/python3 -c "import json, sys; ..."` for JSON parsing.
+- **Playwright** runs via `npx`; symlink `/tmp/node_modules` into the project to skip per-run install.
+- The dev-only **device bar** has been removed globally; do not reintroduce it.
 
-#### `orders_1.html` (order history)
-- Sticky header with "Clear completed" ghost button.
-- Tabs: All / Submitted / In progress / Completed / Cancelled.
-- Merges `ZE.orders.read()` with 12 demo `DB.TICKETS` — status mapped via `{in_review, in_production, partially_shipped} → in_progress`.
-- Per-order: status chip, priority chip, species, item thumbnails, subtotal.
-- Actions: **Reorder** (repopulates cart + nav), **View details** (expandable table), **Cancel** (user orders only, when pending).
-- Empty state.
+### 10.6 Image generation in the prototype
 
-### 13.6 Product detail wiring (`product_detail_1.html`)
+Images come from `https://image.pollinations.ai/prompt/{prompt}?seed={seed}`. The seed is deterministic so the same prompt always returns the same image — but the URL is **not cached** by Pollinations indefinitely. If you see broken images, refresh the page; the URL itself doesn't change.
 
-- Header heart now navigates to `saved_1.html` with a live `#savedBadge`.
-- `#favBtn` ("Save for later") toggles via `ZE.saved.toggle()`; label + icon flip between "Save for later" and "Saved" (filled heart).
-- Orders link navigates to `orders_1.html`.
+### 10.7 No new files unless asked
 
-### 13.7 Status-line (Claude Code IDE chrome)
+When iterating on a screen, prefer editing the existing `*_1.html` (or `*_1_N.html` for further iterations) over creating new files. The Super Design naming convention (`{name}_{n}.html`) is enforced by the extension.
 
-- Configured `~/.claude/settings.json` `statusLine` to render **`Claude Opus 4.7 · Context: N% used`**, with the context % coloured green/yellow/red by usage band.
-- Rewrote the command in Python 3 after discovering `jq` isn't installed on this machine. Parses tokens from `transcript_path`, divides by the 1M window.
-- Falls back to just the model name if context data is unavailable.
+### 10.8 Currency, units, locale
+
+- All currency is INR, formatted as `₹X` with no thousands separator (prototype simplification).
+- Weights in kg, dimensions in cm. Single-source from the attribute definition (`ATTRIBUTES[].unit`).
+- Dates are absolute ISO strings in storage; relative ("3 days ago") only for display.
 
 ---
 
-*End of document.*
+## 11. How to Extend the Prototype
+
+### 11.1 Adding a new screen
+
+1. Create `<name>_1.html` in `.superdesign/design_iterations/`.
+2. Mirror to repo root (the deploy script does this; `cp` works for one-offs).
+3. Include `tokens.css`, `data.js`, `app.js` in the head.
+4. Use `ZE.user.resolve()` to gate role-specific UI.
+5. If you add cross-screen state, extend `app.js` (`window.ZE.<area>`) — don't fork.
+
+### 11.2 Adding a new product attribute
+
+1. Add the row to `ATTRIBUTES` in `data.js`. Pick the right `type`.
+2. If a category should require this attribute, add an entry in `categoryAttributeSchema`.
+3. Update sample product entries in `productsRaw` so the demo shows non-empty values.
+4. Verify on `vendor_add_product_1.html` and `admin_add_product_1.html` that the field appears and validates.
+
+### 11.3 Adding a new category
+
+1. Add to `CATEGORIES` (id, name, icon, count, imgQ, seed).
+2. Add a `categoryAttributeSchema[<id>]` entry — even if just `[]` — so the form knows the schema.
+3. Add at least one sample product so the empty-state on the index page doesn't dominate.
+
+### 11.4 Adding a new vendor
+
+1. Push to `VENDORS` with a unique id and full profile (logo, cover, return policy).
+2. Mark some products as theirs by setting `productVendorMap[i] = '<vendor_id>'`.
+3. The vendor store page renders automatically.
+
+### 11.5 Adding a new role
+
+1. Add to the role list in `USERS`.
+2. Update the role table in §3 of this doc.
+3. Decide gates: `canPurchase`, who their `approverId` is.
+4. Update the role picker on `login_1.html`.
+5. Update any role-aware UI (chiefly in `index_1.html` filters and the avatar dropdown).
+
+---
+
+## 12. Glossary
+
+- **Approver** — a user who must sign off on another user's order before it leaves for the vendor. Defined by `user.approverId`.
+- **AWB** — Air Waybill / shipment tracking number entered by vendor and combined with `CARRIERS[].urlTemplate`.
+- **Buyer** — any zoo-side user who can place orders, including those who lack purchase authority.
+- **CZA** — Central Zoo Authority of India. The accreditation and audit body.
+- **Enclosure** — a specific habitat at a site (Tiger Outdoor Habitat A). Orders are tagged to one.
+- **Enrichment** — items or activities given to captive animals to keep them mentally and physically engaged. The product class this whole platform sells.
+- **Lab** — a zoo's in-house enrichment workshop. Treated as a vendor on the platform.
+- **PO** — purchase order. ZooEnrich generates one on order confirmation; settlement happens off-platform in v1.
+- **RMA** — return merchandise authorisation. The artifact created when a buyer initiates a return.
+- **Site** — a zoo facility (e.g., Nehru Zoological Park). Has many enclosures and many staff.
+- **Species lens** — a global filter that narrows the catalogue to products marked compatible with a chosen species.
+- **Take rate** — platform commission on a fulfilled order. Target 8–12% in v1.
+- **Vendor** — a verified maker / supplier of enrichment products. Listed under `DB.VENDORS`.
+
+---
+
+*End of documentation. For the *why* and the roadmap, see PRD.md.*

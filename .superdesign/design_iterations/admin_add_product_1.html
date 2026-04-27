@@ -557,8 +557,18 @@
           </div>
 
           <div class="field">
-            <label>Categories &amp; tags <span class="req">*</span><span class="counter" id="txCount">0 selected</span></label>
-            <div class="tx-wrap" id="fTaxonomy"></div>
+            <label for="fDescription">Description<span class="counter"><span id="descCount">0</span>/280</span></label>
+            <textarea id="fDescription" class="txt" rows="3" maxlength="280" placeholder="One-sentence pitch — what makes this enrichment effective?"></textarea>
+          </div>
+
+          <div class="field">
+            <label>Categories <span class="req">*</span><span class="counter" id="catCount">0 selected</span></label>
+            <div class="tx-wrap" id="fCategories"></div>
+          </div>
+
+          <div class="field">
+            <label>Tags <span class="counter" id="tagCount">0 selected</span></label>
+            <div class="tx-wrap" id="fTags"></div>
           </div>
 
           <div class="field">
@@ -836,6 +846,7 @@
 
   const state = {
     name: '',
+    description: '',
     cat: '',
     tags: [],
     selectedSpeciesIds: [],
@@ -860,6 +871,7 @@
 
   if (existing) {
     state.name       = existing.name || '';
+    state.description = existing.description || existing.shortDesc || '';
     state.cat        = existing.cat || '';
     state.tags       = Array.isArray(existing.tags) ? existing.tags.slice() : [];
     // Prefill species from either new shape (species: [...]) or legacy (compatibleSpecies / speciesId)
@@ -949,12 +961,11 @@
   }
 
   // ---------- Taxonomy chips (on the form) ----------
-  function renderTaxonomyChips() {
-    const host = $('#fTaxonomy');
-    const picked = state.selectedTaxonomy.map(id => taxonomyById(id)).filter(Boolean);
+  function renderTaxRow(host, picked, kind, counterEl) {
+    if (!host) return;
     const chips = picked.map(item => {
       const dotColor = item.color || 'var(--brand-hover)';
-      return '<span class="tx-chip" data-tx="' + esc(item.id) + '" title="' + esc(item.kind === 'category' ? 'Category' : 'Tag') + '">' +
+      return '<span class="tx-chip" data-tx="' + esc(item.id) + '" title="' + (kind === 'category' ? 'Category' : 'Tag') + '">' +
                '<span class="tx-dot" style="background:' + esc(dotColor) + '"></span>' +
                '<span class="tx-lbl">' + esc(item.name) + '</span>' +
                '<button type="button" class="tx-x" data-tx-remove="' + esc(item.id) + '" aria-label="Remove ' + esc(item.name) + '">' +
@@ -962,13 +973,21 @@
                '</button>' +
              '</span>';
     }).join('');
+    const addLabel = kind === 'category'
+      ? (picked.length ? 'Add more' : 'Add category')
+      : (picked.length ? 'Add more' : 'Add tag');
     host.innerHTML = chips +
-      '<button type="button" class="tx-add" id="txAddBtn">' +
-        '<i data-lucide="plus"></i>' +
-        (picked.length ? 'Add more' : 'Add category or tag') +
+      '<button type="button" class="tx-add" data-tx-kind="' + kind + '">' +
+        '<i data-lucide="plus"></i>' + addLabel +
       '</button>';
-    $('#txCount').textContent = picked.length + ' selected';
+    if (counterEl) counterEl.textContent = picked.length + ' selected';
     host.classList.remove('invalid');
+  }
+
+  function renderTaxonomyChips() {
+    const all = state.selectedTaxonomy.map(id => taxonomyById(id)).filter(Boolean);
+    renderTaxRow($('#fCategories'), all.filter(x => x.kind === 'category'), 'category', $('#catCount'));
+    renderTaxRow($('#fTags'), all.filter(x => x.kind === 'tag'), 'tag', $('#tagCount'));
     rerenderIcons();
   }
 
@@ -977,13 +996,14 @@
     open: false,
     search: '',
     tab: 'all', // 'all' | 'selected'
+    kindFilter: 'category', // 'category' | 'tag' — set when sheet opens
     draft: []   // working copy of selection while sheet is open
   };
 
   function renderTxSheetList() {
     const list = $('#txSheetList');
     const q = tx.search.trim().toLowerCase();
-    const all = taxonomyAll();
+    const all = taxonomyAll().filter(x => x.kind === tx.kindFilter);
     const pool = tx.tab === 'selected'
       ? all.filter(x => tx.draft.includes(x.id))
       : all;
@@ -1015,19 +1035,30 @@
              '</div>';
     }).join('');
 
-    // Footer + tab counts
-    $('#txFootN').textContent = tx.draft.length;
-    $('#txSelTabCount').textContent = '(' + tx.draft.length + ')';
-    $('#txClearAll').classList.toggle('disabled', tx.draft.length === 0);
+    // Footer + tab counts (scoped to the current kind only)
+    const kindCount = tx.draft.filter(id => {
+      const item = taxonomyById(id);
+      return item && item.kind === tx.kindFilter;
+    }).length;
+    $('#txFootN').textContent = kindCount;
+    $('#txSelTabCount').textContent = '(' + kindCount + ')';
+    $('#txClearAll').classList.toggle('disabled', kindCount === 0);
     rerenderIcons();
   }
 
-  function openTxSheet() {
+  function openTxSheet(kind) {
     tx.open = true;
     tx.search = '';
     tx.tab = 'all';
+    tx.kindFilter = kind === 'tag' ? 'tag' : 'category';
     tx.draft = state.selectedTaxonomy.slice();
-    const input = $('#txSearch'); if (input) input.value = '';
+    const input = $('#txSearch');
+    if (input) {
+      input.value = '';
+      input.placeholder = tx.kindFilter === 'tag' ? 'Search tags…' : 'Search categories…';
+    }
+    const titleEl = $('#txSheetTitle');
+    if (titleEl) titleEl.textContent = tx.kindFilter === 'tag' ? 'Select tags' : 'Select categories';
     $$('#txSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-txtab') === 'all'));
     $('#txOverlay').classList.add('open');
     $('#txSheet').classList.add('open');
@@ -1053,8 +1084,8 @@
   }
 
   // ---------- Taxonomy event wiring ----------
-  // Chip row: open sheet via + Add, remove chip via ×
-  $('#fTaxonomy').addEventListener('click', (e) => {
+  // Chip rows: open sheet via + Add, remove chip via ×
+  function handleTaxRowClick(e) {
     const removeBtn = e.target.closest('[data-tx-remove]');
     if (removeBtn) {
       e.stopPropagation();
@@ -1066,9 +1097,11 @@
       renderPreview();
       return;
     }
-    const addBtn = e.target.closest('#txAddBtn');
-    if (addBtn) { openTxSheet(); return; }
-  });
+    const addBtn = e.target.closest('[data-tx-kind]');
+    if (addBtn) { openTxSheet(addBtn.getAttribute('data-tx-kind')); return; }
+  }
+  $('#fCategories').addEventListener('click', handleTaxRowClick);
+  $('#fTags').addEventListener('click', handleTaxRowClick);
 
   // Sheet wiring
   $('#txOverlay').addEventListener('click', () => closeTxSheet(true));
@@ -1076,7 +1109,11 @@
   $('#txApply').addEventListener('click', () => closeTxSheet(true));
   $('#txClearAll').addEventListener('click', () => {
     if (!tx.draft.length) return;
-    tx.draft = [];
+    // Only clear selections of the current kind so the other row's picks survive.
+    tx.draft = tx.draft.filter(id => {
+      const item = taxonomyById(id);
+      return !item || item.kind !== tx.kindFilter;
+    });
     renderTxSheetList();
   });
   $('#txSearch').addEventListener('input', (e) => {
@@ -1850,6 +1887,16 @@
     $('#nameCount').textContent = nameEl.value.length;
     renderPreview();
   });
+  // Description + counter
+  const descEl = $('#fDescription');
+  if (descEl) {
+    descEl.value = state.description;
+    $('#descCount').textContent = state.description.length;
+    descEl.addEventListener('input', () => {
+      state.description = descEl.value;
+      $('#descCount').textContent = descEl.value.length;
+    });
+  }
   // (Category + Tags wiring is handled by the unified taxonomy section above.)
   // (Species-tagged wiring is handled by the species side-sheet section above.)
 
@@ -2070,10 +2117,14 @@
   function validate() {
     let ok = true;
     $$('.txt.invalid').forEach(el => el.classList.remove('invalid'));
-    const taxWrap = $('#fTaxonomy'); if (taxWrap) taxWrap.classList.remove('invalid');
+    const catWrap = $('#fCategories'); if (catWrap) catWrap.classList.remove('invalid');
     if (!state.name.trim()) { $('#fName').classList.add('invalid'); ok = false; }
-    if (!state.selectedTaxonomy || state.selectedTaxonomy.length === 0) {
-      if (taxWrap) taxWrap.classList.add('invalid');
+    const hasCategory = (state.selectedTaxonomy || []).some(id => {
+      const item = taxonomyById(id);
+      return item && item.kind === 'category';
+    });
+    if (!hasCategory) {
+      if (catWrap) catWrap.classList.add('invalid');
       ok = false;
     }
     if (!ok) toast('Please fill the highlighted fields.');
@@ -2099,6 +2150,8 @@
     const speciesArr = state.selectedSpeciesIds.slice();
     if (editing && existing) {
       existing.name = state.name.trim();
+      existing.description = state.description.trim();
+      existing.shortDesc = state.description.trim();
       existing.cat = state.cat;
       existing.tags = state.tags.slice();
       // Species tagged — primary shape is array; keep legacy mirrors in sync
@@ -2107,7 +2160,6 @@
       if ('speciesId' in existing) { existing.speciesId = speciesArr[0] || ''; }
       // Removed fields — provide sensible defaults only if missing so we
       // don't clobber historical values already on the product.
-      if (existing.shortDesc == null) existing.shortDesc = '';
       if (existing.longDesc == null) existing.longDesc = '';
       if (existing.price == null) existing.price = { material: 0, labor: 0, effortHrs: 0 };
       if (existing.stock == null) existing.stock = 0;
@@ -2130,9 +2182,10 @@
       const p = {
         id,
         name: state.name.trim(),
+        description: state.description.trim(),
         cat: state.cat,
         tags: state.tags.slice(),
-        shortDesc: '',
+        shortDesc: state.description.trim(),
         longDesc: '',
         species: speciesArr,
         compatibleSpecies: speciesArr.slice(),
