@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>ZooEnrich · Vendor Dashboard</title>
+  <title>ZooEnrich · Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -225,7 +225,7 @@
   <!-- =============== HEADER =============== -->
   <header class="app-header">
     <div class="page-wrap row">
-      <a href="vendor_dashboard_1.html" class="brand-mark">
+      <a href="admin_dashboard_1.html" class="brand-mark">
         <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
         <span>ZooEnrich</span>
       </a>
@@ -235,26 +235,26 @@
       </button>
 
       <nav class="v-nav" id="vNav">
-        <a href="vendor_dashboard_1.html" class="active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
-        <a href="vendor_orders_1_2.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge" id="navPendingBadge" style="display:none;">0</span></a>
-        <a href="vendor_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
-        <a href="vendor_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
-        <a href="vendor_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+        <a href="admin_dashboard_1.html" class="active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+        <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge" id="navPendingBadge" style="display:none;">0</span></a>
+        <a href="admin_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+        <a href="admin_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+        <a href="admin_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
         <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
-        <a href="returns_vendor_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+        <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
       </nav>
 
       <div class="v-right">
         <div class="v-avatar-wrap">
           <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
-            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Vendor logo"/>
+            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
             <span class="v-name" id="vName">TeakCraft</span>
             <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
           </button>
           <div class="v-menu" id="vMenu" role="menu">
             <div class="muted" id="vMenuEmail">Signed in</div>
-            <div class="divider"></div>
-            <a href="vendor_profile_1.html">
+            <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+            <a href="admin_profile_1.html">
               <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
             </a>
             <button id="btnSignOut">
@@ -268,7 +268,7 @@
 
   <!-- =============== VENDOR MOBILE DRAWER =============== -->
   <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
-  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
     <div class="vd-head">
       <span class="brand-mark">
         <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
@@ -277,13 +277,13 @@
       <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <nav class="vd-nav">
-      <a href="vendor_dashboard_1.html" class="active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-      <a href="vendor_orders_1_2.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
-      <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
-      <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
-      <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+      <a href="admin_dashboard_1.html" class="active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+      <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+      <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
       <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
-      <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+      <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
     </nav>
     <div class="vd-foot">
       <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
@@ -299,7 +299,7 @@
         <h1 id="greetTitle">Hello</h1>
         <div class="sub">Here's what's happening with your business.</div>
       </div>
-      <a href="vendor_add_product_1.html" class="cta-add">
+      <a href="admin_add_product_1.html" class="cta-add">
         <i data-lucide="plus" class="w-4 h-4"></i>Add product
       </a>
     </section>
@@ -356,7 +356,7 @@
               Awaiting your response
               <span class="head-count" id="awaitingCount">0</span>
             </h3>
-            <a class="action" href="vendor_orders_1.html?filter=placed">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a class="action" href="admin_orders_1.html?filter=placed">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
           </div>
           <div id="awaitingList"></div>
         </div>
@@ -365,7 +365,7 @@
         <div class="card anim-up" style="animation-delay:.25s">
           <div class="card-head">
             <h3><i data-lucide="truck" class="w-4 h-4" style="color:var(--brand)"></i>Active orders</h3>
-            <a class="action" href="vendor_orders_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a class="action" href="admin_orders_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
           </div>
           <div id="activeList"></div>
         </div>
@@ -377,7 +377,7 @@
         <div class="card anim-up" style="animation-delay:.2s">
           <div class="card-head">
             <h3><i data-lucide="alert-triangle" class="w-4 h-4" style="color:#A16207"></i>Low stock alerts</h3>
-            <a class="action" href="vendor_products_1.html?filter=low_stock">Manage <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a class="action" href="admin_products_1.html?filter=low_stock">Manage <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
           </div>
           <div id="lowStockList"></div>
         </div>
@@ -386,7 +386,7 @@
         <div class="card anim-up" style="animation-delay:.25s">
           <div class="card-head">
             <h3><i data-lucide="message-square" class="w-4 h-4" style="color:var(--brand)"></i>Recent reviews</h3>
-            <a class="action" href="vendor_reviews_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a class="action" href="admin_dashboard_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
           </div>
           <div id="reviewsList"></div>
         </div>
@@ -395,7 +395,7 @@
         <div class="card anim-up" style="animation-delay:.3s">
           <div class="card-head">
             <h3><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--brand)"></i>Top products</h3>
-            <a class="action" href="vendor_products_1.html?sort=top">All products <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a class="action" href="admin_products_1.html?sort=top">All products <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
           </div>
           <div id="topProductsList"></div>
         </div>
@@ -404,7 +404,7 @@
 
     <!-- Footer -->
     <div class="foot">
-      <div>ZooEnrich &middot; Vendor portal</div>
+      <div>ZooEnrich &middot; Admin portal</div>
       <div class="links">
         <a href="#" data-stub>Support</a>
         <a href="#" data-stub>Policies</a>
@@ -419,7 +419,7 @@
 <script>
   (function () {
     // ---------- Page guard ----------
-    if (!ZE.user.requireRole('vendor')) return;
+    if (!ZE.user.requireRole('admin')) return;
 
     // ---------- Helpers ----------
     function toast(msg) {
@@ -482,8 +482,8 @@
     document.getElementById('vAvatar').src = DB.vendorLogo(vendor);
     document.getElementById('vName').textContent = vendor.name;
     document.getElementById('vMenuEmail').textContent = 'Signed in as ' + vendor.name;
-    var _navSf = document.getElementById('navStorefront'); if (_navSf) _navSf.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
-    var _vps = document.getElementById('viewPublicStore'); if (_vps) _vps.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+    var _navSf = document.getElementById('navStorefront'); if (_navSf) _navSf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+    var _vps = document.getElementById('viewPublicStore'); if (_vps) _vps.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
 
     // Avatar menu toggle
     const avatarBtn = document.getElementById('avatarBtn');
@@ -613,7 +613,7 @@
               '<div class="resp-total">' + total + '</div>' +
             '</div>' +
             '<div>' +
-              '<a href="vendor_order_detail_1.html?id=' + encodeURIComponent(o.id) + '" class="resp-btn">Respond <i data-lucide="arrow-right" class="w-4 h-4"></i></a>' +
+              '<a href="admin_order_detail_1.html?id=' + encodeURIComponent(o.id) + '" class="resp-btn">Respond <i data-lucide="arrow-right" class="w-4 h-4"></i></a>' +
             '</div>' +
           '</div>';
       }).join('');
@@ -643,7 +643,7 @@
         const evtText = lastEvt ? (lastEvt.note + ' · ' + relTime(lastEvt.at)) : '';
         const statusLabel = String(o.status).replace(/_/g, ' ');
         return '' +
-          '<a class="active-row" href="vendor_order_detail_1.html?id=' + encodeURIComponent(o.id) + '">' +
+          '<a class="active-row" href="admin_order_detail_1.html?id=' + encodeURIComponent(o.id) + '">' +
             '<div>' +
               '<div class="active-id">' + escapeHtml(o.id) + '</div>' +
               '<div style="margin-top:4px"><span class="chip chip-' + o.status + '">' + escapeHtml(statusLabel) + '</span></div>' +
@@ -682,7 +682,7 @@
               '<div class="stock-name">' + escapeHtml(p.name) + '</div>' +
               '<div class="stock-stock ' + sCls + '">' + sTxt + '</div>' +
             '</div>' +
-            '<a class="stock-btn" href="vendor_add_product_1.html?edit=' + encodeURIComponent(p.id) + '" data-restock="' + escapeHtml(p.id) + '">Restock</a>' +
+            '<a class="stock-btn" href="admin_add_product_1.html?edit=' + encodeURIComponent(p.id) + '" data-restock="' + escapeHtml(p.id) + '">Restock</a>' +
           '</div>';
       }).join('');
     }
@@ -742,7 +742,7 @@
         host.innerHTML = '' +
           '<div class="empty">' +
             '<span class="ico"><i data-lucide="package" class="w-5 h-5"></i></span>' +
-            '<div>You haven\'t listed any products yet.<br/><a href="vendor_add_product_1.html" style="color:var(--brand);font-weight:600">Add your first product →</a></div>' +
+            '<div>You haven\'t listed any products yet.<br/><a href="admin_add_product_1.html" style="color:var(--brand);font-weight:600">Add your first product →</a></div>' +
           '</div>';
         return;
       }
@@ -806,7 +806,7 @@
       ov.addEventListener('click', close);
       dr.querySelector('.vd-close').addEventListener('click', close);
       const sf = document.getElementById('vDrawerStorefront');
-      if (sf && vendor && vendor.id) sf.href = 'vendor_store_1.html?id=' + encodeURIComponent(vendor.id);
+      if (sf && vendor && vendor.id) sf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
       const so = document.getElementById('vDrawerSignOut');
       if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
     })();

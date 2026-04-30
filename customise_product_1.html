@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -451,7 +451,47 @@
     .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .anim-up { animation: fadeUp .4s cubic-bezier(.2,.8,.2,1) both; }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
   </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
 <body data-device="desktop">
 <div class="device-shell"><div class="device-inner">
@@ -490,6 +530,18 @@
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
           <span class="badge-dot" id="cartBadge" style="display:none">0</span>
         </button>
+        <button class="header-btn" type="button" id="headerApprovalsLink" data-approvals-header onclick="window.location.href='approvals_1.html'" style="display:none">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </button>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
         <div id="userSlot"></div>
       </div>
     </div>
@@ -511,8 +563,19 @@
       <a class="nav-item" href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
       <a class="nav-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
       <a class="nav-item" href="cart_1.html"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Cart</a>
+      <a class="nav-item" id="mobileNavApprovals" data-approvals-header href="approvals_1.html" style="display:none; justify-content:space-between;">
+        <span style="display:inline-flex; align-items:center; gap:12px;"><i data-lucide="user-check" class="w-4 h-4"></i> Approvals</span>
+        <span data-approvals-header-badge style="display:none; min-width:20px; height:20px; padding:0 6px; background:var(--danger); color:#fff; border-radius:999px; font-size:11px; font-weight:700; align-items:center; justify-content:center;">0</span>
+      </a>
       <a class="nav-item active" href="customise_product_1.html"><i data-lucide="wand-sparkles" class="w-4 h-4"></i> Customise product</a>
-      <div class="nav-divider"></div>
+          <a class="ze-wp-mobile-row nav-item" id="mobileWalletRow" href="wallet_1.html" style="display:none;">
+      <div class="ze-wp-mob-top">
+        <span class="ze-wp-mob-name" data-wallet-mob-name>Site</span>
+        <span class="ze-wp-mob-amt" data-wallet-mob-amt>—</span>
+      </div>
+      <div class="ze-wp-mob-sub" data-wallet-mob-sub>Open wallet →</div>
+    </a>
+    <div class="nav-divider"></div>
       <button class="nav-item" id="mobileNavSignOut" style="color: var(--danger); width: 100%; text-align: left; background: transparent; border: none; font: inherit;"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
     </div>
   </aside>
@@ -558,8 +621,13 @@
           </div>
 
           <div class="field">
-            <label><span>Categories &amp; tags <span style="font-weight:500;color:var(--text-subtle);text-transform:none;letter-spacing:0;font-size:11px;margin-left:4px;">(optional)</span></span><span class="counter" id="txCount">0 selected</span></label>
-            <div class="tx-wrap" id="fTaxonomy"></div>
+            <label><span>Categories <span style="font-weight:500;color:var(--text-subtle);text-transform:none;letter-spacing:0;font-size:11px;margin-left:4px;">(optional)</span></span><span class="counter" id="catCount">0 selected</span></label>
+            <div class="tx-wrap" id="fCategories"></div>
+          </div>
+
+          <div class="field">
+            <label><span>Tags <span style="font-weight:500;color:var(--text-subtle);text-transform:none;letter-spacing:0;font-size:11px;margin-left:4px;">(optional)</span></span><span class="counter" id="tagCount">0 selected</span></label>
+            <div class="tx-wrap" id="fTags"></div>
           </div>
 
           <div class="field">
@@ -941,26 +1009,34 @@
   }
 
   // ---------- Taxonomy chips (on the form) ----------
+  // Renders into two separate hosts (#fCategories and #fTags), each filtered
+  // by kind. Both Add buttons open the same side sheet pre-filtered.
   function renderTaxonomyChips() {
-    const host = $('#fTaxonomy');
     const picked = state.selectedTaxonomy.map(id => taxonomyById(id)).filter(Boolean);
-    const chips = picked.map(item => {
-      const dotColor = item.color || 'var(--brand-hover)';
-      return '<span class="tx-chip" data-tx="' + esc(item.id) + '" title="' + esc(item.kind === 'category' ? 'Category' : 'Tag') + '">' +
-               '<span class="tx-dot" style="background:' + esc(dotColor) + '"></span>' +
-               '<span class="tx-lbl">' + esc(item.name) + '</span>' +
-               '<button type="button" class="tx-x" data-tx-remove="' + esc(item.id) + '" aria-label="Remove ' + esc(item.name) + '">' +
-                 '<i data-lucide="x"></i>' +
-               '</button>' +
-             '</span>';
-    }).join('');
-    host.innerHTML = chips +
-      '<button type="button" class="tx-add" id="txAddBtn">' +
-        '<i data-lucide="plus"></i>' +
-        (picked.length ? 'Add more' : 'Add category or tag') +
-      '</button>';
-    $('#txCount').textContent = picked.length + ' selected';
-    host.classList.remove('invalid');
+    const renderInto = (kind, hostId, addBtnId, addLabel, counterId) => {
+      const host = $(`#${hostId}`);
+      if (!host) return;
+      const items = picked.filter(x => x.kind === kind);
+      const chips = items.map(item => {
+        const dotColor = item.color || 'var(--brand-hover)';
+        return '<span class="tx-chip" data-tx="' + esc(item.id) + '">' +
+                 '<span class="tx-dot" style="background:' + esc(dotColor) + '"></span>' +
+                 '<span class="tx-lbl">' + esc(item.name) + '</span>' +
+                 '<button type="button" class="tx-x" data-tx-remove="' + esc(item.id) + '" aria-label="Remove ' + esc(item.name) + '">' +
+                   '<i data-lucide="x"></i>' +
+                 '</button>' +
+               '</span>';
+      }).join('');
+      host.innerHTML = chips +
+        '<button type="button" class="tx-add" id="' + addBtnId + '" data-tx-kind="' + kind + '">' +
+          '<i data-lucide="plus"></i>' +
+          (items.length ? 'Add more' : addLabel) +
+        '</button>';
+      $('#' + counterId).textContent = items.length + ' selected';
+      host.classList.remove('invalid');
+    };
+    renderInto('category', 'fCategories', 'catAddBtn', 'Add category', 'catCount');
+    renderInto('tag',      'fTags',       'tagAddBtn', 'Add tag',      'tagCount');
     rerenderIcons();
   }
 
@@ -969,13 +1045,14 @@
     open: false,
     search: '',
     tab: 'all', // 'all' | 'selected'
+    kind: null, // 'category' | 'tag' | null (null = both)
     draft: []   // working copy of selection while sheet is open
   };
 
   function renderTxSheetList() {
     const list = $('#txSheetList');
     const q = tx.search.trim().toLowerCase();
-    const all = taxonomyAll();
+    const all = tx.kind ? taxonomyAll().filter(x => x.kind === tx.kind) : taxonomyAll();
     const pool = tx.tab === 'selected'
       ? all.filter(x => tx.draft.includes(x.id))
       : all;
@@ -984,8 +1061,9 @@
       : pool;
 
     if (!filtered.length) {
+      const kindLabel = tx.kind === 'category' ? 'categories' : tx.kind === 'tag' ? 'tags' : 'categories and tags';
       const msg = tx.tab === 'selected' && !tx.draft.length
-        ? 'Nothing selected yet. Switch to <strong>All</strong> to pick categories and tags.'
+        ? 'Nothing selected yet. Switch to <strong>All</strong> to pick ' + kindLabel + '.'
         : 'No matches for "<strong>' + esc(tx.search) + '</strong>".';
       list.innerHTML = '<div class="tx-sheet-empty"><i data-lucide="search-x"></i>' + msg + '</div>';
       rerenderIcons();
@@ -1014,13 +1092,18 @@
     rerenderIcons();
   }
 
-  function openTxSheet() {
+  function openTxSheet(kind) {
     tx.open = true;
     tx.search = '';
     tx.tab = 'all';
+    tx.kind = (kind === 'category' || kind === 'tag') ? kind : null;
     tx.draft = state.selectedTaxonomy.slice();
     const input = $('#txSearch'); if (input) input.value = '';
     $$('#txSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-txtab') === 'all'));
+    const titleEl = $('#txSheetTitle');
+    if (titleEl) titleEl.textContent = tx.kind === 'category' ? 'Select categories' : tx.kind === 'tag' ? 'Select tags' : 'Select categories & tags';
+    const searchEl = $('#txSearch');
+    if (searchEl) searchEl.placeholder = tx.kind === 'category' ? 'Search categories…' : tx.kind === 'tag' ? 'Search tags…' : 'Search categories and tags…';
     $('#txOverlay').classList.add('open');
     $('#txSheet').classList.add('open');
     $('#txSheet').setAttribute('aria-hidden', 'false');
@@ -1045,8 +1128,8 @@
   }
 
   // ---------- Taxonomy event wiring ----------
-  // Chip row: open sheet via + Add, remove chip via ×
-  $('#fTaxonomy').addEventListener('click', (e) => {
+  // Chip row: open sheet via + Add, remove chip via ×. Wired on BOTH hosts.
+  function _txDelegate(e) {
     const removeBtn = e.target.closest('[data-tx-remove]');
     if (removeBtn) {
       e.stopPropagation();
@@ -1058,9 +1141,11 @@
       renderPreview();
       return;
     }
-    const addBtn = e.target.closest('#txAddBtn');
-    if (addBtn) { openTxSheet(); return; }
-  });
+    const addBtn = e.target.closest('.tx-add[data-tx-kind]');
+    if (addBtn) { openTxSheet(addBtn.getAttribute('data-tx-kind')); return; }
+  }
+  $('#fCategories').addEventListener('click', _txDelegate);
+  $('#fTags').addEventListener('click', _txDelegate);
 
   // Sheet wiring
   $('#txOverlay').addEventListener('click', () => closeTxSheet(true));
@@ -2230,9 +2315,11 @@
           '<a href="profile_1.html" role="menuitem"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>' +
           '<a href="orders_1.html" role="menuitem"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>' +
           '<a href="saved_1.html" role="menuitem"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>' +
-          '<a href="admin_products_1.html" class="active" role="menuitem" aria-current="page">' +
-            '<i data-lucide="shield" class="w-4 h-4"></i> Admin · Catalog' +
-            '<i data-lucide="check" class="w-4 h-4 menu-check"></i>' +
+          '<a id="personaSwitchItem" data-persona-item role="menuitem" data-mode-switch="to-other-persona" onclick="window.location.reload();return false;">' +
+          '<i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span>' +
+          '</a>' +
+          '<a href="admin_dashboard_1.html" role="menuitem" data-mode-switch="to-admin" onclick="window.location.href=&#39;admin_dashboard_1.html&#39;;return false;">' +
+            '<i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view' +
           '</a>' +
           '<div class="menu-sep"></div>' +
           '<button type="button" class="sign-out" id="signOutBtn" role="menuitem">' +
@@ -2343,5 +2430,133 @@
 })();
 </script>
 
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pop = document.getElementById('walletPillPop');
+      if (siteSwitch && pill.contains(siteSwitch)) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      if (pillTarget && !siteSwitch && !opt) {
+        window.location.href = 'wallet_1.html';
+      }
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
 </body>
 </html>

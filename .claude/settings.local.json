@@ -59,7 +59,30 @@
       "Bash(ps -p 4799 -o command=)",
       "Bash(osascript -e 'tell application \"Google Chrome\" to activate')",
       "Bash(pandoc --version)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(rm -f admin_products_1.html admin_add_product_1.html admin_product_detail_1.html)",
+      "Bash(cp vendor_dashboard_1.html admin_dashboard_1.html)",
+      "Bash(cp vendor_products_1.html admin_products_1.html)",
+      "Bash(cp vendor_add_product_1.html admin_add_product_1.html)",
+      "Bash(cp vendor_orders_1_2.html admin_orders_1.html)",
+      "Bash(python3)",
+      "Bash(grep -L \"data-mode-switch=\\\\\"to-admin\\\\\"\" index_1.html product_detail_1.html cart_1.html order_detail_1.html profile_1.html approvals_1.html orders_1_2.html)",
+      "Bash(grep -L \"data-mode-switch=\\\\\"to-buyer\\\\\"\" admin_*.html)",
+      "Bash(xargs -I{} grep -l \"isAdmin = !!u\" {} echo \"\\(empty = all guards removed\\)\")",
+      "Bash(python3 *)",
+      "Bash(sed -n '1248,1260p' checkout_1.html)",
+      "Bash(sed -n '335,372p' app.js)",
+      "Bash(sed -n '698,706p' app.js)",
+      "Bash(sed -n '1037,1065p' app.js)",
+      "Bash(sed -n '565,572p' orders_1_2.html)",
+      "Bash(sed -n '1118,1140p' orders_1_2.html)",
+      "Bash(grep -nA12 \"^const VENDORS\\\\b\\\\|^  const VENDORS\\\\b\" orders_1_2.html)",
+      "Bash(sed -n '785,815p' orders_1_2.html)",
+      "Bash(grep -nA10 \"^function statusLabel\" orders_1_2.html)",
+      "Bash(grep -nA3 \"pendingCardHtml\\\\|cardHtml.*pending\\\\|status===.pending\\\\|approvalStatus===.pending\" approvals_1.html)",
+      "Bash(sed -n '590,615p' approvals_1.html)",
+      "Bash(sed -n '775,815p' approvals_1.html)",
+      "Bash(ps -o command= -p 4799)"
     ]
   }
 }

@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     .page-wrap { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -41,7 +43,7 @@
     }
     @media (max-width: 400px) { .brand-mark > span:not(.logo-box) { display: none; } }
 
-    /* Vendor mobile drawer */
+    /* Admin mobile drawer */
     .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
     .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
     @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
@@ -143,7 +145,7 @@
 <!-- Header -->
 <header class="app-header">
   <div class="page-wrap row">
-    <a href="vendor_dashboard_1.html" class="brand-mark">
+    <a href="admin_dashboard_1.html" class="brand-mark">
       <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
       <span>ZooEnrich</span>
     </a>
@@ -153,26 +155,26 @@
     </button>
 
     <nav class="v-nav" id="vNav">
-      <a href="vendor_dashboard_1.html" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
-      <a href="vendor_orders_1_2.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
-      <a href="vendor_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
-      <a href="vendor_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
-      <a href="vendor_notifications_1.html" class="active" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+      <a href="admin_dashboard_1.html" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+      <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
+      <a href="admin_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+      <a href="admin_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+      <a href="admin_notifications_1.html" class="active" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
       <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
-      <a href="returns_vendor_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+      <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
     </nav>
 
     <div class="v-right">
       <div class="v-avatar-wrap">
         <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
-          <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Vendor logo"/>
+          <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
           <span class="v-name" id="vName">TeakCraft</span>
           <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
         </button>
         <div class="v-menu" id="vMenu" role="menu">
           <div class="muted" id="vMenuEmail">Signed in</div>
-          <div class="divider"></div>
-          <a href="vendor_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
+          <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+          <a href="admin_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
           <button id="btnSignOut"><i data-lucide="log-out" class="w-4 h-4"></i>Sign out</button>
         </div>
       </div>
@@ -182,7 +184,7 @@
 
 <!-- Vendor mobile drawer -->
 <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
-<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
   <div class="vd-head">
     <span class="brand-mark">
       <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
@@ -191,13 +193,13 @@
     <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
   </div>
   <nav class="vd-nav">
-    <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-    <a href="vendor_orders_1_2.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
-    <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
-    <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
-    <a href="vendor_notifications_1.html" class="active"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+    <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+    <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
+    <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+    <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+    <a href="admin_notifications_1.html" class="active"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
     <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
-    <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+    <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
   </nav>
   <div class="vd-foot">
     <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
@@ -264,7 +266,7 @@
       <div class="n-title">Listing flagged for missing species tags</div>
       <div class="n-desc"><strong>"Reinforced Lion Scratch Tower"</strong> is hidden from search until you add at least one primary species. Takes 30 seconds.</div>
       <div class="n-inline">
-        <a href="vendor_add_product_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="edit-3" class="w-3 h-3"></i> Fix listing</a>
+        <a href="admin_add_product_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="edit-3" class="w-3 h-3"></i> Fix listing</a>
         <button class="btn-view">Why flagged?</button>
       </div>
     </div>
@@ -407,7 +409,7 @@
       <div class="n-title">Kaziranga requested a return — spec mismatch</div>
       <div class="n-desc">Mud-wallow liner dimensions off by 12cm. Buyer prefers a <strong>rework</strong> over a refund. 3 photos attached.</div>
       <div class="n-inline">
-        <a href="returns_vendor_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="eye" class="w-3 h-3"></i> Review return</a>
+        <a href="admin_returns_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="eye" class="w-3 h-3"></i> Review return</a>
         <button class="btn-reply">Offer rework</button>
       </div>
     </div>

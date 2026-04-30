@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -71,9 +73,56 @@
     .page-head .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
     .head-tools { display: flex; gap: 10px; flex-wrap: wrap; }
     .head-tools .search-wrap { position: relative; }
-    .head-tools .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .head-tools .search-wrap i, .head-tools .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
     .head-tools .search-input { height: 40px; padding: 0 14px 0 36px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font-size: 13px; width: 240px; outline: none; }
     .head-tools .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+
+    /* ============ FILTER BAR (search + dropdowns + count) ============ */
+    .filter-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 14px; margin-bottom: 14px; box-shadow: var(--shadow-xs);
+    }
+    .filter-bar .filter-search { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+    .filter-bar .filter-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .filter-bar .filter-search input { width: 100%; height: 36px; padding: 0 14px 0 36px; border: 1px solid var(--border); border-radius: 999px; background: #FAFBFC; font-size: 13px; outline: none; transition: .15s; }
+    .filter-bar .filter-search input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); background: #fff; }
+    .filter-sel {
+      position: relative; display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px;
+      background: #fff; color: var(--text); font-size: 13px; font-weight: 600;
+      cursor: pointer; user-select: none; font-family: inherit;
+    }
+    .filter-sel:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .filter-sel.has-value { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-soft); }
+    .filter-sel .pill {
+      font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+      background: var(--brand); color: #fff; min-width: 20px; text-align: center;
+    }
+    .filter-pop {
+      position: absolute; top: calc(100% + 6px); left: 0; min-width: 240px; max-height: 320px; overflow-y: auto;
+      background: #fff; border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow-lg); padding: 6px; display: none; z-index: 70; text-align: left;
+    }
+    .filter-pop.open { display: block; animation: ddIn .18s ease-out; }
+    @keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .filter-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .filter-opt:hover { background: #F1F2F4; }
+    .filter-opt input[type="checkbox"] { accent-color: var(--brand); width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+    .filter-opt .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .filter-reset {
+      font-size: 12px; font-weight: 600; color: var(--text-muted); background: transparent; border: none;
+      padding: 6px 10px; cursor: pointer; border-radius: 8px; font-family: inherit;
+    }
+    .filter-reset:hover { color: var(--text); background: #F1F2F4; }
+    .filter-count {
+      margin-left: auto; font-size: 12px; color: var(--text-muted); white-space: nowrap; padding: 0 4px;
+    }
+    @media (max-width: 600px) {
+      .filter-bar { padding: 10px 12px; gap: 8px; }
+      .filter-bar .filter-search { min-width: 140px; }
+      .filter-count { width: 100%; margin-left: 0; text-align: right; }
+    }
     .head-btn { height: 40px; padding: 0 16px; border: 1px solid var(--border); background: var(--card); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
     .head-btn:hover { border-color: var(--brand); color: var(--brand); }
 
@@ -119,11 +168,6 @@
     .chip-delivered        { background: var(--brand);      color: #fff; }
     .chip-cancelled        { background: var(--danger);     color: #fff; }
     .chip-returned         { background: #FDE68A;           color: #92400E; }
-    .chip-priority { background: #FFE5EA; color: #B00020; }
-    .chip-priority.high { background: #FFF8CC; color: #8A6D00; }
-    .chip-priority.critical { background: var(--danger); color: #fff; }
-    .chip-species { background: var(--brand-soft); color: var(--brand-hover); padding: 4px 10px 4px 4px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: none; letter-spacing: 0; }
-    .chip-species img { width: 20px; height: 20px; border-radius: 999px; object-fit: cover; }
     .oc-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 
     /* Items */
@@ -165,6 +209,8 @@
     .btn-sm { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; transition: .15s; text-decoration: none; }
     .btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 2px 6px -2px rgba(55,189,105,.4); }
     .btn-primary:hover { background: var(--brand-hover); }
+    .btn-primary-outline { background: #fff; color: var(--brand-hover); border-color: var(--brand); }
+    .btn-primary-outline:hover { background: var(--brand-soft); border-color: var(--brand-hover); color: var(--brand-hover); }
     .btn-warn { background: var(--warning); color: #3B2A00; border-color: var(--warning); }
     .btn-warn:hover { background: #D1A716; }
     .btn-ghost { background: #fff; color: var(--text); border-color: var(--border); }
@@ -183,9 +229,9 @@
     .sla-badge.ok { background: var(--brand-soft); color: var(--brand-hover); }
 
     /* ==================== ORDERS TABLE ==================== */
-    .orders-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-xs); margin-bottom: 60px; }
+    .orders-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: clip; box-shadow: var(--shadow-xs); margin-bottom: 60px; }
     .orders-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-    .orders-table thead th { position: sticky; top: 68px; z-index: 5; background: #F7F8FA; color: var(--text-muted); text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .orders-table thead th { position: sticky; top: 68px; z-index: 30; background: #F7F8FA; color: var(--text-muted); text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
     .orders-table thead th.right { text-align: right; }
     .orders-table tbody tr.orow { cursor: pointer; transition: background-color .12s; border-left: 4px solid transparent; }
     .orders-table tbody tr.orow:hover { background: #FAFBFC; }
@@ -196,26 +242,23 @@
     .orders-table tbody tr.orow:not(:first-child) > td { border-top: 1px solid var(--border); }
     .orders-table tbody td { padding: 14px; vertical-align: middle; background: var(--card); }
     .orders-table tbody td.right { text-align: right; }
-    .orders-table tbody td.col-id { font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; }
-    .orders-table tbody td.col-id .id-pill { background: #F1F2F4; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+    .orders-table tbody td.col-id { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
 
     .buyer-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .buyer-cell .av { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; border: 1.5px solid var(--border); flex-shrink: 0; }
-    .buyer-cell .nm { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-    .buyer-cell .zoo { font-size: 11px; color: var(--text-muted); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .buyer-cell .nm { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 
-    .item-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .item-cell .ith { width: 38px; height: 38px; border-radius: 8px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; border: 1px solid var(--border); }
-    .item-cell .ith img { width: 100%; height: 100%; object-fit: cover; }
-    .item-cell .meta { min-width: 0; }
-    .item-cell .nm { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-    .item-cell .sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.3; }
-    .item-cell .more-pill { background: #F1F2F4; color: var(--text-muted); font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 999px; margin-left: 6px; }
+    .site-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 220px; }
+    .site-cell .nm { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-cell .city { font-size: 11px; font-weight: 500; color: var(--text-muted); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .items-count { display: flex; flex-direction: column; gap: 2px; line-height: 1.25; }
+    .items-count .num { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .items-count .num em { font-style: normal; font-weight: 600; color: var(--text-muted); font-size: 12px; margin-left: 3px; }
+    .items-count .sub { font-size: 11px; color: var(--text-muted); }
 
     .pill-stack { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
     .pill-stack .chip { font-size: 10px; padding: 3px 8px; }
-    .pill-stack .chip-species { font-size: 10px; padding: 2px 8px 2px 2px; }
-    .pill-stack .chip-species img { width: 16px; height: 16px; }
 
     .total-cell { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; }
     .date-cell { font-size: 12px; color: var(--text-muted); white-space: nowrap; line-height: 1.4; }
@@ -223,6 +266,19 @@
 
     .actions-cell { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
     .actions-cell .btn-sm { padding: 6px 10px; font-size: 12px; gap: 5px; }
+
+    .actions-more { position: relative; display: inline-flex; }
+    .btn-more { width: 30px; height: 30px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s; position: relative; padding: 0; }
+    .btn-more:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .btn-more.open { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-hover); }
+    .btn-more .more-unread { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--card); line-height: 1; }
+    .actions-menu { position: fixed; min-width: 180px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px -8px rgba(15,23,42,.18), 0 4px 10px -4px rgba(15,23,42,.10); padding: 6px; z-index: 60; display: none; }
+    .actions-menu.open { display: block; }
+    .actions-menu .menu-item { width: 100%; display: inline-flex; align-items: center; gap: 8px; padding: 9px 10px; font-size: 13px; font-weight: 600; color: var(--text); background: transparent; border: 0; border-radius: 8px; cursor: pointer; text-align: left; transition: background .12s; }
+    .actions-menu .menu-item:hover { background: #F4F6F8; }
+    .actions-menu .menu-item-danger { color: var(--danger); }
+    .actions-menu .menu-item-danger:hover { background: var(--danger-bg); }
+    .actions-menu .menu-dot { margin-left: auto; min-width: 18px; padding: 0 5px; height: 16px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
     .track-row td { padding: 0 14px 12px; background: var(--card); border-top: none !important; }
     .track-row .track { margin-left: 4px; }
@@ -234,8 +290,8 @@
       .actions-cell .btn-sm { padding: 6px 8px; }
     }
     @media (max-width: 1024px) {
-      .orders-table tbody td.col-date { display: none; }
-      .orders-table thead th.col-date { display: none; }
+      .orders-table tbody td.col-site { display: none; }
+      .orders-table thead th.col-site { display: none; }
     }
     @media (max-width: 820px) {
       .orders-table tbody td.col-items { display: none; }
@@ -403,7 +459,7 @@
         </button>
         <div class="v-menu" id="vMenu" role="menu">
           <div class="muted" id="vMenuEmail">Signed in</div>
-          <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="try{var u=JSON.parse(localStorage.getItem('ze_user_v1')||'null')||{};u.role='buyer';u.id='u_rao';u.signedInAt=u.signedInAt||new Date().toISOString();localStorage.setItem('ze_user_v1',JSON.stringify(u));}catch(_){}window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+          <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
           <a href="admin_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
           <button id="btnSignOut"><i data-lucide="log-out" class="w-4 h-4"></i>Sign out</button>
         </div>
@@ -449,10 +505,6 @@
       <div class="sub">Click any order to open its details. Tap <strong style="color:var(--text)">Chat</strong> to message the buyer in a side sheet.</div>
     </div>
     <div class="head-tools">
-      <div class="search-wrap">
-        <i data-lucide="search" class="w-4 h-4"></i>
-        <input class="search-input" placeholder="Search order ID, zoo, item…"/>
-      </div>
       <button class="head-btn"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
     </div>
   </div>
@@ -470,16 +522,38 @@
     </div>
   </div>
 
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-search">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input id="fSearch" type="search" placeholder="Search order ID, buyer, zoo…" autocomplete="off"/>
+    </div>
+    <div class="filter-sel" id="fSiteBtn" data-filter="sites">
+      <i data-lucide="building-2" class="w-4 h-4"></i>
+      <span class="lbl">All sites</span>
+      <i data-lucide="chevron-down" class="w-3 h-3"></i>
+      <div class="filter-pop" id="fSitePop"></div>
+    </div>
+    <div class="filter-sel" id="fSpeciesBtn" data-filter="species">
+      <i data-lucide="paw-print" class="w-4 h-4"></i>
+      <span class="lbl">All species</span>
+      <i data-lucide="chevron-down" class="w-3 h-3"></i>
+      <div class="filter-pop" id="fSpeciesPop"></div>
+    </div>
+    <button type="button" class="filter-reset" id="fReset" style="display:none">Reset</button>
+    <span class="filter-count" id="fCount"></span>
+  </div>
+
   <div class="orders-table-wrap">
     <table class="orders-table" id="ordersTable">
       <thead>
         <tr>
           <th>Order ID</th>
           <th>Buyer</th>
-          <th class="col-items">Items</th>
+          <th class="col-site">Site</th>
+          <th class="col-items right">Items</th>
           <th class="col-pills">Status</th>
           <th class="right">Order value</th>
-          <th class="col-date">Date / SLA</th>
           <th class="right">Actions</th>
         </tr>
       </thead>
@@ -1225,8 +1299,6 @@ const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',m
 const escapeHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function relTime(iso){ const t=new Date(iso).getTime(); const d=Date.now()-t; const m=Math.floor(d/60000); if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; const dd=Math.floor(h/24); if(dd===1) return 'yesterday'; if(dd<7) return dd+'d ago'; if(dd<30) return Math.floor(dd/7)+'wk ago'; return Math.floor(dd/30)+'mo ago'; }
 function chipStatus(st){ return `<span class="chip chip-${st}"><i data-lucide="${STATUS_ICON[st]}" class="w-3 h-3"></i> ${STATUS[st]}</span>`; }
-function priorityChip(p){ if(!p||p==='Normal') return ''; const cls = p==='Critical'?'critical':(p==='High'?'high':''); return `<span class="chip chip-priority ${cls}"><i data-lucide="alert-triangle" class="w-3 h-3"></i> ${p}</span>`; }
-function speciesChip(spId){ const s=SPECIES[spId]; if(!s) return ''; return `<span class="chip-species"><img src="https://image.pollinations.ai/prompt/${encodeURIComponent(s.name+' portrait')}?width=40&height=40&seed=${s.seed}&nologo=true" alt=""/>${s.name}</span>`; }
 function buyerChip(b){ return `<div class="buyer-chip"><img class="buyer-av" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true" alt=""/><div><div class="buyer-nm">${b.nm}</div><div class="buyer-zoo">${b.zoo}</div></div></div>`; }
 function slaBadge(h){ if (h==null) return ''; if (h<0) return `<span class="sla-badge urgent"><i data-lucide="alert-circle" class="w-3 h-3"></i> ${Math.abs(h)}h over SLA</span>`; if (h<=12) return `<span class="sla-badge urgent"><i data-lucide="timer" class="w-3 h-3"></i> ${h}h left</span>`; if (h<=24) return `<span class="sla-badge warn"><i data-lucide="timer" class="w-3 h-3"></i> ${h}h left</span>`; return `<span class="sla-badge ok"><i data-lucide="clock" class="w-3 h-3"></i> ${h}h left</span>`; }
 
@@ -1243,8 +1315,16 @@ function contextRow(o){
 function actions(o){
   const chatBtn = `<button class="btn-sm btn-chat" data-stop data-toggle-chat><i data-lucide="message-square" class="w-4 h-4"></i> ${o.status==='placed'||o.chatTag==='queued'?'Open chat':'Chat'}${o.unread?`<span class="unread-dot">${o.unread}</span>`:''}</button>`;
   if (o.status === 'placed') {
-    const viewBtn = `<a href="admin_order_detail_1.html?id=${encodeURIComponent(o.id)}" class="btn-sm btn-primary" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View &amp; Accept</a>`;
-    return `${chatBtn}${viewBtn}<button class="btn-sm btn-ghost" data-stop><i data-lucide="timer" class="w-4 h-4"></i> Queue</button><button class="btn-sm btn-danger" data-stop><i data-lucide="x" class="w-4 h-4"></i> Decline</button>`;
+    const viewBtn = `<a href="admin_accept_order_1.html?id=${encodeURIComponent(o.id)}" class="btn-sm btn-primary-outline" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View &amp; Accept</a>`;
+    const moreMenu = `<div class="actions-more" data-stop>
+      <button type="button" class="btn-more" data-stop data-more-toggle aria-label="More actions" aria-haspopup="menu" aria-expanded="false">${o.unread?`<span class="more-unread">${o.unread}</span>`:''}<i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+      <div class="actions-menu" role="menu" data-stop>
+        <button type="button" class="menu-item" role="menuitem" data-stop data-toggle-chat><i data-lucide="message-square" class="w-4 h-4"></i> Open chat${o.unread?` <span class="menu-dot">${o.unread}</span>`:''}</button>
+        <button type="button" class="menu-item" role="menuitem" data-stop data-more-close><i data-lucide="timer" class="w-4 h-4"></i> Queue</button>
+        <button type="button" class="menu-item menu-item-danger" role="menuitem" data-stop data-more-close><i data-lucide="x" class="w-4 h-4"></i> Decline</button>
+      </div>
+    </div>`;
+    return `${viewBtn}${moreMenu}`;
   }
   if (o.status === 'confirmed') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="hammer" class="w-4 h-4"></i> Mark in production</button>`;
   if (o.status === 'in_production') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="package-check" class="w-4 h-4"></i> Mark ready to ship</button><button class="btn-sm btn-ghost" data-stop><i data-lucide="pencil" class="w-4 h-4"></i> Update ETA</button>`;
@@ -1361,17 +1441,23 @@ function chatPanel(o){
   </div>`;
 }
 
-/* ========== Buyer cell (compact for table) ========== */
+/* ========== Buyer cell (avatar + name only) ========== */
 function buyerCell(b){
-  return `<div class="buyer-cell"><img class="av" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true" alt=""/><div><div class="nm">${escapeHtml(b.nm)}</div><div class="zoo">${escapeHtml(b.zoo)}</div></div></div>`;
+  return `<div class="buyer-cell"><img class="av" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true" alt=""/><div class="nm">${escapeHtml(b.nm)}</div></div>`;
+}
+/* ========== Site cell (zoo name + city sub-line) ========== */
+function siteCell(b){
+  const parts = (b.zoo||'').split(' · ');
+  const name = parts[0] || '';
+  const city = parts[1] || '';
+  return `<div class="site-cell"><div class="nm">${escapeHtml(name)}</div>${city?`<div class="city">${escapeHtml(city)}</div>`:''}</div>`;
 }
 
 /* ========== Render a full order row (table) ========== */
 function renderCard(o){
   const b = BUYERS[o.buyer];
-  const firstItem = o.items[0];
   const totalQty = o.items.reduce((s,it)=>s+it.qty,0);
-  const moreCount = o.items.length - 1;
+  const skuCount = o.items.length;
   const slaCls = o.slaHoursLeft != null ? (o.slaHoursLeft < 0 || o.slaHoursLeft <= 12 ? 'sla-urgent' : (o.slaHoursLeft <= 24 ? 'sla-warn' : '')) : '';
 
   const ctxHtml = contextRow(o);
@@ -1379,25 +1465,20 @@ function renderCard(o){
   // Wrap action button labels in a <span class="lbl"> so we can hide on narrow widths
   const actionsHtml = actions(o).replace(/(<i [^>]+><\/i>)\s*([^<]+?)(<span|<\/(?:button|a)>)/g, (m, icon, label, tail) => `${icon} <span class="lbl">${label.trim()}</span>${tail}`);
 
-  const itemCellHtml = `<div class="item-cell">
-    <div class="ith"><img src="${firstItem.p.img}" alt="" loading="lazy"/></div>
-    <div class="meta">
-      <div class="nm">${escapeHtml(firstItem.p.name)}${moreCount>0?`<span class="more-pill">+${moreCount}</span>`:''}</div>
-      <div class="sub">${totalQty} ${totalQty===1?'unit':'units'} total</div>
-    </div>
+  const itemCellHtml = `<div class="items-count" style="align-items:flex-end">
+    <div class="num">${totalQty}<em>${totalQty===1?'unit':'units'}</em></div>
+    ${skuCount>1?`<div class="sub">${skuCount} SKUs</div>`:''}
   </div>`;
 
-  const pillsHtml = `<div class="pill-stack">${chipStatus(o.status)}${priorityChip(o.priority)}${speciesChip(o.species)}</div>`;
-
-  const dateHtml = `<div class="date-cell">${fmtDate(o.createdAt)}${o.slaHoursLeft != null ? `<div>${slaBadge(o.slaHoursLeft)}</div>` : ''}</div>`;
+  const pillsHtml = `<div class="pill-stack">${chipStatus(o.status)}</div>`;
 
   const mainRow = `<tr class="orow ${slaCls}" data-id="${o.id}" tabindex="0">
-    <td class="col-id"><span class="id-pill">${o.id}</span></td>
+    <td class="col-id">${o.id}</td>
     <td class="col-buyer">${buyerCell(b)}</td>
-    <td class="col-items">${itemCellHtml}</td>
+    <td class="col-site">${siteCell(b)}</td>
+    <td class="col-items right">${itemCellHtml}</td>
     <td class="col-pills">${pillsHtml}</td>
     <td class="right total-cell">${inINR(o.total)}</td>
-    <td class="col-date">${dateHtml}</td>
     <td class="right"><div class="actions-cell">${actionsHtml}</div></td>
   </tr>`;
 
@@ -1407,6 +1488,28 @@ function renderCard(o){
 }
 
 let state = { tab: 'awaiting' };
+let filters = { q: '', sites: new Set(), species: new Set() };
+
+function buyerSiteName(b){ return (b.zoo||'').split(' · ')[0]; }
+
+function applyFilters(list){
+  return list.filter(o => {
+    const b = BUYERS[o.buyer];
+    if (filters.q) {
+      const q = filters.q.toLowerCase();
+      const sp = SPECIES[o.species] ? SPECIES[o.species].name : '';
+      const hay = `${o.id} ${b.nm} ${b.zoo} ${sp} ${o.items.map(it=>it.p.name).join(' ')}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (filters.sites.size && !filters.sites.has(buyerSiteName(b))) return false;
+    if (filters.species.size && !filters.species.has(o.species)) return false;
+    return true;
+  });
+}
+
+function activeFilterCount(){
+  return (filters.q?1:0) + filters.sites.size + filters.species.size;
+}
 
 function render(){
   const counts = {};
@@ -1415,10 +1518,30 @@ function render(){
   document.getElementById('urgBubble').textContent = counts.awaiting + ' need response';
   document.getElementById('navBadge').textContent = counts.awaiting + counts.ready;
 
-  const list = ORDERS.filter(TAB_BUCKETS[state.tab]).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const tabList = ORDERS.filter(TAB_BUCKETS[state.tab]);
+  const list = applyFilters(tabList).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // Filter count + reset visibility
+  const fCount = document.getElementById('fCount');
+  if (fCount) {
+    if (activeFilterCount() > 0) {
+      fCount.textContent = `Showing ${list.length} of ${tabList.length}`;
+    } else {
+      fCount.textContent = `${list.length} ${list.length===1?'order':'orders'}`;
+    }
+  }
+  const fReset = document.getElementById('fReset');
+  if (fReset) fReset.style.display = activeFilterCount() > 0 ? '' : 'none';
+
+  // Refresh selector button labels (for has-value highlighting + counts)
+  refreshFilterButtons();
+
   const host = document.getElementById('list');
   if (!list.length) {
-    host.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="ic"><i data-lucide="package-search" class="w-8 h-8"></i></div><h3>No orders in this tab</h3><p>They'll show up here when buyers place them.</p></div></td></tr>`;
+    const msg = activeFilterCount() > 0
+      ? '<h3>No orders match these filters</h3><p>Try clearing some filters or switching tabs.</p>'
+      : '<h3>No orders in this tab</h3><p>They\'ll show up here when buyers place them.</p>';
+    host.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="ic"><i data-lucide="package-search" class="w-8 h-8"></i></div>${msg}</div></td></tr>`;
   } else {
     host.innerHTML = list.map(renderCard).join('');
   }
@@ -1431,6 +1554,28 @@ function render(){
       if (b.hasAttribute('data-toggle-chat')) return; // chat button still opens sheet
       b.addEventListener('click', e => e.stopPropagation());
     });
+    // More-menu toggle (kebab) — fixed-position dropdown to escape table-wrap overflow
+    row.querySelectorAll('[data-more-toggle]').forEach(btn => {
+      const menu = btn.parentElement.querySelector('.actions-menu');
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const wasOpen = menu.classList.contains('open');
+        closeAllMoreMenus();
+        if (!wasOpen) {
+          const r = btn.getBoundingClientRect();
+          menu.style.top = (r.bottom + 6) + 'px';
+          menu.style.right = (window.innerWidth - r.right) + 'px';
+          menu.classList.add('open');
+          btn.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+    // Menu items that should just close the menu (Queue / Decline placeholders)
+    row.querySelectorAll('[data-more-close]').forEach(el => el.addEventListener('click', e => {
+      e.stopPropagation();
+      closeAllMoreMenus();
+    }));
     // Chat button → open side sheet (don't bubble to row click)
     row.querySelectorAll('[data-toggle-chat]').forEach(el => el.addEventListener('click', e => {
       e.stopPropagation();
@@ -1524,8 +1669,17 @@ function sendInSheet(ta, sendBtn) {
   msgs.scrollTop = msgs.scrollHeight;
   if (window.lucide?.createIcons) window.lucide.createIcons();
 }
+// Close any open row "More" menus
+function closeAllMoreMenus(){
+  document.querySelectorAll('.actions-menu.open').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.btn-more.open').forEach(b => { b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
+}
+document.addEventListener('click', e => { if (!e.target.closest('.actions-more')) closeAllMoreMenus(); });
+window.addEventListener('scroll', closeAllMoreMenus, true);
+window.addEventListener('resize', closeAllMoreMenus);
+
 // Close on overlay click + Escape key
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChatSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAllMoreMenus(); closeChatSheet(); } });
 document.addEventListener('DOMContentLoaded', () => {
   const ov = document.getElementById('chatOverlay');
   if (ov) ov.addEventListener('click', closeChatSheet);
@@ -1539,6 +1693,106 @@ document.querySelectorAll('#tabsRow button').forEach(b => b.addEventListener('cl
   render();
   window.scrollTo({top: 120, behavior: 'smooth'});
 }));
+
+/* =========== FILTER BAR — search + site + species + reset =========== */
+function uniqueSiteNames(){
+  const names = new Set();
+  ORDERS.forEach(o => { const b = BUYERS[o.buyer]; if (b) names.add(buyerSiteName(b)); });
+  return Array.from(names).sort();
+}
+function uniqueSpeciesKeys(){
+  const keys = new Set();
+  ORDERS.forEach(o => { if (o.species && SPECIES[o.species]) keys.add(o.species); });
+  return Array.from(keys).sort((a,b) => SPECIES[a].name.localeCompare(SPECIES[b].name));
+}
+
+function populateFilterDropdowns(){
+  const sitePop = document.getElementById('fSitePop');
+  if (sitePop) {
+    sitePop.innerHTML = uniqueSiteNames().map(n => `
+      <label class="filter-opt">
+        <input type="checkbox" data-filter-opt="sites" value="${escapeHtml(n)}"${filters.sites.has(n)?' checked':''}/>
+        <span class="name">${escapeHtml(n)}</span>
+      </label>`).join('');
+  }
+  const spPop = document.getElementById('fSpeciesPop');
+  if (spPop) {
+    spPop.innerHTML = uniqueSpeciesKeys().map(k => `
+      <label class="filter-opt">
+        <input type="checkbox" data-filter-opt="species" value="${escapeHtml(k)}"${filters.species.has(k)?' checked':''}/>
+        <span class="name">${escapeHtml(SPECIES[k].name)}</span>
+      </label>`).join('');
+  }
+}
+
+function refreshFilterButtons(){
+  const siteBtn = document.getElementById('fSiteBtn');
+  const spBtn = document.getElementById('fSpeciesBtn');
+  if (siteBtn) {
+    siteBtn.classList.toggle('has-value', filters.sites.size > 0);
+    const lbl = siteBtn.querySelector('.lbl');
+    if (lbl) lbl.textContent = filters.sites.size === 0 ? 'All sites' : (filters.sites.size === 1 ? Array.from(filters.sites)[0] : `${filters.sites.size} sites`);
+  }
+  if (spBtn) {
+    spBtn.classList.toggle('has-value', filters.species.size > 0);
+    const lbl = spBtn.querySelector('.lbl');
+    if (lbl) {
+      if (filters.species.size === 0) lbl.textContent = 'All species';
+      else if (filters.species.size === 1) lbl.textContent = SPECIES[Array.from(filters.species)[0]].name;
+      else lbl.textContent = `${filters.species.size} species`;
+    }
+  }
+}
+
+function closeAllFilterPops(){
+  document.querySelectorAll('.filter-pop.open').forEach(p => p.classList.remove('open'));
+}
+
+(function wireFilters(){
+  const search = document.getElementById('fSearch');
+  if (search) {
+    let t;
+    search.addEventListener('input', e => {
+      clearTimeout(t);
+      t = setTimeout(() => { filters.q = e.target.value.trim(); render(); }, 120);
+    });
+  }
+  // Toggle popovers
+  document.querySelectorAll('.filter-sel').forEach(btn => {
+    btn.addEventListener('click', e => {
+      // Don't toggle if click came from inside the popover (e.g. checkbox label)
+      if (e.target.closest('.filter-pop')) return;
+      const pop = btn.querySelector('.filter-pop');
+      const wasOpen = pop && pop.classList.contains('open');
+      closeAllFilterPops();
+      if (pop && !wasOpen) pop.classList.add('open');
+      e.stopPropagation();
+    });
+  });
+  // Checkbox changes
+  document.addEventListener('change', e => {
+    const cb = e.target.closest('input[data-filter-opt]');
+    if (!cb) return;
+    const which = cb.dataset.filterOpt;
+    const val = cb.value;
+    if (cb.checked) filters[which].add(val); else filters[which].delete(val);
+    render();
+  });
+  // Reset
+  const reset = document.getElementById('fReset');
+  if (reset) reset.addEventListener('click', () => {
+    filters = { q: '', sites: new Set(), species: new Set() };
+    if (search) search.value = '';
+    populateFilterDropdowns();
+    render();
+  });
+  // Close on outside click / escape / scroll
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.filter-sel')) closeAllFilterPops();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllFilterPops(); });
+  populateFilterDropdowns();
+})();
 
 // Chat side sheet overlay click-to-close (wire up immediately — no DOMContentLoaded needed since script is at end)
 (function(){ const ov = document.getElementById('chatOverlay'); if (ov) ov.addEventListener('click', closeChatSheet); })();

@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
@@ -165,12 +165,69 @@
     .ap-card .ap-note.approved { color: #006D35; font-style: normal; font-weight: 600; }
     .ap-card .ap-note.rejected { color: #B00020; font-style: normal; font-weight: 600; }
 
+    /* Approver-action notice (shown to the Senior when viewing a pending request) */
+    .approver-notice {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      background: #FFF8CC;
+      border: 1px solid #FCD34D;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xs);
+    }
+    .approver-notice .an-ico {
+      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 999px;
+      background: #FCD34D; color: #6D4B00;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .approver-notice .an-body { flex: 1; min-width: 0; }
+    .approver-notice .an-title { font-size: 14px; font-weight: 700; color: #6D4B00; margin-bottom: 2px; }
+    .approver-notice .an-text  { font-size: 13px; color: #8A6D00; }
+    .approver-notice .an-cta {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none;
+      transition: .15s;
+      align-self: center;
+    }
+    .approver-notice .an-cta:hover { background: var(--brand-hover); }
+    @media (max-width: 700px) {
+      .approver-notice { flex-direction: column; }
+      .approver-notice .an-cta { width: 100%; justify-content: center; }
+    }
+
     /* Item row chips (species/enclosure) */
     .item-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
     .item-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
     .item-chip.species { background: var(--brand-soft); color: var(--brand-hover); }
     .item-chip.enclosure { background: #F1F2F4; color: var(--text); }
     .item-note { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+
+    /* Buyer line-status row: pill + ETA chip (read-only) */
+    .bls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+    .bls-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+    .bls-pill-pending     { background: #F1F2F4; color: var(--text-muted); }
+    .bls-pill-in_progress { background: #FEF3C7; color: #A16207; }
+    .bls-pill-ready       { background: #DBEAFE; color: #1E40AF; }
+    .bls-pill-shipped     { background: #E0E7FF; color: #4338CA; }
+    .bls-pill-delivered   { background: #ECFDF5; color: #047857; }
+    .bls-pill-cancelled   { background: #FEE2E2; color: #B91C1C; }
+    .bls-eta { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; background: #F1F2F4; color: var(--text); white-space: nowrap; }
+    .bls-eta i { width: 12px; height: 12px; color: var(--text-muted); }
+    .bls-eta-overdue { background: #FEE2E2; color: #B91C1C; }
+    .bls-eta-overdue i { color: #B91C1C; }
+    .bls-qty { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; background: #F1F2F4; color: var(--text); white-space: nowrap; }
+    .bls-substatus { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+    .bls-reason { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+    .item-row.bls-cancelled .item-name,
+    .item-row.bls-cancelled .item-config,
+    .item-row.bls-cancelled .item-price { opacity: .7; }
+    .top-row .lf-summary { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+    .top-row .lf-summary .sep { color: var(--text-subtle); margin: 0 6px; }
 
     @keyframes pulse-ring {
       0%   { box-shadow: 0 0 0 0 rgba(55,189,105,.55); }
@@ -388,7 +445,47 @@
       .top-row h1 { font-size: 20px; }
       .top-row h1 .num { font-size: 16px; display: block; margin-top: 2px; }
     }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
   </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
 <body data-device="desktop">
 <div class="device-shell"><div class="device-inner">
@@ -423,6 +520,18 @@
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
           <span class="badge-dot" id="cartBadge" style="display:none">0</span>
         </a>
+        <a class="header-btn" href="approvals_1.html" id="headerApprovalsLink" data-approvals-header style="display:none; text-decoration:none;">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </a>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
         <div class="avatar-wrap" id="avatarWrap">
           <img class="avatar" id="avatarImg" style="margin-left:0;" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt="Account" loading="eager"/>
           <div class="avatar-menu" id="avatarMenu" role="menu" aria-hidden="true"></div>
@@ -476,7 +585,7 @@
     return params.get('id');
   }
 
-  /* ---------- Lookup order (user first, demo fallback) ---------- */
+  /* ---------- Lookup order (user first, demo fallback, sessionStorage last) ---------- */
   function lookupOrder(id) {
     if (!id) return null;
     let o = ZE.orders.byId(id);
@@ -485,6 +594,15 @@
       const demo = DB.DEMO_ORDERS.find(x => x.id === id);
       if (demo) return Object.assign({}, demo, { _sourceKind: 'demo' });
     }
+    // Listing pages (orders_1_2.html) stash the row's order payload here so
+    // seeded mock orders open without requiring a full data migration.
+    try {
+      const cached = sessionStorage.getItem('ze_view_order_' + id);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.id === id) return Object.assign({}, parsed, { _sourceKind: 'cached' });
+      }
+    } catch (_) {}
     return null;
   }
 
@@ -580,6 +698,29 @@
       </div>`;
   }
 
+  /* ---------- Render: Approver-action notice (Senior viewing pending request) ---------- */
+  function renderApproverNotice(order) {
+    if (order.requiresApproval !== true) return '';
+    if (order.approvalStatus !== 'pending') return '';
+    const viewer = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve()
+                : (ZE.user && typeof ZE.user.current === 'function') ? ZE.user.current()
+                : null;
+    if (!viewer || viewer.id !== order.approverId) return '';
+    const requester = DB.byId(DB.USERS, order.createdBy);
+    const rqName = (requester && requester.name) || 'a team member';
+    return `
+      <div class="approver-notice anim-in" role="status">
+        <span class="an-ico"><i data-lucide="hourglass" class="w-4 h-4"></i></span>
+        <div class="an-body">
+          <div class="an-title">This order is awaiting your approval</div>
+          <div class="an-text">${escapeHtml(rqName)} has requested this purchase. Approve or reject from the Approvals queue.</div>
+        </div>
+        <a class="an-cta" href="approvals_1.html">
+          Go to Approvals <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>`;
+  }
+
   /* ---------- Render: Approval details ---------- */
   function renderApproval(order) {
     if (order.requiresApproval !== true) return '';
@@ -658,7 +799,7 @@
           </div>
           ${ratingPill}
           <div class="sold-by-links">
-            <a href="vendor_store_1.html?id=${encodeURIComponent(vendor.id)}">Visit store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <a href="admin_dashboard_1.html?id=${encodeURIComponent(vendor.id)}">Visit store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
             <button type="button" class="secondary" id="contactSellerBtn">Contact seller</button>
           </div>
         </div>
@@ -877,13 +1018,132 @@
       </div>`;
   }
 
+  /* ---------- Buyer line-status helpers ---------- */
+  const BLS_LABELS = {
+    pending: 'Awaiting fulfilment',
+    in_progress: 'In production',
+    ready: 'Ready to ship',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+  };
+  function isOverdue(eta) {
+    if (!eta) return false;
+    try {
+      const d = new Date(eta);
+      if (isNaN(d.getTime())) return false;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return d.getTime() < today.getTime();
+    } catch (_) { return false; }
+  }
+  function deliveredAt(rec) {
+    if (!rec || !Array.isArray(rec.history)) return null;
+    for (let i = rec.history.length - 1; i >= 0; i--) {
+      const h = rec.history[i];
+      if (h && h.status === 'delivered' && h.at) return h.at;
+    }
+    return null;
+  }
+  function renderLineStatus(rec, totalQty) {
+    if (!rec || !rec.status) return '';
+    const status = rec.status;
+    // Partial-shipment detection. shippedQty defaults to 0; treat 0 on a
+    // shipped/delivered line as "no per-unit split tracked" (i.e. full).
+    const tot = (typeof totalQty === 'number' && totalQty > 0) ? totalQty : 0;
+    const shipped = (typeof rec.shippedQty === 'number' && rec.shippedQty >= 0) ? rec.shippedQty : 0;
+    const isPartialShipped  = (status === 'shipped')   && tot > 0 && shipped > 0 && shipped < tot;
+    const isPartialDelivered = (status === 'delivered') && tot > 0 && shipped > 0 && shipped < tot;
+    const isPartial = isPartialShipped || isPartialDelivered;
+
+    let label = BLS_LABELS[status] || status;
+    if (isPartialShipped) label = 'Partially shipped';
+    else if (isPartialDelivered) label = 'Delivered (partial)';
+    const pill = `<span class="bls-pill bls-pill-${status}">${escapeHtml(label)}</span>`;
+
+    let etaChip = '';
+    if (status === 'delivered') {
+      const dAt = deliveredAt(rec) || rec.eta;
+      if (dAt) {
+        etaChip = `<span class="bls-eta"><i data-lucide="calendar"></i> Delivered ${escapeHtml(fmtDate(dAt))}</span>`;
+      }
+    } else if (status === 'cancelled') {
+      // no ETA chip for cancelled
+    } else if (rec.eta && (status === 'in_progress' || status === 'ready' || status === 'shipped' || status === 'pending')) {
+      // pending only shows ETA if one exists; otherwise omit
+      if (status === 'pending' && !rec.eta) {
+        etaChip = '';
+      } else {
+        const overdue = isOverdue(rec.eta) && status !== 'delivered';
+        const cls = overdue ? 'bls-eta bls-eta-overdue' : 'bls-eta';
+        const prefix = overdue ? 'Overdue · ' : 'Delivers by ';
+        etaChip = `<span class="${cls}"><i data-lucide="calendar"></i> ${escapeHtml(prefix + fmtDate(rec.eta))}</span>`;
+      }
+    }
+
+    const qtyChip = isPartial
+      ? `<span class="bls-qty">${shipped} of ${tot} units</span>`
+      : '';
+
+    let subStatus = '';
+    if (isPartialShipped) {
+      const back = tot - shipped;
+      subStatus = `<div class="bls-substatus">${back} backordered · admin will ship the rest</div>`;
+    }
+
+    const reasonHtml = (status === 'cancelled' && rec.cancelReason)
+      ? `<div class="bls-reason">Reason: ${escapeHtml(rec.cancelReason)}</div>`
+      : '';
+
+    return `<div class="bls-row">${pill}${etaChip}${qtyChip}</div>${subStatus}${reasonHtml}`;
+  }
+  function lineFulfilmentSummary(map, order) {
+    const counts = { pending:0, in_progress:0, ready:0, shipped:0, delivered:0, cancelled:0 };
+    let total = 0;
+    let partial = 0;
+    const items = (order && Array.isArray(order.items)) ? order.items : [];
+    Object.keys(map || {}).forEach(k => {
+      const rec = map[k];
+      if (!rec || !rec.status) return;
+      total++;
+      if (counts[rec.status] != null) counts[rec.status]++;
+      // Partial: 0 < shippedQty < line qty, on a shipped or delivered line.
+      const lineQty = items[k] && typeof items[k].qty === 'number' ? items[k].qty : 0;
+      const shipped = (typeof rec.shippedQty === 'number' && rec.shippedQty >= 0) ? rec.shippedQty : 0;
+      if ((rec.status === 'shipped' || rec.status === 'delivered') && lineQty > 0 && shipped > 0 && shipped < lineQty) {
+        partial++;
+      }
+    });
+    if (!total) return '';
+    const parts = [];
+    if (counts.delivered) parts.push(`${counts.delivered} of ${total} delivered`);
+    if (counts.shipped)   parts.push(`${counts.shipped} shipped`);
+    if (counts.ready)     parts.push(`${counts.ready} ready`);
+    if (counts.in_progress) parts.push(`${counts.in_progress} in production`);
+    if (counts.pending)   parts.push(`${counts.pending} awaiting`);
+    if (partial)          parts.push(`${partial} partial`);
+    if (counts.cancelled) parts.push(`${counts.cancelled} cancelled`);
+    if (!parts.length) return '';
+    return `<div class="lf-summary">${parts.map(escapeHtml).join('<span class="sep">·</span>')}</div>`;
+  }
+
   /* ---------- Render: Items ---------- */
   function renderItems(order) {
     const items = order.items || [];
-    const rows = items.map(it => {
-      const p = DB.byId(DB.PRODUCTS, it.productId);
+    const lineFulfilmentMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    const rows = items.map((it, i) => {
+      // Prefer real DB.PRODUCTS lookup; fall back to inline shape used by
+      // listing-page mocks ({p:{name,img}, qty}) so seeded orders still render.
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? {
+        id: it.p.id || it.productId || ('mock-' + Math.random().toString(36).slice(2,7)),
+        name: it.p.name || 'Item',
+        imgSmall: it.p.img || it.p.imgSmall || '',
+        price: it.p.price || { material: 0, labor: 0 }
+      } : null);
       if (!p) return '';
-      const unit = p.price.material + p.price.labor;
+      const unit = (p.price && (p.price.material + p.price.labor)) || (it.unit != null ? it.unit : (order.total && items.length ? Math.round(order.total / items.length / Math.max(1, it.qty)) : 0));
       const configStr = it.config
         ? Object.entries(it.config).map(([k,v]) => `${k.charAt(0).toUpperCase()+k.slice(1)} ${v}`).join(' · ')
         : '';
@@ -899,8 +1159,11 @@
           </div>`
         : '';
       const noteHtml = it.note ? `<div class="item-note">${escapeHtml(it.note)}</div>` : '';
+      const lineRec = lineFulfilmentMap[i] || null;
+      const lineStatusHtml = renderLineStatus(lineRec, it.qty);
+      const rowClass = (lineRec && lineRec.status === 'cancelled') ? 'item-row bls-cancelled' : 'item-row';
       return `
-        <div class="item-row" data-prod="${p.id}">
+        <div class="${rowClass}" data-prod="${p.id}">
           <div class="item-thumb img-frame"><img src="${p.imgSmall}" alt="${escapeHtml(p.name)}" loading="lazy"/></div>
           <div class="item-mid">
             <div class="item-name">${escapeHtml(p.name)}</div>
@@ -911,6 +1174,7 @@
               <span class="item-qty-chip">Qty ${it.qty}</span>
               <span>${DB.fmtINR(unit)} each</span>
             </div>
+            ${lineStatusHtml}
           </div>
           <div class="item-right">
             <div class="item-line-total">${DB.fmtINR(unit * it.qty)}</div>
@@ -996,12 +1260,19 @@
     document.title = 'ZooEnrich · Order ' + order.id;
     document.getElementById('crumbId').textContent = order.id;
 
+    const lfMapHeader = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    const lfSummary = lineFulfilmentSummary(lfMapHeader, order);
+
     const root = document.getElementById('detailRoot');
     root.innerHTML = `
+      ${renderApproverNotice(order)}
       <div class="top-row anim-in">
         <div>
           <div class="eyebrow">Placed on ${escapeHtml(fmtDateTime(order.createdAt))}</div>
           <h1>Order <span class="num">${escapeHtml(order.id)}</span></h1>
+          ${lfSummary}
         </div>
         <div class="top-row-right">
           ${statusChip(order.status)}
@@ -1182,7 +1453,7 @@
         <a class="am-item" href="account_1.html"><i data-lucide="user" class="w-4 h-4"></i> My account</a>
         <a class="am-item" href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> My orders</a>
         <a class="am-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved items</a>
-        <a class="am-item" href="admin_products_1.html" id="adminNavItem"><i data-lucide="shield" class="w-4 h-4"></i> Admin</a>
+        <a class="am-item" id="personaSwitchItem" data-persona-item data-mode-switch="to-other-persona" onclick="window.location.reload();return false;"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></a><a class="am-item" href="admin_dashboard_1.html" id="adminNavItem" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</a>
         <div class="am-sep"></div>
         <button type="button" class="am-item danger" id="signOutBtn"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
       `;
@@ -1226,7 +1497,7 @@
     try {
       if (ZE.user && typeof ZE.user.role === 'function' && ZE.user.role() === 'vendor') {
         const id = getOrderId();
-        window.location.replace('vendor_order_detail_1.html?id=' + encodeURIComponent(id || ''));
+        window.location.replace('admin_order_detail_1.html?id=' + encodeURIComponent(id || ''));
         return;
       }
     } catch (e) { /* ignore */ }
@@ -1245,8 +1516,142 @@
       render(order);
     }
 
+    // Re-render when line fulfilment / order status changes (admin advances a line)
+    ZE.on('orders:change', () => {
+      const fresh = lookupOrder(getOrderId());
+      if (fresh) render(fresh);
+    });
+
     ZE.init();
   });
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pop = document.getElementById('walletPillPop');
+      if (siteSwitch && pill.contains(siteSwitch)) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      if (pillTarget && !siteSwitch && !opt) {
+        window.location.href = 'wallet_1.html';
+      }
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
 })();
 </script>
 </body>

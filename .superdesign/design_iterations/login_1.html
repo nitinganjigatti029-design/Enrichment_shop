@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <link rel="preload" as="image" href="https://image.pollinations.ai/prompt/zookeeper%20giving%20enrichment%20toy%20to%20big%20cat%20warm%20light%20professional%20wildlife%20photography?width=900&height=600&seed=801&nologo=true"/>
   <style>
     /* ================= Page shell ================= */
@@ -453,7 +453,7 @@
       // ---------- Auto-redirect if already signed in ----------
       if (!force && window.ZE && ZE.user && ZE.user.isSignedIn && ZE.user.isSignedIn()) {
         const role = ZE.user.role();
-        const dest = role === 'vendor' ? 'vendor_dashboard_1.html' : 'index_1.html';
+        const dest = role === 'vendor' ? 'admin_dashboard_1.html' : 'index_1.html';
         window.location.replace(dest);
         return;
       }
@@ -611,7 +611,7 @@
             ZE.user.signIn(entity.id, role);
           }
         } catch (e) { /* ignore */ }
-        const dest = role === 'vendor' ? 'vendor_dashboard_1.html' : 'index_1.html';
+        const dest = role === 'vendor' ? 'admin_dashboard_1.html' : 'index_1.html';
         window.location.assign(dest);
       }
 

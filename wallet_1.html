@@ -1,0 +1,1746 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
+  <style>
+    html, body { background: var(--card-subtle) !important; }
+    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
+
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+
+    /* ========== HEADER ========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { font-size: 11px; color: var(--text-muted); background: #fff; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); font-family: ui-monospace, monospace; }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 64px; transition: .15s; text-decoration: none; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+    .user-wrap { position: relative; margin-left: 8px; }
+    .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 60; }
+    .dd-menu.open { display: block; animation: ddIn .18s ease-out; }
+    @keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .dd-head { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .dd-head .nm { font-weight: 700; color: var(--text); font-size: 14px; }
+    .dd-head .em { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--text); cursor: pointer; text-decoration: none; }
+    .dd-item:hover { background: #F1F2F4; }
+
+    /* Crumbs */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .here { color: var(--text); font-weight: 600; }
+
+    /* ========== COMPACT WALLET HEADER (combined site + balance, ≤120px) ========== */
+    .w-head {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 18px; margin-bottom: 16px; box-shadow: var(--shadow-xs);
+    }
+    /* Site row — site identity as metadata, not a card */
+    .w-site-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .w-site-row .left { display: inline-flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
+    .w-site-row .ico { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .w-site-row .nm { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .w-site-row .nm .city { font-weight: 500; color: var(--text-muted); }
+    .w-site-row .nm .sep { color: var(--text-subtle); margin: 0 4px; font-weight: 400; }
+    .w-site-row .actions { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .w-fy { font-size: 11px; font-weight: 700; color: var(--brand-hover); background: var(--brand-soft); padding: 4px 10px; border-radius: 999px; letter-spacing: .02em; }
+    .ss-switch {
+      display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: #fff; color: var(--text); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: .15s; position: relative;
+    }
+    .ss-switch:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ss-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 260px; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; text-align: left; }
+    .ss-pop.open { display: block; animation: ddIn .18s ease-out; }
+    .ss-opt { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ss-opt:hover { background: #F1F2F4; }
+    .ss-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ss-opt .tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ss-opt.active .tick { opacity: 1; }
+    .ss-opt-name { flex: 1; min-width: 0; text-align: left; }
+    .ss-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Stat strip — Available is hero, others are 50% smaller inline pairs separated by 1px dividers */
+    .w-stats { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+    .w-avail { display: flex; flex-direction: column; gap: 2px; padding-right: 22px; border-right: 1px solid var(--border); }
+    .w-avail .lab { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+    .w-avail .val { font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: var(--brand-hover); line-height: 1; font-variant-numeric: tabular-nums; }
+    .w-avail.amber .val { color: #B45309; }
+    .w-avail.red .val { color: var(--danger); }
+    .w-mini { display: flex; flex-direction: column; gap: 2px; }
+    .w-mini .lab { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; display: inline-flex; align-items: center; gap: 6px; }
+    .w-mini .lab .dot { width: 7px; height: 7px; border-radius: 999px; }
+    .w-mini.allotted .dot { background: #9CA3AF; }
+    .w-mini.locked .dot { background: #FBBF24; }
+    .w-mini.spent .dot { background: var(--brand); }
+    .w-mini .val { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+    /* Segmented utilization bar — 6px tall, IS the visual stat */
+    .w-bar { display: flex; height: 6px; border-radius: 999px; overflow: hidden; margin-top: 14px; background: #E5E7EB; }
+    .w-bar .seg { height: 100%; transition: width .3s ease; }
+    .w-bar .seg-spent { background: var(--brand); }
+    .w-bar .seg-locked { background: repeating-linear-gradient(45deg, #FCD34D, #FCD34D 5px, #FBBF24 5px, #FBBF24 10px); }
+
+    @media (max-width: 700px) {
+      .w-head { padding: 12px 14px; }
+      .w-stats { gap: 12px; }
+      .w-avail { width: 100%; padding-right: 0; padding-bottom: 12px; border-right: none; border-bottom: 1px dashed var(--border); }
+      .w-avail .val { font-size: 24px; }
+      .w-mini { flex: 1; min-width: 30%; }
+      .w-mini .val { font-size: 13px; }
+    }
+    @media (max-width: 420px) {
+      .w-mini .lab { font-size: 10px; }
+      .w-mini .val { font-size: 12.5px; }
+    }
+
+    /* ========== LEDGER (tabs + filter chips + bank-statement table) ========== */
+    .led {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: var(--shadow-xs); overflow: hidden;
+    }
+    .led-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 18px 0; flex-wrap: wrap; }
+    .led-tabs { display: inline-flex; gap: 0; flex-wrap: wrap; }
+    .led-tab {
+      font-size: 13.5px; font-weight: 600; color: var(--text-muted); background: transparent; border: none;
+      padding: 12px 4px; margin-right: 22px; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: .15s; display: inline-flex; align-items: center; gap: 7px; font-family: inherit;
+    }
+    .led-tab:hover { color: var(--text); }
+    .led-tab.active { color: var(--brand-hover); border-bottom-color: var(--brand); }
+    .led-tab .count { font-size: 10.5px; font-weight: 700; color: var(--text-muted); background: #F1F2F4; padding: 1px 7px; border-radius: 999px; }
+    .led-tab.active .count { background: var(--brand-soft); color: var(--brand-hover); }
+    .led-cta {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--brand);
+      color: #fff; border: none; border-radius: 999px; font-size: 12.5px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); transition: .15s; font-family: inherit;
+      margin-bottom: 6px;
+    }
+    .led-cta:hover { background: var(--brand-hover); }
+
+    .led-filter { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; background: #FAFAFA; }
+    .led-filter .lab { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 4px; }
+    .led-chip {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px;
+      border: 1px solid var(--border); background: #fff; color: var(--text-muted); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: .15s; font-family: inherit;
+    }
+    .led-chip:hover { border-color: var(--border-strong); color: var(--text); }
+    .led-chip.active { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-soft); }
+
+    .led-tbl-wrap { overflow-x: auto; max-height: 540px; overflow-y: auto; }
+    .led-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .led-tbl thead th {
+      position: sticky; top: 0; z-index: 5; background: #FAFAFA; padding: 9px 18px;
+      font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .05em; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .led-tbl thead th.right { text-align: right; }
+    .led-tbl tbody td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .led-tbl tbody tr:last-child td { border-bottom: none; }
+    .led-tbl tbody tr:hover { background: #FAFAFA; }
+    .led-tbl .t-date { color: var(--text-muted); white-space: nowrap; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .led-tbl .t-desc { color: var(--text); font-weight: 500; }
+    .led-tbl .t-desc .order-link { font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 600; color: var(--brand-hover); text-decoration: none; padding: 1px 7px; border-radius: 6px; background: var(--brand-soft); margin-left: 8px; }
+    .led-tbl .t-desc .order-link:hover { text-decoration: underline; }
+    .led-tbl .t-rsn { white-space: nowrap; }
+    .led-tbl .t-rsn-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .03em; }
+    .led-tbl .t-rsn-pill.k-locked { background: #FEF3C7; color: #A16207; }
+    .led-tbl .t-rsn-pill.k-spent { background: var(--brand-soft); color: #006D35; }
+    .led-tbl .t-rsn-pill.k-refunded { background: #E0F2FE; color: #0369A1; }
+    .led-tbl .t-rsn-pill.k-topup { background: var(--brand-soft); color: #006D35; }
+    .led-tbl .t-rsn-pill.k-pending { background: #FEF3C7; color: #A16207; }
+    .led-tbl .t-rsn-pill.k-rejected { background: var(--danger-bg); color: var(--danger); }
+    .led-tbl .t-rsn-pill.k-approved { background: var(--brand-soft); color: #006D35; }
+    .led-tbl .t-amt { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; white-space: nowrap; font-family: ui-monospace, Menlo, monospace; }
+    .led-tbl .t-amt.pos { color: var(--brand-hover); }
+    .led-tbl .t-amt.neg { color: var(--text); }
+
+    .led-empty { padding: 48px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    .led-empty .icoo { width: 48px; height: 48px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+
+    @media (max-width: 600px) {
+      .led-top { padding: 4px 14px 0; }
+      .led-filter { padding: 10px 14px; }
+      .led-tab { font-size: 13px; margin-right: 14px; padding: 11px 4px; }
+      .led-tbl thead th { padding: 9px 14px; }
+      .led-tbl tbody td { padding: 10px 14px; }
+      .led-tbl .t-rsn-pill { padding: 2px 7px; font-size: 10px; }
+      .led-cta { padding: 6px 12px; font-size: 12px; }
+    }
+
+    /* Empty state */
+    .empty {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 40px 20px; color: var(--text-muted); font-size: 13.5px;
+    }
+    .empty .icoo { width: 56px; height: 56px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+
+    /* ============ TRANSACTION DETAIL SIDE SHEET ============ */
+    .led-tbl tbody tr { cursor: pointer; }
+    .tx-sh-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .35);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 90;
+    }
+    .tx-sh-overlay.open { opacity: 1; pointer-events: auto; }
+    .tx-sh {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 96vw;
+      background: var(--card); box-shadow: -12px 0 40px -8px rgba(15,23,42,.18);
+      transform: translateX(100%); transition: transform .25s cubic-bezier(.32,.72,.26,1);
+      z-index: 95; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .tx-sh.open { transform: translateX(0); }
+    .tx-sh-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .tx-sh-head .ttl { font-size: 14px; font-weight: 700; color: var(--text); }
+    .tx-sh-close {
+      width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border);
+      background: #fff; color: var(--text-muted); cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center; transition: .15s; padding: 0;
+    }
+    .tx-sh-close:hover { border-color: var(--border-strong); color: var(--text); background: #F9FAFB; }
+    .tx-sh-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+    .tx-sh-hero {
+      padding: 18px 20px; margin: -20px -20px 18px; background: #FAFBFC;
+      border-bottom: 1px solid var(--border);
+    }
+    .tx-sh-hero .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; display: inline-flex; align-items: center; gap: 8px; }
+    .tx-sh-hero .label .t-rsn-pill { padding: 3px 9px; font-size: 10.5px; }
+    .tx-sh-hero .amt { font-size: 32px; font-weight: 800; letter-spacing: -.01em; line-height: 1; font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, monospace; color: var(--text); margin-bottom: 4px; }
+    .tx-sh-hero .amt.pos { color: var(--brand-hover); }
+    .tx-sh-hero .amt.neg { color: var(--text); }
+    .tx-sh-hero .when { font-size: 12.5px; color: var(--text-muted); }
+
+    .tx-sh-section { margin-bottom: 20px; }
+    .tx-sh-section:last-child { margin-bottom: 0; }
+    .tx-sh-section h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin: 0 0 8px; }
+    .tx-sh-explain { font-size: 13px; color: var(--text); line-height: 1.55; background: var(--brand-soft); border-radius: 10px; padding: 12px 14px; }
+
+    .tx-sh-kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 14px; font-size: 13px; align-items: baseline; }
+    .tx-sh-kv .k { color: var(--text-muted); font-weight: 500; }
+    .tx-sh-kv .v { color: var(--text); font-weight: 600; word-break: break-word; }
+    .tx-sh-kv .v.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+    .tx-sh-kv .v a { color: var(--brand-hover); text-decoration: none; }
+    .tx-sh-kv .v a:hover { text-decoration: underline; }
+
+    .tx-sh-items { display: flex; flex-direction: column; gap: 8px; }
+    .tx-sh-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 10px; background: #FAFBFC;
+    }
+    .tx-sh-item .img { width: 40px; height: 40px; border-radius: 8px; background: #F1F2F4; flex-shrink: 0; overflow: hidden; }
+    .tx-sh-item .img img { width: 100%; height: 100%; object-fit: cover; }
+    .tx-sh-item .meta { flex: 1; min-width: 0; }
+    .tx-sh-item .nm { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-sh-item .qty { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .tx-sh-item .price { font-size: 13px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .tx-sh-foot {
+      padding: 12px 20px; border-top: 1px solid var(--border); flex-shrink: 0;
+      display: flex; justify-content: flex-end; gap: 8px; background: var(--card);
+    }
+    .tx-sh-foot .open-order {
+      display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;
+      background: var(--brand); color: #fff; border: none; border-radius: 999px;
+      font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+      box-shadow: 0 2px 6px -2px rgba(55,189,105,.5);
+    }
+    .tx-sh-foot .open-order:hover { background: var(--brand-hover); }
+
+    /* Top-up product links (inside side sheet) */
+    .tu-link-list { display: flex; flex-direction: column; gap: 8px; }
+    .tu-link-row { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: start; padding: 10px 12px; background: #FAFBFC; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+    .tu-link-row .tu-link-url { color: var(--brand-hover); text-decoration: none; word-break: break-all; min-width: 0; }
+    .tu-link-row .tu-link-url:hover { text-decoration: underline; }
+    .tu-link-row .tu-link-cost { font-weight: 600; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* Top-up decision footer buttons (Approve / Reject) */
+    .tu-foot-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: .15s; font-family: inherit; }
+    .tu-foot-btn.tu-reject { background: #fff; color: var(--danger); border-color: var(--danger); }
+    .tu-foot-btn.tu-reject:hover { background: var(--danger-bg); }
+    .tu-foot-btn.tu-approve { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .tu-foot-btn.tu-approve:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+
+    /* Awaiting-Super-Admin pill (shown to non-super-admin viewers when status is pending) */
+    .tu-await { display: inline-flex; align-items: center; gap: 6px; color: #A16207; background: #FEF3C7; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+
+    /* Page-title role eyebrow (super_admin only) */
+    .role-eyebrow { display: none; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .role-eyebrow.is-on { display: block; }
+
+    /* ===== Super Admin nav (header) — hidden by default, shown when body.is-super-admin ===== */
+    [data-sa-only] { display: none !important; }
+    body.is-super-admin [data-sa-only] { display: inline-flex !important; }
+    body.is-super-admin [data-sa-only].sa-back { display: inline-flex !important; }
+    body.is-super-admin [data-buyer-only] { display: none !important; }
+    .header-btn[data-sa-only] .badge-dot { display: inline-flex; }
+    .header-btn[data-sa-only][aria-current="page"] { background: var(--brand-soft); color: var(--brand-hover); }
+
+    /* Back-to-dashboard pill (super_admin only) */
+    .sa-back {
+      align-items: center; gap: 6px; padding: 5px 11px;
+      background: #fff; border: 1px solid var(--border); border-radius: 999px;
+      font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+      text-decoration: none; transition: .15s; margin-bottom: 8px; width: max-content;
+    }
+    .sa-back:hover { color: var(--brand-hover); border-color: var(--brand); background: var(--brand-soft); }
+
+    @media (max-width: 600px) {
+      .tx-sh { width: 100vw; max-width: 100vw; }
+      .tx-sh-hero .amt { font-size: 26px; }
+      .tx-sh-kv { grid-template-columns: 100px 1fr; }
+    }
+
+    /* Page guard */
+    .guard {
+      max-width: 480px; margin: 80px auto; background: #fff; border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 28px; text-align: center; box-shadow: var(--shadow-xs);
+    }
+    .guard h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .guard p { color: var(--text-muted); font-size: 13.5px; margin-bottom: 16px; }
+    .guard a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--brand); color: #fff; border-radius: 999px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .guard a:hover { background: var(--brand-hover); }
+
+    /* Page heading */
+    .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .page-head h1 { font-size: 26px; font-weight: 700; color: var(--text); margin: 0; }
+    .page-head .sub { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 767px) {
+      .app-header .row { height: 60px; gap: 10px; }
+      .search-pill { display: none; }
+      .header-btn span { display: none; }
+      .header-btn { min-width: 44px; padding: 8px; }
+      .avatar { width: 36px; height: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============== HEADER =============== -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="index_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <label class="search-pill">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input type="text" placeholder="Search enrichments, species, materials…"/>
+      <span class="kbd">⌘K</span>
+    </label>
+    <div class="header-actions">
+      <a href="customise_product_1.html" class="header-btn" title="Customise" data-buyer-only style="background: var(--brand); color: #fff; min-width: auto; padding: 8px 14px; flex-direction: row; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;">
+        <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0; font-size: 12px; font-weight: 600;">Customise</span>
+      </a>
+      <a href="orders_1_2.html" class="header-btn" title="Orders" data-buyer-only>
+        <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+      </a>
+      <a href="saved_1.html" class="header-btn" title="Saved" data-buyer-only>
+        <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+      </a>
+      <a href="cart_1.html" class="header-btn" title="Cart" data-buyer-only>
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+      </a>
+      <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header data-buyer-only title="Approvals" style="display:none; position:relative;">
+        <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+        <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
+      </a>
+      <!-- Super Admin nav (visible only when body.is-super-admin) -->
+      <a href="super_admin_dashboard_1.html" class="header-btn" title="Dashboard" data-sa-only id="saHeaderDashboard">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
+      </a>
+      <a href="javascript:void(0)" class="header-btn" title="Top-up Approvals" data-sa-only id="saHeaderTopups" style="position:relative;">
+        <i data-lucide="wallet" class="w-5 h-5"></i><span>Top-ups</span>
+        <span id="saTopupBadge" class="badge-dot" style="display:none">0</span>
+      </a>
+      <a href="super_admin_dashboard_1.html#sites-card" class="header-btn" title="Sites" data-sa-only id="saHeaderSites">
+        <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
+      </a>
+      <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+        <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+          <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+          <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+        </span>
+        <span class="ze-wp-amt" data-wallet-amount>—</span>
+        <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+      </button>
+      <div class="user-wrap" id="userWrap">
+        <img class="avatar" id="userAvatar" src="https://image.pollinations.ai/prompt/professional%20portrait%20headshot?width=80&height=80&seed=401&nologo=true" alt="Account"/>
+        <div class="dd-menu" id="userMenu" role="menu">
+          <div class="dd-head">
+            <div class="nm" id="userName">—</div>
+            <div class="em" id="userEmail">—</div>
+          </div>
+          <a class="dd-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
+          <a class="dd-item" href="orders_1_2.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
+          <a class="dd-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
+          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
+          <a class="dd-item" id="signOutItem" href="javascript:void(0)"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =============== MAIN =============== -->
+<main class="page-wrap" id="walletMain">
+  <a href="super_admin_dashboard_1.html" class="sa-back" data-sa-only style="margin-top: 18px;">
+    <i data-lucide="arrow-left" class="w-3 h-3" style="display:inline-block;width:14px;height:14px;"></i> Back to Super Admin Dashboard
+  </a>
+  <div class="crumbs" data-buyer-only><a href="index_1.html" style="color:inherit;text-decoration:none">Home</a><span class="sep">·</span><span class="here">Wallet</span></div>
+
+  <div class="page-head">
+    <span class="role-eyebrow" id="roleEyebrow">Finance view</span>
+    <h1>Wallet</h1>
+    <div class="sub" id="pageSub">Your site enrichment budget</div>
+  </div>
+
+  <div id="walletContent"><!-- rendered by JS --></div>
+</main>
+
+<!-- ================ TRANSACTION DETAIL SIDE SHEET ================ -->
+<div class="tx-sh-overlay" id="txShOverlay" aria-hidden="true"></div>
+<aside class="tx-sh" id="txSh" role="dialog" aria-hidden="true" aria-label="Transaction detail">
+  <div class="tx-sh-head">
+    <div class="ttl">Transaction detail</div>
+    <button class="tx-sh-close" id="txShClose" type="button" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div class="tx-sh-body" id="txShBody"></div>
+  <div class="tx-sh-foot" id="txShFoot" style="display:none"></div>
+</aside>
+
+<!-- Sign-out support -->
+<script>
+(function(){
+  function init(){
+    var av = document.getElementById('userAvatar');
+    var menu = document.getElementById('userMenu');
+    if (av && menu) {
+      av.addEventListener('click', function(e){ e.stopPropagation(); menu.classList.toggle('open'); });
+      document.addEventListener('click', function(e){
+        if (!menu.contains(e.target) && e.target !== av) menu.classList.remove('open');
+      });
+    }
+    var so = document.getElementById('signOutItem');
+    if (so) so.addEventListener('click', function(){
+      try { ZE.user.signOut(); } catch(e) {}
+      window.location.href = 'login_1.html';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+<!-- =============== WALLET PAGE LOGIC =============== -->
+<script>
+(function(){
+  function fmtINR(n){ try { return DB.fmtINR(Number(n) || 0); } catch(e) { return '₹' + (Number(n) || 0).toLocaleString('en-IN'); } }
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2).replace(/\.00$/, '') + ' Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(2).replace(/\.00$/, '') + ' L';
+    return fmtINR(n);
+  }
+  function colorClassFor(avail, allotted){
+    if (!allotted) return '';
+    var r = avail / allotted;
+    if (r < 0.20) return 'red';
+    if (r < 0.50) return 'amber';
+    return '';
+  }
+  function fmtDate(iso){
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    } catch(e) { return iso; }
+  }
+  function fmtDateTime(iso){
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      return fmtDate(iso) + ' · ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    } catch(e) { return iso; }
+  }
+  function txnLabel(t){
+    var labels = {
+      locked: 'Locked for order',
+      spent: 'Paid on delivery',
+      refunded: 'Refunded (cancelled order)',
+      topup_approved: 'Top-up approved',
+      topup_pending: 'Top-up requested',
+      topup_rejected: 'Top-up rejected'
+    };
+    return t.label || labels[t.kind] || t.kind;
+  }
+  function txnIcon(kind){
+    return ({
+      locked: 'lock', spent: 'check-circle-2', refunded: 'undo-2',
+      topup_approved: 'plus-circle', topup_pending: 'hourglass', topup_rejected: 'x-circle'
+    })[kind] || 'circle';
+  }
+  function txnAmtClass(kind){
+    if (kind === 'spent' || kind === 'locked') return 'neg';
+    if (kind === 'topup_approved' || kind === 'refunded') return 'pos';
+    return '';
+  }
+  function txnAmtSign(kind){
+    if (kind === 'spent' || kind === 'locked') return '−';
+    if (kind === 'topup_approved' || kind === 'refunded') return '+';
+    return '';
+  }
+
+  function showGuard(title, msg, ctaText, ctaHref){
+    var el = document.getElementById('walletContent');
+    el.innerHTML = '<div class="guard">' +
+      '<h2>' + title + '</h2>' +
+      '<p>' + msg + '</p>' +
+      (ctaHref ? '<a href="' + ctaHref + '"><i data-lucide="arrow-left" class="w-4 h-4"></i> ' + ctaText + '</a>' : '') +
+      '</div>';
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+  }
+
+  function renderEmpty(msg, icon){
+    return '<div class="led-empty"><div class="icoo"><i data-lucide="' + (icon || 'inbox') + '" class="w-5 h-5"></i></div>' + msg + '</div>';
+  }
+
+  /* Ledger view state — survives re-renders within the same load */
+  var ledger = { tab: 'txns', filter: 'all', _txnsView: [], _topupsView: [] };
+
+  function reasonShort(kind){
+    return ({
+      locked: 'Locked', spent: 'Spent', refunded: 'Refund',
+      topup_approved: 'Top-up', topup_pending: 'Top-up', topup_rejected: 'Top-up'
+    })[kind] || kind;
+  }
+  function reasonPillKind(kind){
+    if (kind === 'topup_approved') return 'topup';
+    if (kind === 'topup_pending') return 'pending';
+    if (kind === 'topup_rejected') return 'rejected';
+    return kind;
+  }
+
+  var TXN_FILTERS = [
+    { id: 'all',      lab: 'All',      kinds: null },
+    { id: 'topup',    lab: 'Top-ups',  kinds: ['topup_approved','topup_pending','topup_rejected'] },
+    { id: 'locked',   lab: 'Locked',   kinds: ['locked'] },
+    { id: 'spent',    lab: 'Spent',    kinds: ['spent'] },
+    { id: 'refunded', lab: 'Refund',   kinds: ['refunded'] }
+  ];
+
+  function renderTxnsTable(txns){
+    var f = TXN_FILTERS.find(function(x){ return x.id === ledger.filter; }) || TXN_FILTERS[0];
+    var rows = (f.kinds ? txns.filter(function(t){ return f.kinds.indexOf(t.kind) >= 0; }) : txns);
+    ledger._txnsView = rows;
+
+    var chipsHtml = '<div class="led-filter"><span class="lab">Reason</span>' +
+      TXN_FILTERS.map(function(x){
+        return '<button type="button" class="led-chip' + (x.id === ledger.filter ? ' active' : '') + '" data-led-filter="' + x.id + '">' + x.lab + '</button>';
+      }).join('') +
+    '</div>';
+
+    if (!rows.length) {
+      return chipsHtml + renderEmpty(ledger.filter === 'all' ? 'No transactions yet for this financial year' : 'No transactions match this filter', 'wallet');
+    }
+
+    var rowsHtml = rows.map(function(t, i){
+      var sign = txnAmtSign(t.kind);
+      var amtTxt = sign ? (sign + fmtCompactINR(Math.abs(t.amount || 0))) : fmtCompactINR(Math.abs(t.amount || 0));
+      var orderLink = t.orderId ? '<a class="order-link" href="order_detail_1.html?id=' + encodeURIComponent(t.orderId) + '" onclick="event.stopPropagation()">' + t.orderId + '</a>' : '';
+      return '<tr data-tx-kind="txn" data-tx-idx="' + i + '">' +
+        '<td class="t-date">' + fmtDateTime(t.at) + '</td>' +
+        '<td class="t-desc">' + txnLabel(t) + (orderLink ? ' ' + orderLink : '') + '</td>' +
+        '<td class="t-rsn"><span class="t-rsn-pill k-' + reasonPillKind(t.kind) + '">' + reasonShort(t.kind) + '</span></td>' +
+        '<td class="t-amt ' + txnAmtClass(t.kind) + '">' + amtTxt + '</td>' +
+      '</tr>';
+    }).join('');
+
+    return chipsHtml +
+      '<div class="led-tbl-wrap">' +
+        '<table class="led-tbl">' +
+          '<thead><tr><th style="min-width:140px">Date</th><th>Description</th><th>Reason</th><th class="right" style="min-width:110px">Amount</th></tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody>' +
+        '</table>' +
+      '</div>';
+  }
+
+  function renderTopupsTable(topups){
+    ledger._topupsView = topups;
+    if (!topups.length) {
+      return renderEmpty('No top-up requests yet — click "Request top-up" to start', 'plus-circle');
+    }
+    var rowsHtml = topups.map(function(r, i){
+      var status = (r.status || 'pending').toLowerCase();
+      var urg = r.urgency ? '<span class="t-rsn-pill k-' + (String(r.urgency).toLowerCase() === 'high' ? 'rejected' : 'pending') + '" style="margin-left:6px">' + r.urgency + '</span>' : '';
+      var linksPill = (Array.isArray(r.productLinks) && r.productLinks.length)
+        ? '<span class="t-rsn-pill k-topup" data-tx-links style="margin-left:6px;cursor:pointer" title="View product links"><i data-lucide="link" class="w-3 h-3" style="vertical-align:-2px;margin-right:3px"></i>' + r.productLinks.length + ' item' + (r.productLinks.length === 1 ? '' : 's') + '</span>'
+        : '';
+      return '<tr data-tx-kind="topup" data-tx-idx="' + i + '">' +
+        '<td class="t-date">' + fmtDateTime(r.requestedAt) + '</td>' +
+        '<td class="t-desc">' + (r.reason || '—') + urg + linksPill + '</td>' +
+        '<td class="t-rsn"><span class="t-rsn-pill k-' + status + '">' + status + '</span></td>' +
+        '<td class="t-amt pos">+' + fmtCompactINR(r.amount) + '</td>' +
+      '</tr>';
+    }).join('');
+    return '<div class="led-tbl-wrap">' +
+      '<table class="led-tbl">' +
+        '<thead><tr><th style="min-width:140px">Requested</th><th>Reason</th><th>Status</th><th class="right" style="min-width:110px">Amount</th></tr></thead>' +
+        '<tbody>' + rowsHtml + '</tbody>' +
+      '</table>' +
+    '</div>';
+  }
+
+  function renderHead(siteId, w, sites, multi){
+    var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, siteId) : null;
+    if (!s) return '';
+    var fy = '';
+    try { var b = DB.SITE_BUDGETS[siteId]; if (b) fy = 'FY ' + (b.fy || ''); } catch(e) {}
+    var color = colorClassFor(w.available, w.allotted);
+    var allottedTotal = w.allotted || 0;
+    var spentPct = allottedTotal ? Math.min(100, (w.spent / allottedTotal) * 100) : 0;
+    var lockedPct = allottedTotal ? Math.min(100 - spentPct, (w.locked / allottedTotal) * 100) : 0;
+    var dropdown = '';
+    if (multi) {
+      dropdown = '<button type="button" class="ss-switch" id="ssSwitchBtn"><i data-lucide="building-2" class="w-3 h-3"></i> Switch <i data-lucide="chevron-down" class="w-3 h-3"></i>' +
+        '<div class="ss-pop" id="ssPop">' +
+          sites.map(function(sid){
+            var ss = DB.byId(DB.SITES, sid); if (!ss) return '';
+            return '<div class="ss-opt' + (sid === siteId ? ' active' : '') + '" data-ss-site="' + sid + '">' +
+              '<div class="ss-opt-name"><div>' + ss.name + '</div><div class="ss-opt-city">' + (ss.city || '') + '</div></div>' +
+              '<i data-lucide="check" class="tick w-4 h-4"></i>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+      '</button>';
+    }
+    var colorClass = color === 'red' ? 'red' : color === 'amber' ? 'amber' : '';
+    return '<div class="w-head">' +
+      '<div class="w-site-row">' +
+        '<div class="left">' +
+          '<div class="ico"><i data-lucide="building-2" class="w-4 h-4"></i></div>' +
+          '<div class="nm">' + s.name + (s.city ? '<span class="sep">·</span><span class="city">' + s.city + '</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="actions">' +
+          dropdown +
+          (fy ? '<span class="w-fy">' + fy + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="w-stats">' +
+        '<div class="w-avail ' + colorClass + '">' +
+          '<div class="lab">Available</div>' +
+          '<div class="val">' + fmtCompactINR(w.available) + '</div>' +
+        '</div>' +
+        '<div class="w-mini allotted"><div class="lab"><span class="dot"></span> Allotted</div><div class="val">' + fmtCompactINR(w.allotted) + '</div></div>' +
+        '<div class="w-mini locked"><div class="lab"><span class="dot"></span> Locked</div><div class="val">' + fmtCompactINR(w.locked) + '</div></div>' +
+        '<div class="w-mini spent"><div class="lab"><span class="dot"></span> Spent</div><div class="val">' + fmtCompactINR(w.spent) + '</div></div>' +
+      '</div>' +
+      '<div class="w-bar">' +
+        '<div class="seg seg-spent" style="width:' + spentPct + '%"></div>' +
+        '<div class="seg seg-locked" style="width:' + lockedPct + '%"></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderLedger(siteId){
+    var txns = (typeof ZE !== 'undefined' && ZE.wallet && ZE.wallet.txnsForSite) ? (ZE.wallet.txnsForSite(siteId) || []) : [];
+    var topups = (typeof ZE !== 'undefined' && ZE.topup && ZE.topup.list) ? (ZE.topup.list(siteId) || []) : [];
+    var tabs = '<div class="led-tabs">' +
+      '<button type="button" class="led-tab' + (ledger.tab === 'txns' ? ' active' : '') + '" data-led-tab="txns">Transactions <span class="count">' + txns.length + '</span></button>' +
+      '<button type="button" class="led-tab' + (ledger.tab === 'topup' ? ' active' : '') + '" data-led-tab="topup">Top-up requests <span class="count">' + topups.length + '</span></button>' +
+    '</div>';
+    var cta = '<button type="button" class="led-cta" id="walletRequestTopupBtn" data-buyer-only><i data-lucide="plus" class="w-3 h-3"></i> Request top-up</button>' +
+              '<button type="button" class="led-cta" id="walletAddTopupBtn" data-sa-only><i data-lucide="plus" class="w-3 h-3"></i> Add top-up</button>';
+    var body = ledger.tab === 'txns' ? renderTxnsTable(txns) : renderTopupsTable(topups);
+    return '<div class="led">' +
+      '<div class="led-top">' + tabs + cta + '</div>' +
+      body +
+    '</div>';
+  }
+
+  function render(){
+    if (typeof ZE === 'undefined' || !ZE.user) {
+      showGuard('Wallet unavailable', 'The app engine has not loaded. Please refresh the page.', 'Back to home', 'index_1.html');
+      return;
+    }
+    var u = ZE.user.read();
+    if (!u) {
+      showGuard('Wallet is for buyers', 'Sign in as a buyer to view your site wallet.', 'Sign in', 'login_1.html');
+      return;
+    }
+    if (u.role === 'admin' || u.role === 'vendor') {
+      showGuard('Wallet is for buyers only', 'Site wallets and budgets are managed at the buyer level. Switch to a buyer persona to access this page.', 'Back to home', 'index_1.html');
+      return;
+    }
+    var isSA = (u.role === 'super_admin');
+    // super_admin gets read-access to ALL sites, buyer is limited to availableFor()
+    var sites = isSA
+      ? (DB.SITES || []).map(function(s){ return s.id; })
+      : (ZE.activeSite.availableFor(u.id) || []);
+    if (!sites.length) {
+      showGuard('No site assigned', 'Your account isn’t linked to any site. Contact your administrator to assign a site so you can use the wallet.', 'Back to home', 'index_1.html');
+      return;
+    }
+    var siteId = isSA
+      ? (window.__saSiteOverride || ZE.activeSite.get() || sites[0])
+      : ZE.activeSite.get();
+    if (!siteId || sites.indexOf(siteId) < 0) {
+      siteId = sites[0];
+      if (!isSA) { try { ZE.activeSite.set(siteId); } catch(e) {} }
+    }
+    var w = ZE.wallet.forSite(siteId);
+    var multi = sites.length > 1;
+    var html = renderHead(siteId, w, sites, multi) + renderLedger(siteId);
+    document.getElementById('walletContent').innerHTML = html;
+    // page sub line
+    var sub = document.getElementById('pageSub');
+    if (sub) {
+      var sObj = DB.byId(DB.SITES, siteId);
+      sub.textContent = sObj ? (sObj.name + ' · enrichment budget') : 'Your site enrichment budget';
+    }
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+    bindHeadDropdown();
+    bindLedger(siteId);
+  }
+
+  function rerenderLedger(){
+    var siteId = ZE.activeSite.get();
+    var wrap = document.getElementById('walletContent');
+    if (!wrap) return;
+    var existing = wrap.querySelector('.led');
+    if (!existing) { render(); return; }
+    var fragment = document.createElement('div');
+    fragment.innerHTML = renderLedger(siteId);
+    existing.replaceWith(fragment.firstElementChild);
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+    bindLedger(siteId);
+  }
+
+  function bindLedger(siteId){
+    var root = document.querySelector('.led');
+    if (!root) return;
+    root.addEventListener('click', function(e){
+      var tabBtn = e.target.closest('[data-led-tab]');
+      if (tabBtn) {
+        var t = tabBtn.getAttribute('data-led-tab');
+        if (t && t !== ledger.tab) { ledger.tab = t; rerenderLedger(); try { syncSuperAdminMode(); } catch(e){} }
+        return;
+      }
+      var fBtn = e.target.closest('[data-led-filter]');
+      if (fBtn) {
+        var f = fBtn.getAttribute('data-led-filter');
+        if (f && f !== ledger.filter) { ledger.filter = f; rerenderLedger(); }
+        return;
+      }
+      // Allow inline order-link to navigate without firing the row open
+      if (e.target.closest('a.order-link')) return;
+      var row = e.target.closest('tr[data-tx-kind]');
+      if (row) {
+        var idx = parseInt(row.getAttribute('data-tx-idx'), 10);
+        var kind = row.getAttribute('data-tx-kind');
+        if (kind === 'txn' && ledger._txnsView[idx]) openTxSheet(ledger._txnsView[idx]);
+        else if (kind === 'topup' && ledger._topupsView[idx]) openTopupSheet(ledger._topupsView[idx]);
+      }
+    });
+  }
+
+  /* =========== TRANSACTION DETAIL SIDE SHEET =========== */
+  function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[c]; }); }
+
+  function txnExplain(t){
+    var map = {
+      locked:           'Funds are reserved for this order while it\'s in production. They\'ll be released as Spent when the order is delivered, or refunded if cancelled.',
+      spent:            'These funds were paid to the in-house vendor on delivery confirmation. The amount has left your wallet.',
+      refunded:         'The order was cancelled, so the previously locked funds were returned to your available balance.',
+      topup_approved:   'A finance-approved top-up was credited to your allotted budget. It\'s now part of your available balance.',
+      topup_pending:    'A top-up has been requested and is awaiting finance approval. It does NOT yet count towards your available balance.',
+      topup_rejected:   'This top-up request was rejected by finance. No change to your wallet balance — see the rejection note for context.'
+    };
+    return map[t.kind] || '';
+  }
+
+  function topupExplain(r){
+    var st = (r.status || 'pending').toLowerCase();
+    if (st === 'pending')  return 'This top-up request is awaiting finance approval. It does NOT yet count towards your available balance.';
+    if (st === 'approved') return 'Finance approved this top-up — the amount was credited to your allotted budget.';
+    if (st === 'rejected') return 'Finance rejected this top-up. Your wallet balance is unchanged. Open a new request with revised justification if needed.';
+    return '';
+  }
+
+  function findOrder(orderId){
+    if (!orderId) return null;
+    try { if (window.ZE && ZE.orders && ZE.orders.byId) { var o = ZE.orders.byId(orderId); if (o) return o; } } catch(e) {}
+    try { if (window.DB && Array.isArray(DB.ORDERS)) { return DB.ORDERS.find(function(x){ return x.id === orderId; }) || null; } } catch(e) {}
+    return null;
+  }
+
+  function renderOrderItemsBlock(order){
+    if (!order || !Array.isArray(order.items) || !order.items.length) return '';
+    var rows = order.items.map(function(it){
+      var prod = null;
+      try { if (window.DB && DB.byId) prod = DB.byId(DB.PRODUCTS, it.productId); } catch(e) {}
+      var nm = (prod && prod.name) || it.name || it.productId || 'Item';
+      var img = (prod && prod.images && prod.images[0]) ? prod.images[0] : (it.img || '');
+      var qty = it.qty || it.quantity || 1;
+      var unit = it.unitPrice || it.unit || 0;
+      var line = qty * unit;
+      var imgHtml = img ? '<div class="img"><img src="' + escapeHtml(img) + '" alt=""/></div>' : '<div class="img"></div>';
+      return '<div class="tx-sh-item">' + imgHtml +
+        '<div class="meta"><div class="nm">' + escapeHtml(nm) + '</div>' +
+          '<div class="qty">' + qty + ' × ' + fmtCompactINR(unit) + '</div>' +
+        '</div>' +
+        '<div class="price">' + fmtCompactINR(line) + '</div>' +
+      '</div>';
+    }).join('');
+    return '<div class="tx-sh-section"><h4>Items in this order</h4><div class="tx-sh-items">' + rows + '</div></div>';
+  }
+
+  function openTxSheet(t){
+    var sign = txnAmtSign(t.kind);
+    var amtTxt = sign ? (sign + fmtINR(Math.abs(t.amount || 0))) : fmtINR(Math.abs(t.amount || 0));
+    var amtCls = txnAmtClass(t.kind);
+    var pillKind = reasonPillKind(t.kind);
+    var pillLbl = reasonShort(t.kind);
+    var order = findOrder(t.orderId);
+
+    var heroHtml = '<div class="tx-sh-hero">' +
+      '<div class="label">' + escapeHtml(txnLabel(t)) + ' <span class="t-rsn-pill k-' + pillKind + '">' + pillLbl + '</span></div>' +
+      '<div class="amt ' + amtCls + '">' + amtTxt + '</div>' +
+      '<div class="when">' + fmtDateTime(t.at) + '</div>' +
+    '</div>';
+
+    var explainHtml = txnExplain(t)
+      ? '<div class="tx-sh-section"><h4>What this means</h4><div class="tx-sh-explain">' + escapeHtml(txnExplain(t)) + '</div></div>'
+      : '';
+
+    // Key-value section
+    var kv = [];
+    if (t.orderId) kv.push({ k: 'Order', v: '<span class="mono">' + escapeHtml(t.orderId) + '</span>' });
+    kv.push({ k: 'Date', v: escapeHtml(fmtDateTime(t.at)) });
+    kv.push({ k: 'Reason', v: escapeHtml(txnLabel(t)) });
+    if (t.amount != null) kv.push({ k: 'Amount', v: '<span class="mono">' + amtTxt + '</span>' });
+    if (order) {
+      if (order.buyerId) {
+        var buyer = null;
+        try { if (window.DB && DB.byId) buyer = DB.byId(DB.USERS, order.buyerId); } catch(e) {}
+        if (buyer && buyer.name) kv.push({ k: 'Placed by', v: escapeHtml(buyer.name) });
+      }
+      if (order.status) kv.push({ k: 'Order status', v: escapeHtml(order.status.replace(/_/g, ' ')) });
+      if (order.total != null) kv.push({ k: 'Order total', v: '<span class="mono">' + fmtINR(order.total) + '</span>' });
+    }
+    var kvHtml = '<div class="tx-sh-section"><h4>Details</h4><div class="tx-sh-kv">' +
+      kv.map(function(p){ return '<div class="k">' + p.k + '</div><div class="v">' + p.v + '</div>'; }).join('') +
+    '</div></div>';
+
+    var itemsHtml = renderOrderItemsBlock(order);
+
+    document.getElementById('txShBody').innerHTML = heroHtml + explainHtml + kvHtml + itemsHtml;
+
+    var foot = document.getElementById('txShFoot');
+    if (t.orderId) {
+      foot.innerHTML = '<a class="open-order" href="order_detail_1.html?id=' + encodeURIComponent(t.orderId) + '"><i data-lucide="external-link" class="w-4 h-4"></i> Open order</a>';
+      foot.style.display = '';
+    } else {
+      foot.innerHTML = '';
+      foot.style.display = 'none';
+    }
+    showSheet();
+  }
+
+  function openTopupSheet(r){
+    var status = (r.status || 'pending').toLowerCase();
+    var heroHtml = '<div class="tx-sh-hero">' +
+      '<div class="label">Top-up request <span class="t-rsn-pill k-' + status + '">' + status + '</span></div>' +
+      '<div class="amt pos">+' + fmtINR(r.amount || 0) + '</div>' +
+      '<div class="when">Requested ' + fmtDateTime(r.requestedAt) + '</div>' +
+    '</div>';
+
+    var explainHtml = topupExplain(r)
+      ? '<div class="tx-sh-section"><h4>What this means</h4><div class="tx-sh-explain">' + escapeHtml(topupExplain(r)) + '</div></div>'
+      : '';
+
+    var kv = [];
+    if (r.id) kv.push({ k: 'Request ID', v: '<span class="mono">' + escapeHtml(r.id) + '</span>' });
+    kv.push({ k: 'Amount', v: '<span class="mono">' + fmtINR(r.amount || 0) + '</span>' });
+    kv.push({ k: 'Status', v: escapeHtml(status) });
+    if (r.urgency) kv.push({ k: 'Urgency', v: escapeHtml(r.urgency) });
+    kv.push({ k: 'Requested', v: escapeHtml(fmtDateTime(r.requestedAt)) });
+    if (r.approvedAt) kv.push({ k: 'Approved', v: escapeHtml(fmtDateTime(r.approvedAt)) });
+    if (r.rejectedAt) kv.push({ k: 'Rejected', v: escapeHtml(fmtDateTime(r.rejectedAt)) });
+    if (r.approver)   kv.push({ k: 'Decision by', v: escapeHtml(r.approver) });
+    var kvHtml = '<div class="tx-sh-section"><h4>Details</h4><div class="tx-sh-kv">' +
+      kv.map(function(p){ return '<div class="k">' + p.k + '</div><div class="v">' + p.v + '</div>'; }).join('') +
+    '</div></div>';
+
+    var reasonHtml = r.reason ? '<div class="tx-sh-section"><h4>Reason given</h4><div class="tx-sh-explain" style="background:#FAFBFC;border:1px solid var(--border)">' + escapeHtml(r.reason) + '</div></div>' : '';
+    var noteHtml = r.rejectionNote ? '<div class="tx-sh-section"><h4>Rejection note</h4><div class="tx-sh-explain" style="background:var(--danger-bg);color:var(--danger)">' + escapeHtml(r.rejectionNote) + '</div></div>' : '';
+
+    var linksHtml = '';
+    if (Array.isArray(r.productLinks) && r.productLinks.length) {
+      var rows = r.productLinks.map(function(it){
+        var url = String(it.url || '');
+        var cost = Number(it.cost || 0);
+        var costTxt = cost > 0 ? fmtINR(cost) : '<span style="color:var(--text-subtle)">—</span>';
+        var safeUrl = escapeHtml(url);
+        var labelTxt = escapeHtml(url.replace(/^https?:\/\//,'').replace(/\/$/,''));
+        return '<div class="tu-link-row">' +
+          '<i data-lucide="link" class="w-4 h-4" style="color:var(--text-muted);flex-shrink:0;margin-top:2px"></i>' +
+          '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="tu-link-url">' + labelTxt + '</a>' +
+          '<span class="tu-link-cost mono">' + costTxt + '</span>' +
+        '</div>';
+      }).join('');
+      linksHtml = '<div class="tx-sh-section"><h4>Product links <span style="color:var(--text-muted);font-weight:500;font-size:12px">(' + r.productLinks.length + ')</span></h4>' +
+        '<div class="tu-link-list">' + rows + '</div>' +
+      '</div>';
+    }
+
+    document.getElementById('txShBody').innerHTML = heroHtml + explainHtml + kvHtml + reasonHtml + noteHtml + linksHtml;
+
+    var foot = document.getElementById('txShFoot');
+    var _u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+    var _isSuperAdmin = !!(_u && _u.role === 'super_admin');
+    if (status === 'pending' && _isSuperAdmin) {
+      foot.innerHTML =
+        '<button type="button" class="tu-foot-btn tu-reject" data-tu-decide="rejected" data-tu-id="' + escapeHtml(r.id) + '"><i data-lucide="x" class="w-4 h-4"></i> Reject</button>' +
+        '<button type="button" class="tu-foot-btn tu-approve" data-tu-decide="approved" data-tu-id="' + escapeHtml(r.id) + '"><i data-lucide="check" class="w-4 h-4"></i> Approve</button>';
+      foot.style.display = '';
+      foot.style.justifyContent = 'flex-end';
+      foot.style.gap = '10px';
+    } else if (status === 'pending') {
+      foot.innerHTML = '<span class="tu-await"><i data-lucide="clock" class="w-4 h-4"></i> Awaiting Super Admin decision</span>';
+      foot.style.display = '';
+      foot.style.justifyContent = 'flex-start';
+    } else {
+      foot.innerHTML = '<span style="color:var(--text-muted);font-size:13px">Decision: <strong style="color:var(--text);text-transform:capitalize">' + status + '</strong>' + (r.decisionByName ? ' · by ' + escapeHtml(r.decisionByName) : '') + '</span>';
+      foot.style.display = '';
+      foot.style.justifyContent = 'flex-start';
+    }
+    showSheet();
+  }
+
+  function showSheet(){
+    var sh = document.getElementById('txSh');
+    var ov = document.getElementById('txShOverlay');
+    if (!sh || !ov) return;
+    sh.classList.add('open'); sh.setAttribute('aria-hidden', 'false');
+    ov.classList.add('open'); ov.setAttribute('aria-hidden', 'false');
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+  }
+  function closeTxSheet(){
+    var sh = document.getElementById('txSh');
+    var ov = document.getElementById('txShOverlay');
+    if (!sh || !ov) return;
+    sh.classList.remove('open'); sh.setAttribute('aria-hidden', 'true');
+    ov.classList.remove('open'); ov.setAttribute('aria-hidden', 'true');
+  }
+
+  (function wireSheet(){
+    var ov = document.getElementById('txShOverlay');
+    var cl = document.getElementById('txShClose');
+    if (ov) ov.addEventListener('click', closeTxSheet);
+    if (cl) cl.addEventListener('click', closeTxSheet);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeTxSheet(); });
+    document.addEventListener('click', function(e){
+      var b = e.target.closest('[data-tu-decide][data-tu-id]');
+      if (!b) return;
+      var decision = b.getAttribute('data-tu-decide');
+      var id = b.getAttribute('data-tu-id');
+      if (!id || !decision) return;
+      if (typeof ZE !== 'undefined' && ZE.topup && ZE.topup.decide) {
+        ZE.topup.decide(id, decision);
+      }
+      closeTxSheet();
+    });
+  })();
+
+  function bindHeadDropdown(){
+    var btn = document.getElementById('ssSwitchBtn');
+    var pop = document.getElementById('ssPop');
+    if (!btn || !pop) return;
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      pop.classList.toggle('open');
+    });
+    pop.addEventListener('click', function(e){
+      var opt = e.target.closest('[data-ss-site]');
+      if (!opt) return;
+      e.stopPropagation();
+      var sid = opt.getAttribute('data-ss-site');
+      if (sid && ZE.activeSite.set(sid)) { window.location.reload(); }
+    });
+    document.addEventListener('click', function(e){
+      if (!pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) pop.classList.remove('open');
+    });
+  }
+
+  function init(){
+    // ----- URL param handling: ?site=X & ?tab=topup -----
+    try {
+      var params = new URLSearchParams(location.search);
+      var siteParam = params.get('site');
+      var tabParam = params.get('tab');
+      if (siteParam && window.ZE && ZE.user && ZE.user.resolve) {
+        var _u = ZE.user.resolve();
+        var _isSA = !!(_u && _u.role === 'super_admin');
+        if (_isSA) {
+          // super_admin can drill into any site; bypass availableFor() validation
+          window.__saSiteOverride = siteParam;
+          try { localStorage.setItem('ze_active_site_v1', siteParam); } catch(e) {}
+        } else if (ZE.activeSite && ZE.activeSite.set) {
+          ZE.activeSite.set(siteParam);
+        }
+      }
+      if (tabParam === 'topup') { ledger.tab = 'topup'; }
+    } catch(e) {}
+
+    syncSuperAdminMode();
+    render();
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', render);
+      ZE.on('orders:change', render);
+      ZE.on('topup:change', render);
+      ZE.on('topup:change', syncSuperAdminTopupBadge);
+      ZE.on('user:change', render);
+      ZE.on('user:change', syncRoleEyebrow);
+      ZE.on('user:change', syncSuperAdminMode);
+    }
+    syncSuperAdminTopupBadge();
+    bindSuperAdminTopupsLink();
+    // populate avatar dd
+    try {
+      var u = ZE.user.resolve ? ZE.user.resolve() : null;
+      if (u) {
+        var nm = document.getElementById('userName');
+        var em = document.getElementById('userEmail');
+        if (nm) nm.textContent = u.name || '—';
+        if (em) em.textContent = u.email || '';
+        var av = document.getElementById('userAvatar');
+        if (av && u.seed) av.src = 'https://image.pollinations.ai/prompt/professional%20portrait%20headshot?width=80&height=80&seed=' + u.seed + '&nologo=true';
+      }
+    } catch(e) {}
+    syncRoleEyebrow();
+  }
+  function syncRoleEyebrow(){
+    try {
+      var eb = document.getElementById('roleEyebrow');
+      if (!eb) return;
+      var u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+      var isSA = !!(u && u.role === 'super_admin');
+      eb.textContent = 'Finance view';
+      eb.classList.toggle('is-on', isSA);
+    } catch(e) {}
+  }
+  function syncSuperAdminMode(){
+    try {
+      var u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+      var isSA = !!(u && u.role === 'super_admin');
+      document.body.classList.toggle('is-super-admin', isSA);
+      // mark Top-up Approvals link as current page when topup tab active
+      var topupLink = document.getElementById('saHeaderTopups');
+      if (topupLink) {
+        if (isSA && ledger && ledger.tab === 'topup') {
+          topupLink.setAttribute('aria-current', 'page');
+        } else {
+          topupLink.removeAttribute('aria-current');
+        }
+      }
+      if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch(e){} }
+    } catch(e) {}
+  }
+  function syncSuperAdminTopupBadge(){
+    try {
+      var badge = document.getElementById('saTopupBadge');
+      if (!badge) return;
+      if (typeof ZE === 'undefined' || !ZE.topup || !ZE.topup.list) { badge.style.display = 'none'; return; }
+      var pending = (ZE.topup.list() || []).filter(function(r){ return r && r.status === 'pending'; });
+      if (pending.length) { badge.textContent = String(pending.length); badge.style.display = 'inline-flex'; }
+      else { badge.style.display = 'none'; }
+    } catch(e) {}
+  }
+  function bindSuperAdminTopupsLink(){
+    var link = document.getElementById('saHeaderTopups');
+    if (!link || link.__bound) return;
+    link.__bound = true;
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      // we ARE the wallet page — just open the topup tab and scroll up
+      ledger.tab = 'topup';
+      try { rerenderLedger(); } catch(err) { try { render(); } catch(e2){} }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      syncSuperAdminMode();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+<!-- Wallet pill (header) — shared inline -->
+<style>
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+</style>
+
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pop = document.getElementById('walletPillPop');
+      if (siteSwitch && pill.contains(siteSwitch)) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      if (pillTarget && !siteSwitch && !opt) {
+        // Already on wallet page — just close pop
+      }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+
+<script>
+  if (typeof ZE !== 'undefined' && ZE.init) ZE.init();
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
+</script>
+
+
+<!-- ===================================================================
+     TOP-UP REQUEST MODAL (Agent A — append to wallet_1.html body)
+     Trigger: any element with id="walletRequestTopupBtn" (or call
+     window.ZEOpenTopupModal()).
+     Depends on: ZE.activeSite, ZE.topup.submit, DB.byId/DB.SITES,
+     DB.fmtINR; lucide icons (already loaded by host page).
+     =================================================================== -->
+<style>
+  /* Top-up modal */
+  .ze-topup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .ze-topup-overlay.open { display: flex; opacity: 1; }
+  .ze-topup-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.4);
+    transform: translateY(8px) scale(.98);
+    transition: transform .2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+  }
+  .ze-topup-overlay.open .ze-topup-modal { transform: translateY(0) scale(1); }
+  .ze-topup-head {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border, #E5E7EB);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .ze-topup-head .ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--brand-soft, #E6F7EE);
+    color: var(--brand, #37BD69);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ze-topup-head .ze-topup-title {
+    font-size: 16px; font-weight: 700; color: var(--text, #0F172A);
+    line-height: 1.2;
+  }
+  .ze-topup-head .ze-topup-sub {
+    font-size: 12px; color: var(--text-muted, #6B7280);
+    margin-top: 4px;
+  }
+  .ze-topup-head .close-x {
+    margin-left: auto;
+    background: transparent; border: none;
+    width: 32px; height: 32px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-muted, #6B7280);
+    cursor: pointer; transition: .15s;
+  }
+  .ze-topup-head .close-x:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ze-topup-field label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--text, #0F172A);
+    margin-bottom: 6px;
+  }
+  .ze-topup-field label .req { color: var(--danger, #DC4545); margin-left: 2px; }
+  .ze-topup-amt-wrap { position: relative; }
+  .ze-topup-amt-wrap .currency {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; font-weight: 600; color: var(--text-muted, #6B7280);
+    pointer-events: none;
+  }
+  .ze-topup-field input,
+  .ze-topup-field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border, #E5E7EB);
+    background: #fff;
+    font-size: 14px;
+    color: var(--text, #0F172A);
+    outline: none;
+    transition: .15s;
+    font-family: inherit;
+  }
+  .ze-topup-field input.amt { padding-left: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ze-topup-field input:focus,
+  .ze-topup-field textarea:focus {
+    border-color: var(--brand, #37BD69);
+    box-shadow: 0 0 0 3px rgba(55,189,105,.15);
+  }
+  .ze-topup-field input.err,
+  .ze-topup-field textarea.err {
+    border-color: var(--danger, #DC4545);
+    background: var(--danger-bg, #FEF2F2);
+  }
+  .ze-topup-field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .ze-topup-field .helper {
+    font-size: 11px; color: var(--text-muted, #6B7280);
+    margin-top: 6px; line-height: 1.4;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+  .ze-topup-field .err-msg {
+    font-size: 11px; color: var(--danger, #DC4545);
+    margin-top: 4px; display: none;
+    align-items: center; gap: 4px;
+  }
+  .ze-topup-field.has-err .err-msg { display: inline-flex; }
+
+  .ze-topup-urgency {
+    display: flex; gap: 6px;
+    background: #F1F2F4;
+    padding: 4px;
+    border-radius: 999px;
+  }
+  .ze-topup-urgency button {
+    flex: 1;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #6B7280);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: .15s;
+  }
+  .ze-topup-urgency button.active {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 2px 6px -2px rgba(55,189,105,.5);
+  }
+
+  .ze-topup-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border, #E5E7EB);
+    background: #FAFBFC;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .ze-topup-foot button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .ze-topup-cancel {
+    background: transparent;
+    color: var(--text-muted, #6B7280);
+  }
+  .ze-topup-cancel:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-submit {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 4px 10px -3px rgba(55,189,105,.5);
+  }
+  .ze-topup-submit:hover:not(:disabled) { background: var(--brand-hover, #2DA058); }
+  .ze-topup-submit:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+  .ze-topup-form-err {
+    padding: 10px 12px;
+    background: var(--danger-bg, #FEF2F2);
+    border: 1px solid rgba(220,69,69,.25);
+    border-radius: 10px;
+    color: var(--danger, #DC4545);
+    font-size: 12px;
+    display: none;
+    align-items: center; gap: 6px;
+  }
+  .ze-topup-form-err.show { display: inline-flex; }
+
+  /* Generic toast (only injected if host page doesn't already have one) */
+  .ze-topup-toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A; color: #fff;
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 10px 30px -8px rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: .25s;
+    z-index: 400;
+  }
+  .ze-topup-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Mobile bottom-sheet */
+  @media (max-width: 600px) {
+    .ze-topup-overlay { padding: 0; align-items: flex-end; }
+    .ze-topup-modal {
+      max-width: 100%;
+      border-radius: 20px 20px 0 0;
+      max-height: 92vh;
+    }
+    .ze-topup-modal::before {
+      content: '';
+      display: block;
+      width: 40px; height: 4px;
+      background: #D1D5DB;
+      border-radius: 999px;
+      margin: 8px auto 4px;
+    }
+  }
+</style>
+
+<div class="ze-topup-overlay" id="zeTopupOverlay" role="dialog" aria-modal="true" aria-labelledby="zeTopupTitle">
+  <div class="ze-topup-modal" role="document">
+    <div class="ze-topup-head">
+      <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+      <div>
+        <div class="ze-topup-title" id="zeTopupTitle">Request a top-up</div>
+        <div class="ze-topup-sub" id="zeTopupSubtitle">Site: —</div>
+      </div>
+      <button type="button" class="close-x" id="zeTopupClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <form class="ze-topup-body" id="zeTopupForm" novalidate>
+      <div class="ze-topup-form-err" id="zeTopupFormErr">
+        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+        <span id="zeTopupFormErrMsg">Could not submit request.</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupAmtField">
+        <label for="zeTopupAmt">Amount<span class="req">*</span></label>
+        <div class="ze-topup-amt-wrap">
+          <span class="currency">₹</span>
+          <input id="zeTopupAmt" class="amt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="12"/>
+        </div>
+        <div class="helper">
+          <span>Up to ₹50,00,000 per request</span>
+          <span id="zeTopupAmtPretty"></span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Enter an amount greater than zero</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupReasonField">
+        <label for="zeTopupReason">Reason<span class="req">*</span></label>
+        <textarea id="zeTopupReason" rows="4" maxlength="500" placeholder="Why is this top-up needed? (e.g. monsoon enclosure repairs, urgent feed restock)"></textarea>
+        <div class="helper">
+          <span>Be specific — admins approve faster with context.</span>
+          <span><span id="zeTopupReasonCount">0</span> / 500</span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Please add a reason</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupLinksField">
+        <label for="zeTopupLinks">Product links <span style="font-weight:500;color:var(--text-muted);font-size:11px;margin-left:4px">(optional)</span></label>
+        <textarea id="zeTopupLinks" rows="3" placeholder="https://example.com/product-1&#10;https://example.com/product-2 | 1500" style="font-family: ui-monospace, Menlo, monospace; font-size: 12px;"></textarea>
+        <div class="helper">
+          <span>One link per line · add <code style="background:#F1F2F4;padding:1px 5px;border-radius:4px;font-size:11px">| 1500</code> after a URL to note its cost</span>
+          <span><span id="zeTopupLinksCount">0</span> links</span>
+        </div>
+      </div>
+      <div class="ze-topup-field">
+        <label>Urgency</label>
+        <div class="ze-topup-urgency" id="zeTopupUrgency">
+          <button type="button" data-urg="Normal" class="active">Normal</button>
+          <button type="button" data-urg="High">High</button>
+        </div>
+      </div>
+    </form>
+    <div class="ze-topup-foot">
+      <button type="button" class="ze-topup-cancel" id="zeTopupCancel">Cancel</button>
+      <button type="button" class="ze-topup-submit" id="zeTopupSubmit">
+        <i data-lucide="send" class="w-4 h-4"></i> Submit request
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__zeTopupModalInited) return;
+  window.__zeTopupModalInited = true;
+
+  const ZE = window.ZE; const DB = window.DB;
+  if (!ZE || !DB) { console.warn('Top-up modal: ZE/DB not found'); return; }
+
+  const overlay   = document.getElementById('zeTopupOverlay');
+  const subtitle  = document.getElementById('zeTopupSubtitle');
+  const amtInput  = document.getElementById('zeTopupAmt');
+  const amtPretty = document.getElementById('zeTopupAmtPretty');
+  const amtField  = document.getElementById('zeTopupAmtField');
+  const reasonInp = document.getElementById('zeTopupReason');
+  const reasonField = document.getElementById('zeTopupReasonField');
+  const reasonCnt = document.getElementById('zeTopupReasonCount');
+  const linksInput = document.getElementById('zeTopupLinks');
+  const linksCount = document.getElementById('zeTopupLinksCount');
+  const urgWrap   = document.getElementById('zeTopupUrgency');
+  const submitBtn = document.getElementById('zeTopupSubmit');
+  const cancelBtn = document.getElementById('zeTopupCancel');
+  const closeBtn  = document.getElementById('zeTopupClose');
+  const formErr   = document.getElementById('zeTopupFormErr');
+  const formErrMsg = document.getElementById('zeTopupFormErrMsg');
+
+  let state = { urgency: 'Normal' };
+  let lastFocus = null;
+
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+  function getAmount(){
+    const raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    return raw ? parseInt(raw, 10) : 0;
+  }
+  function formatINR(n){
+    if (typeof DB.fmtINR === 'function') return DB.fmtINR(n);
+    return '₹' + Number(n||0).toLocaleString('en-IN');
+  }
+  function formatThou(n){
+    return Number(n||0).toLocaleString('en-IN');
+  }
+
+  function showToast(msg){
+    // Reuse host page toast if present
+    const host = document.getElementById('toast');
+    if (host) {
+      host.textContent = msg;
+      host.classList.add('show');
+      clearTimeout(window.__zeToastT);
+      window.__zeToastT = setTimeout(()=>host.classList.remove('show'), 2400);
+      return;
+    }
+    let t = document.getElementById('zeTopupToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'zeTopupToast';
+      t.className = 'ze-topup-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__zeTopupToastT);
+    window.__zeTopupToastT = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  function open(){
+    lastFocus = document.activeElement;
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    const site = siteId ? DB.byId(DB.SITES, siteId) : null;
+    subtitle.textContent = 'Site: ' + (site && site.name ? site.name : '—');
+
+    // Reset form
+    amtInput.value = '';
+    amtPretty.textContent = '';
+    amtField.classList.remove('has-err'); amtInput.classList.remove('err');
+    reasonInp.value = '';
+    reasonCnt.textContent = '0';
+    reasonField.classList.remove('has-err'); reasonInp.classList.remove('err');
+    linksInput.value = '';
+    linksCount.textContent = '0';
+    state.urgency = 'Normal';
+    urgWrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.urg === 'Normal'));
+    formErr.classList.remove('show');
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(()=> amtInput.focus(), 50);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch(e){}
+  }
+  window.ZEOpenTopupModal = open;
+  window.ZECloseTopupModal = close;
+
+  // Trigger button(s) on the page
+  document.addEventListener('click', (e) => {
+    const sa = e.target.closest('#walletAddTopupBtn');
+    if (sa && typeof window.ZEOpenSuperAdminTopupModal === 'function') {
+      e.preventDefault();
+      var sid = (typeof ZE !== 'undefined' && ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+      window.ZEOpenSuperAdminTopupModal({ siteIds: sid ? [sid] : [] });
+      return;
+    }
+    const t = e.target.closest('#walletRequestTopupBtn, [data-topup-trigger]');
+    if (t) { e.preventDefault(); open(); }
+  });
+
+  closeBtn.addEventListener('click', close);
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) close();
+  });
+
+  // Amount: keep only digits, cap at 50,00,000
+  amtInput.addEventListener('input', () => {
+    let raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    if (raw) {
+      let n = parseInt(raw, 10);
+      if (n > 5000000) { n = 5000000; raw = '5000000'; }
+      amtInput.value = formatThou(n);
+      amtPretty.textContent = '= ' + formatINR(n);
+    } else {
+      amtInput.value = '';
+      amtPretty.textContent = '';
+    }
+    if (getAmount() > 0) { amtField.classList.remove('has-err'); amtInput.classList.remove('err'); }
+  });
+  amtInput.addEventListener('blur', () => {
+    const n = getAmount();
+    if (n > 0) amtInput.value = formatThou(n);
+  });
+  amtInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); reasonInp.focus(); }
+  });
+
+  reasonInp.addEventListener('input', () => {
+    reasonCnt.textContent = String(reasonInp.value.length);
+    if (reasonInp.value.trim().length > 0) { reasonField.classList.remove('has-err'); reasonInp.classList.remove('err'); }
+  });
+  reasonInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSubmit(); }
+  });
+
+  function parseLinks(raw) {
+    return String(raw || '').split(/\r?\n/).map(line => {
+      const t = line.trim();
+      if (!t) return null;
+      const m = t.match(/^(.*?)\s*\|\s*(\d[\d,]*)\s*$/);
+      if (m) {
+        const url = m[1].trim();
+        const cost = parseInt(m[2].replace(/,/g, ''), 10) || 0;
+        return url ? { url, cost } : null;
+      }
+      return { url: t, cost: 0 };
+    }).filter(Boolean);
+  }
+
+  linksInput.addEventListener('input', () => {
+    const lines = String(linksInput.value || '').split(/\r?\n/).filter(l => l.trim().length > 0);
+    linksCount.textContent = String(lines.length);
+  });
+
+  urgWrap.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-urg]');
+    if (!b) return;
+    state.urgency = b.dataset.urg;
+    urgWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+  });
+
+  function doSubmit(){
+    formErr.classList.remove('show');
+    const amount = getAmount();
+    const reason = (reasonInp.value || '').trim();
+    let ok = true;
+    if (amount <= 0) { amtField.classList.add('has-err'); amtInput.classList.add('err'); ok = false; }
+    if (reason.length === 0) { reasonField.classList.add('has-err'); reasonInp.classList.add('err'); ok = false; }
+    if (!ok) return;
+
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    if (!siteId) {
+      formErrMsg.textContent = 'No active site selected — pick a site first.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    const productLinks = parseLinks(linksInput.value);
+
+    submitBtn.disabled = true;
+    let req = null;
+    try {
+      req = (ZE.topup && ZE.topup.submit) ? ZE.topup.submit({
+        siteId, amount, reason, urgency: state.urgency, productLinks
+      }) : null;
+    } catch (err) { req = null; }
+    submitBtn.disabled = false;
+
+    if (!req) {
+      formErrMsg.textContent = 'Could not submit request — please try again.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    close();
+    showToast('Top-up request submitted — pending approval' + (productLinks.length ? ' · ' + productLinks.length + ' product link' + (productLinks.length === 1 ? '' : 's') : ''));
+  }
+
+  submitBtn.addEventListener('click', doSubmit);
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+})();
+</script>
+</body>
+</html>

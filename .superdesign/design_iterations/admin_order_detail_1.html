@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>ZooEnrich · Vendor Order Detail</title>
+  <title>ZooEnrich · Admin Order Detail</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
-    /* =========== Vendor header (UNIFIED — copied from vendor_orders_1_2.html) =========== */
+    /* =========== Vendor header (UNIFIED — copied from admin_orders_1.html) =========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
     .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
     .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
@@ -41,7 +43,7 @@
     }
     @media (max-width: 400px) { .brand-mark > span:not(.logo-box) { display: none; } }
 
-    /* Vendor mobile drawer */
+    /* Admin mobile drawer */
     .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
     .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
     @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
@@ -159,6 +161,106 @@
     .item .add-cat { font-size: 11.5px; color: var(--brand); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; cursor: pointer; border: none; transition: .15s; }
     .item .add-cat:hover { background: var(--brand); color: #fff; }
     .item .added-badge { font-size: 11px; color: var(--brand-hover); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; }
+    /* Fulfilment summary (read-only, mirrors decision captured during Accept Order) */
+    .fl-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; margin-top: 10px; line-height: 1; }
+    .fl-pill-inhouse { background: #ECFDF5; color: #047857; }
+    .fl-pill-inhouse i { color: #047857; }
+
+    /* ============== Per-line status pill + popover ============== */
+    .item .meta { position: relative; }
+    .item .title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .item .title-row .title { flex: 1; min-width: 0; }
+    .ls-pill-wrap { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ls-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; line-height: 1; border: 1px solid transparent; background: #F1F2F4; color: var(--text-muted); cursor: pointer; transition: .15s; white-space: nowrap; font-family: inherit; }
+    .ls-pill:hover { filter: brightness(.97); transform: translateY(-1px); }
+    .ls-pill:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(55,189,105,.25); }
+    .ls-pill[disabled], .ls-pill.read-only { cursor: default; }
+    .ls-pill[disabled]:hover, .ls-pill.read-only:hover { transform: none; filter: none; }
+    .ls-pill .ls-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; opacity: .85; flex-shrink: 0; }
+    .ls-pill i { opacity: .65; }
+    .ls-pill-pending     { background: #F1F2F4; color: var(--text-muted); }
+    .ls-pill-in_progress { background: #FEF3C7; color: #A16207; }
+    .ls-pill-ready       { background: #DBEAFE; color: #1E40AF; }
+    .ls-pill-shipped     { background: #E0E7FF; color: #4338CA; }
+    .ls-pill-delivered   { background: #ECFDF5; color: #047857; }
+    .ls-pill-cancelled   { background: #FEE2E2; color: #B91C1C; }
+    .ls-pill-suffix      { font-size: 10px; font-weight: 600; line-height: 1; color: #4338CA; margin-left: 4px; letter-spacing: 0.01em; flex-shrink: 0; }
+    .ls-pill-suffix.delivered { color: #047857; }
+    .ls-overdue { display: inline-flex; align-items: center; justify-content: center; color: var(--danger); cursor: help; }
+    .ls-overdue i { width: 14px; height: 14px; }
+
+    /* Shared popover (positioned absolutely below pill) */
+    .ls-popover { position: absolute; z-index: 90; width: 280px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 0; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity .14s ease, transform .14s ease; }
+    .ls-popover.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .ls-pop-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+    .ls-pop-head .lbl { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+    .ls-pop-head .nm { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.3; word-break: break-word; }
+    .ls-pop-section { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+    .ls-pop-section:last-child { border-bottom: none; }
+    .ls-pop-section .ls-sec-lbl { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+    .ls-pop-btn { width: 100%; padding: 9px 12px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; transition: .15s; font-family: inherit; }
+    .ls-pop-btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
+    .ls-pop-btn-primary:hover { background: var(--brand-hover); }
+    .ls-pop-btn-ghost { background: var(--card); color: var(--text); border-color: var(--border); }
+    .ls-pop-btn-ghost:hover { background: #F9FAFB; border-color: var(--border-strong); }
+    .ls-pop-btn-danger { background: #fff; color: var(--danger); border-color: #F5C2CB; }
+    .ls-pop-btn-danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger); }
+    .ls-pop-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+    .ls-eta-row { display: flex; gap: 6px; align-items: center; }
+    .ls-eta-input { flex: 1; min-width: 0; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); outline: none; font-family: inherit; background: var(--card); }
+    .ls-eta-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .ls-ship-row { display: flex; gap: 8px; align-items: center; }
+    .ls-ship-input { width: 72px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); outline: none; font-family: inherit; background: var(--card); font-weight: 700; text-align: center; -moz-appearance: textfield; }
+    .ls-ship-input::-webkit-outer-spin-button, .ls-ship-input::-webkit-inner-spin-button { opacity: 1; }
+    .ls-ship-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .ls-ship-of { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+    .ls-ship-helper { font-size: 11.5px; color: var(--text-muted); line-height: 1.3; min-height: 14px; }
+    .ls-ship-helper.full { color: #047857; font-weight: 600; }
+    .ls-ship-helper.partial { color: #A16207; font-weight: 600; }
+    .ls-ship-helper .ls-ship-bo { color: #A16207; }
+    .ls-cancel-section { background: #FEF7F7; }
+    .ls-cancel-textarea { width: 100%; min-height: 64px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); outline: none; resize: vertical; font-family: inherit; line-height: 1.4; }
+    .ls-cancel-textarea:focus { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(176,0,32,.12); }
+    .ls-cancel-textarea.invalid { border-color: var(--danger); animation: lsShake .35s; }
+    @keyframes lsShake { 0%,100%{transform:translateX(0)} 25%,75%{transform:translateX(-4px)} 50%{transform:translateX(4px)} }
+    .ls-inline-err { font-size: 11px; color: var(--danger); font-weight: 600; display: none; }
+    .ls-inline-err.show { display: block; }
+    .ls-audit { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+    .ls-audit strong { color: var(--text); font-weight: 700; }
+
+    /* Rollup line in items card head */
+    .ls-rollup { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+    .ls-rollup .ls-rollup-sep { color: var(--text-subtle); }
+    .ls-rollup-chip { display: inline-flex; align-items: center; gap: 5px; }
+    .ls-rollup-chip .d { width: 7px; height: 7px; border-radius: 999px; }
+    .ls-rollup-chip .d.pending     { background: #9CA3AF; }
+    .ls-rollup-chip .d.in_progress { background: #D97706; }
+    .ls-rollup-chip .d.ready       { background: #2563EB; }
+    .ls-rollup-chip .d.shipped     { background: #4F46E5; }
+    .ls-rollup-chip .d.partial     { background: #D97706; }
+    .ls-rollup-chip .d.delivered   { background: #047857; }
+    .ls-rollup-chip .d.cancelled   { background: #B91C1C; }
+    .ls-rollup-chip strong { color: var(--text); font-weight: 700; }
+    @media (max-width: 600px) {
+      .item .title-row { flex-wrap: wrap; }
+      .ls-popover { width: calc(100vw - 32px); max-width: 320px; }
+    }
+    .fl-summary { background: #FAFBFC; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+    .fl-summary-head { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .fl-summary-head i { width: 14px; height: 14px; color: var(--brand); }
+    .fl-summary-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; align-items: start; }
+    .fl-row-k { font-weight: 600; color: var(--text-muted); }
+    .fl-row-v { color: var(--text); min-width: 0; word-break: break-word; }
+    .fl-row-v.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+    .fl-row-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-weight: 500; }
+    .fl-row-sub-inline { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+    .fl-row-link { color: var(--brand-hover); text-decoration: underline; text-underline-offset: 2px; }
+    .fl-row-link:hover { color: var(--brand); }
+    @media (max-width: 480px) {
+      .fl-summary-grid { grid-template-columns: 1fr; gap: 2px 0; }
+      .fl-row-k { margin-top: 6px; }
+      .fl-row-k:first-child { margin-top: 0; }
+    }
 
     /* Address & tracking cards */
     .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 16px; font-size: 13px; }
@@ -213,7 +315,7 @@
     .ts-line .lab { color: var(--text-muted); }
     .ts-line .val { color: var(--text); font-weight: 600; }
 
-    /* ============== Chat side sheet (copied from vendor_orders_1_2.html) ============== */
+    /* ============== Chat side sheet (copied from admin_orders_1.html) ============== */
     .chat-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 110; }
     .chat-overlay.open { opacity: 1; pointer-events: auto; }
     .chat-sheet { position: fixed; top: 0; right: 0; bottom: 0; width: 540px; max-width: 95vw; background: var(--card); box-shadow: -20px 0 50px -12px rgba(15,23,42,.22); transform: translateX(100%); transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index: 120; display: flex; flex-direction: column; overflow: hidden; }
@@ -278,7 +380,7 @@
     .send-btn:hover { background: var(--brand-hover); transform: scale(1.04); }
     .send-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-    /* ============== Modal (Accept + Add-to-catalog) ============== */
+    /* ============== Modal (shared by Generic + Revert) ============== */
     .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 130; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
     .modal { background: var(--card); border-radius: 18px; box-shadow: var(--shadow-xl); width: 640px; max-width: 100%; max-height: calc(100vh - 40px); display: flex; flex-direction: column; transform: scale(.96) translateY(10px); transition: transform .24s cubic-bezier(.2,.8,.2,1); overflow: hidden; }
@@ -294,103 +396,6 @@
       .modal-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
       .modal { max-height: 100vh; max-width: 100vw; border-radius: 0; height: 100vh; }
     }
-
-    /* Stepper progress */
-    .step-progress { display: flex; align-items: center; gap: 6px; flex: 1; margin-right: 16px; }
-    .step-progress .sp { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
-    .step-progress .sp .sn { width: 22px; height: 22px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; transition: .2s; }
-    .step-progress .sp.done .sn, .step-progress .sp.active .sn { background: var(--brand); color: #fff; }
-    .step-progress .sp.active { color: var(--text); }
-    .step-progress .sp.done { color: var(--brand-hover); }
-    @media (max-width: 500px) { .step-progress .sp span:not(.sn) { display: none; } .step-progress { margin-right: 8px; } }
-
-    /* Step 1 — item editor */
-    .step-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; background: var(--card); }
-    .step-item .row1 { display: flex; align-items: center; gap: 12px; }
-    .step-item .row1 .thumb { width: 52px; height: 52px; border-radius: 10px; background: var(--card-subtle); overflow: hidden; flex-shrink: 0; }
-    .step-item .row1 .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .step-item .row1 .ttl { font-size: 13.5px; font-weight: 700; color: var(--text); }
-    .step-item .row1 .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
-    .step-item .inputs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-    .step-item .inputs .field { flex: 1; min-width: 120px; }
-    .step-item .inputs label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block; }
-    .step-item .inputs input { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; outline: none; font-family: var(--font); background: var(--card); }
-    .step-item .inputs input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
-    .step-item .line-total { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12.5px; }
-    .step-item .line-total .lab { color: var(--text-muted); }
-    .step-item .line-total .val { font-weight: 800; color: var(--text); }
-    .step-item.custom { border-color: #FDE68A; background: #FFFDF5; }
-    .step-item .cat-btn { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
-    .step-item .cat-btn:hover { background: var(--brand); color: #fff; }
-    .step-item .cat-added { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
-
-    .subtotal-bar { margin-top: 8px; padding: 12px 14px; background: var(--brand-soft); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    .subtotal-bar .lab { color: var(--brand-hover); font-weight: 600; }
-    .subtotal-bar .val { color: var(--text); font-weight: 800; font-size: 16px; }
-
-    /* Step 2 — delivery days */
-    .days-big { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 18px; }
-    .days-step-btn { width: 44px; height: 44px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--border); cursor: pointer; font-size: 22px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
-    .days-step-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
-    .days-step-btn:active { transform: scale(.94); }
-    .days-input { width: 120px; height: 64px; text-align: center; font-size: 34px; font-weight: 800; border: 2px solid var(--border); border-radius: 14px; color: var(--text); outline: none; font-variant-numeric: tabular-nums; font-family: var(--font); }
-    .days-input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.15); }
-    .days-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
-
-    .preset-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px; }
-    .preset-chip { padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card); font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; transition: .15s; }
-    .preset-chip:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
-    .preset-chip.active { border-color: var(--brand); color: #fff; background: var(--brand); box-shadow: 0 3px 8px -2px rgba(55,189,105,.4); }
-
-    .date-preview { padding: 14px 18px; background: linear-gradient(135deg, var(--brand-soft) 0%, #F0FDF4 100%); border: 1.5px solid var(--brand); border-radius: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .date-preview .ic { width: 42px; height: 42px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .date-preview .txt .lab { font-size: 11px; font-weight: 700; color: var(--brand-hover); text-transform: uppercase; letter-spacing: .05em; }
-    .date-preview .txt .big { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 2px; letter-spacing: -0.01em; }
-
-    .hint { font-size: 12px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 6px; padding: 10px 12px; background: var(--card-subtle); border-radius: 10px; margin-bottom: 14px; }
-    .hint i { flex-shrink: 0; margin-top: 1px; color: var(--text-muted); }
-
-    .buffer-toggle { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card-subtle); border-radius: 10px; font-size: 13px; cursor: pointer; }
-    .buffer-toggle input { margin: 0; }
-    .buffer-toggle .tg-lab { font-weight: 600; color: var(--text); }
-    .buffer-toggle .tg-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
-
-    /* Step 3 — note */
-    .note-area { width: 100%; min-height: 100px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 13.5px; color: var(--text); outline: none; resize: vertical; font-family: var(--font); line-height: 1.5; }
-    .note-area:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
-
-    .revise-toggle { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--card-subtle); border-radius: 10px; font-size: 13px; margin-top: 14px; cursor: pointer; }
-    .price-revise { margin-top: 12px; padding: 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; display: none; }
-    .price-revise.open { display: block; }
-    .price-revise label { font-size: 12px; font-weight: 700; color: #A16207; margin-bottom: 6px; display: block; }
-    .price-revise input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #FDE68A; font-size: 15px; font-weight: 700; color: var(--text); outline: none; font-family: var(--font); background: #fff; }
-
-    /* Review screen */
-    .review-card { background: var(--brand-soft); border: 1.5px solid var(--brand); border-radius: 14px; padding: 18px; }
-    .review-kv { display: grid; grid-template-columns: 130px 1fr; gap: 10px 16px; font-size: 13.5px; margin-bottom: 14px; }
-    .review-kv .k { color: var(--brand-hover); font-weight: 600; }
-    .review-kv .v { color: var(--text); font-weight: 700; }
-    .review-kv .v.big { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
-    .review-line { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12.5px; color: var(--text); }
-    .review-line .thm { width: 30px; height: 30px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
-    .review-line .thm img { width: 100%; height: 100%; object-fit: cover; }
-    .review-line .nm { flex: 1; }
-    .review-line .tot { font-weight: 700; font-variant-numeric: tabular-nums; }
-
-    /* Add-to-catalog nested modal */
-    .cat-form .field { margin-bottom: 14px; }
-    .cat-form label { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .cat-form input, .cat-form select, .cat-form textarea { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 13.5px; color: var(--text); outline: none; font-family: var(--font); background: var(--card); }
-    .cat-form input:focus, .cat-form select:focus, .cat-form textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
-    .cat-form textarea { min-height: 70px; resize: vertical; }
-    .thumb-drop { width: 100%; height: 120px; border: 2px dashed var(--border); border-radius: 12px; background: var(--card-subtle); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: .15s; }
-    .thumb-drop:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
-    .thumb-drop i { color: var(--text-subtle); }
-    .thumb-drop:hover i { color: var(--brand); }
-    .tag-picker { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tag-opt { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: .15s; }
-    .tag-opt:hover { border-color: var(--brand); color: var(--brand); }
-    .tag-opt.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 
     /* Revert modal */
     .revert-banner { display: flex; gap: 10px; padding: 12px 14px; background: #FFF8CC; border: 1px solid #FDE68A; border-radius: 12px; font-size: 12.5px; color: #6D4B00; line-height: 1.5; margin-bottom: 16px; }
@@ -437,37 +442,38 @@
       .cta-group .cta-btn { flex: 1; justify-content: center; }
     }
   </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
 <body>
 
 <!-- Header (unified) -->
 <header class="app-header">
   <div class="page-wrap row">
-    <a href="vendor_dashboard_1.html" class="brand-mark">
+    <a href="admin_dashboard_1.html" class="brand-mark">
       <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
       <span>ZooEnrich</span>
     </a>
     <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button"><i data-lucide="menu" class="w-5 h-5"></i></button>
     <nav class="v-nav" id="vNav">
-      <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
-      <a href="vendor_orders_1_2.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
-      <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
-      <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
-      <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+      <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+      <a href="admin_orders_1.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
+      <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+      <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+      <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
       <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
-      <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+      <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
     </nav>
     <div class="v-right">
       <div class="v-avatar-wrap">
         <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
-          <img src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Vendor logo"/>
+          <img src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
           <span class="v-name">TeakCraft</span>
           <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
         </button>
         <div class="v-menu" id="vMenu" role="menu">
           <div class="muted">Signed in</div>
-          <div class="divider"></div>
-          <a href="vendor_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
+          <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+          <a href="admin_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
           <button id="btnSignOut"><i data-lucide="log-out" class="w-4 h-4"></i>Sign out</button>
         </div>
       </div>
@@ -477,19 +483,19 @@
 
 <!-- Vendor mobile drawer -->
 <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
-<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Vendor navigation">
+<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
   <div class="vd-head">
     <span class="brand-mark"><span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span><span>ZooEnrich</span></span>
     <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
   </div>
   <nav class="vd-nav">
-    <a href="vendor_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-    <a href="vendor_orders_1_2.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
-    <a href="vendor_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
-    <a href="vendor_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
-    <a href="vendor_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+    <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+    <a href="admin_orders_1.html" class="active"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
+    <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+    <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+    <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
     <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
-    <a href="returns_vendor_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+    <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
   </nav>
   <div class="vd-foot">
     <button class="btn-ghost" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
@@ -504,16 +510,6 @@
 <div class="chat-overlay" id="chatOverlay" aria-hidden="true"></div>
 <aside class="chat-sheet" id="chatSheet" aria-hidden="true" aria-label="Order chat"></aside>
 
-<!-- Accept modal -->
-<div class="modal-overlay" id="acceptOverlay" aria-hidden="true">
-  <div class="modal" id="acceptModal" role="dialog" aria-labelledby="acceptTitle"></div>
-</div>
-
-<!-- Add to catalog modal (nested) -->
-<div class="modal-overlay" id="catOverlay" aria-hidden="true" style="z-index:140;">
-  <div class="modal" id="catModal" role="dialog" aria-labelledby="catTitle" style="width:520px;"></div>
-</div>
-
 <!-- Generic modal (view reason, progress update, generate label, etc.) -->
 <div class="modal-overlay" id="genOverlay" aria-hidden="true">
   <div class="modal" id="genModal" role="dialog" style="width:520px;"></div>
@@ -527,8 +523,11 @@
 <!-- Toasts -->
 <div class="toast-stack" id="toastStack"></div>
 
+<!-- Per-line status popover (single instance, repositioned per pill click) -->
+<div class="ls-popover" id="lsPopover" role="dialog" aria-modal="false" aria-label="Update line status"></div>
+
 <script>
-/* ============ Data (mirrored from vendor_orders_1_2.html) ============ */
+/* ============ Data (mirrored from admin_orders_1.html) ============ */
 const BUYERS = [
   { nm: 'Priya Raman',        zoo: 'Bannerghatta Biological Park · Bengaluru', role:'Sr. Biologist',   seed: 401, addr:{street:'Bannerghatta Rd, Anekal Taluk', pin:'560083', city:'Bengaluru', phone:'+91 98451 22340'}, pastOrders:12 },
   { nm: 'Dr. Arjun Menon',    zoo: 'Mysuru Zoo · Mysuru',                       role:'Veterinarian',    seed: 402, addr:{street:'Indiranagar, Mysuru Zoo Rd', pin:'570010', city:'Mysuru', phone:'+91 98860 11022'}, pastOrders:7 },
@@ -691,6 +690,16 @@ const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',m
 const fmtDateLong = iso => new Date(iso).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 const fmtDateMed = iso => new Date(iso).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'});
 const escapeHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function daysFromToday(d) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = (d instanceof Date) ? new Date(d) : new Date(d);
+  target.setHours(0,0,0,0);
+  const diff = Math.round((target - today) / 86400000);
+  if (diff < 0) return '';
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'in 1 day';
+  return 'in ' + diff + ' days';
+}
 function getParam(name){ const m = new URLSearchParams(window.location.search); return m.get(name); }
 function slaBig(h){ if (h==null) return ''; if (h<0) return `<span class="sla-big urgent"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> ${Math.abs(h)}h over SLA</span>`; if (h<=12) return `<span class="sla-big urgent"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; if (h<=24) return `<span class="sla-big warn"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; return `<span class="sla-big ok"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${h}h left</span>`; }
 
@@ -698,15 +707,18 @@ function slaBig(h){ if (h==null) return ''; if (h<0) return `<span class="sla-bi
 function timelineSteps(o) {
   const steps = [
     { key:'placed',        lbl:'New Request' },
-    { key:'confirmed',     lbl:'Approved' },
     { key:'in_production', lbl:'In Production' },
     { key:'packed',        lbl:'Ready to Ship' },
     { key:'shipped',       lbl:'Shipped' },
     { key:'delivered',     lbl:'Delivered' }
   ];
   const order = ['placed','confirmed','in_production','packed','shipped','out_for_delivery','delivered'];
-  let currentIdx = order.indexOf(o.status);
-  if (o.status === 'out_for_delivery') currentIdx = 4; // map to shipped
+  let rawIdx = order.indexOf(o.status);
+  // Treat legacy 'confirmed' as 'in_production' visually so the bar still lands on a real step.
+  if (o.status === 'confirmed') rawIdx = order.indexOf('in_production');
+  // Map raw chain index → visible step index (chain has 7, visible has 5).
+  const chainToVisible = { placed:0, confirmed:1, in_production:1, packed:2, shipped:3, out_for_delivery:3, delivered:4 };
+  let currentIdx = chainToVisible[o.status] ?? -1;
   if (o.status === 'cancelled' || o.status === 'returned') currentIdx = -1; // show all as inactive
   return steps.map((s, i) => {
     let cls = '';
@@ -716,9 +728,8 @@ function timelineSteps(o) {
       else if (i === currentIdx) cls = 'current';
     }
     if (i === 0 && o.createdAt) when = fmtDate(o.createdAt);
-    if (i === 1 && o.approvedAt) when = fmtDate(o.approvedAt);
-    if (i === 3 && o.packedAt) when = fmtDate(o.packedAt);
-    if (i === 5 && o.deliveredAt) when = fmtDate(o.deliveredAt);
+    if (i === 2 && o.packedAt) when = fmtDate(o.packedAt);
+    if (i === 4 && o.deliveredAt) when = fmtDate(o.deliveredAt);
     return `<div class="track-step ${cls}">
       <div class="dot">${cls==='done' ? '<i data-lucide=\'check\' class=\'w-3.5 h-3.5\'></i>' : (i+1)}</div>
       <div class="lbl">${s.lbl}</div>
@@ -727,16 +738,96 @@ function timelineSteps(o) {
   }).join('');
 }
 
+/* ============ Per-line status helpers ============ */
+const LINE_STATUS_LABEL = { pending:'Pending', in_progress:'In production', ready:'Ready to ship', shipped:'Shipped', delivered:'Delivered', cancelled:'Cancelled' };
+const LINE_STATUS_NEXT_LABEL = { pending:'In production', in_progress:'Ready to ship', ready:'Shipped', shipped:'Delivered' };
+function lineStatusOf(fulfilment) {
+  if (!fulfilment || !fulfilment.status) return 'pending';
+  return fulfilment.status;
+}
+function isLineTerminal(s) { return s === 'delivered' || s === 'cancelled'; }
+function isEtaOverdue(fulfilment) {
+  if (!fulfilment || !fulfilment.eta) return false;
+  const s = lineStatusOf(fulfilment);
+  if (s === 'delivered' || s === 'cancelled') return false;
+  const d = new Date(fulfilment.eta); d.setHours(23,59,59,999);
+  return d.getTime() < Date.now();
+}
+
 /* ============ Item card (with per-line custom "Add to catalog" button for detail page) ============ */
-function renderItemCard(it, idx, orderStatus) {
+function renderItemCard(it, idx, orderStatus, fulfilment) {
   const speciesImg = o => SPECIES[o]?.name || '';
   const isCustom = CUSTOM_IDS.has(it.p.sku);
   const chips = [];
   if (isCustom) chips.push(`<span class="item-chip custom"><i data-lucide="sparkles" class="w-3 h-3"></i> Custom build</span>`);
-  return `<div class="item">
+
+  // Read-only fulfilment summary (decision captured during Accept Order)
+  let fulfilmentHtml = '';
+  if (fulfilment && fulfilment.mode === 'inhouse') {
+    fulfilmentHtml = `<span class="fl-pill fl-pill-inhouse"><i data-lucide="home" class="w-3 h-3"></i> Made in-house</span>`;
+  } else if (fulfilment && fulfilment.mode === 'vendor' && fulfilment.vendor) {
+    const v = fulfilment.vendor;
+    const rows = [];
+    rows.push(`<div class="fl-row-k">Vendor</div><div class="fl-row-v">${escapeHtml(v.name || '—')}</div>`);
+    if (v.eta) {
+      const d = new Date(v.eta);
+      const sub = daysFromToday(d);
+      rows.push(`<div class="fl-row-k">ETA</div><div class="fl-row-v">${fmtDateLong(v.eta)}${sub?`<div class="fl-row-sub">${sub}</div>`:''}</div>`);
+    }
+    if (v.cost && Number(v.cost) > 0) {
+      rows.push(`<div class="fl-row-k">Cost</div><div class="fl-row-v">${inINR(v.cost)} <span class="fl-row-sub-inline">captured · doesn't affect order total</span></div>`);
+    }
+    if (v.ref && String(v.ref).trim()) {
+      const refStr = String(v.ref);
+      const isUrl = /^https?:\/\//.test(refStr);
+      const display = refStr.length > 60 ? refStr.slice(0, 57) + '…' : refStr;
+      const refHtml = isUrl
+        ? `<a href="${escapeHtml(refStr)}" target="_blank" rel="noopener" title="${escapeHtml(refStr)}" class="fl-row-link">${escapeHtml(display)}</a>`
+        : `<span title="${escapeHtml(refStr)}">${escapeHtml(display)}</span>`;
+      rows.push(`<div class="fl-row-k">Reference</div><div class="fl-row-v">${refHtml}</div>`);
+    }
+    fulfilmentHtml = `<div class="fl-summary">
+      <div class="fl-summary-head"><i data-lucide="truck"></i> Outsourced to vendor</div>
+      <div class="fl-summary-grid">${rows.join('')}</div>
+    </div>`;
+  }
+
+  // Per-line status pill (always rendered; read-only when parent order cancelled)
+  const status = lineStatusOf(fulfilment);
+  const parentCancelled = orderStatus === 'cancelled';
+  const overdue = isEtaOverdue(fulfilment);
+  const overdueIcon = overdue
+    ? `<span class="ls-overdue" title="ETA was ${fmtDate(fulfilment.eta)} — overdue"><i data-lucide="alert-triangle"></i></span>`
+    : '';
+  const pillCls = `ls-pill ls-pill-${status}${parentCancelled ? ' read-only' : ''}`;
+  const pillAttrs = parentCancelled
+    ? `disabled aria-disabled="true"`
+    : `data-ls-pill data-line-idx="${idx}" aria-haspopup="dialog" aria-expanded="false"`;
+  const chevron = parentCancelled ? '' : `<i data-lucide="chevron-down" class="w-3 h-3"></i>`;
+  // Partial-ship aware label + suffix-chip
+  const totalQtyForPill = it.qty;
+  const shippedQtyForPill = (fulfilment && Number(fulfilment.shippedQty)) || 0;
+  const isPartial = (status === 'shipped' || status === 'delivered') && shippedQtyForPill > 0 && shippedQtyForPill < totalQtyForPill;
+  let pillLabel = LINE_STATUS_LABEL[status] || 'Pending';
+  if (status === 'shipped' && isPartial) pillLabel = 'Partially shipped';
+  else if (status === 'delivered' && isPartial) pillLabel = 'Delivered (partial)';
+  const suffixChip = isPartial
+    ? `<span class="ls-pill-suffix${status === 'delivered' ? ' delivered' : ''}" aria-label="${shippedQtyForPill} of ${totalQtyForPill} shipped">(${shippedQtyForPill}/${totalQtyForPill})</span>`
+    : '';
+  const pill = `<div class="ls-pill-wrap">
+    ${overdueIcon}
+    <button type="button" class="${pillCls}" ${pillAttrs}>
+      <span class="ls-dot"></span>${pillLabel}${chevron}
+    </button>${suffixChip}
+  </div>`;
+
+  return `<div class="item" data-line-idx="${idx}">
     <div class="thumb"><img src="${it.p.img}" alt=""/></div>
     <div class="meta">
-      <div class="title">${escapeHtml(it.p.name)}</div>
+      <div class="title-row">
+        <div class="title">${escapeHtml(it.p.name)}</div>
+        ${pill}
+      </div>
       <div class="sku">SKU ${it.p.sku}</div>
       <div class="chips">${chips.join('')}</div>
       ${it.note?`<div class="desc">${escapeHtml(it.note)}</div>`:''}
@@ -744,14 +835,51 @@ function renderItemCard(it, idx, orderStatus) {
         <div class="left">Qty <strong>${it.qty}</strong> × ${inINR(it.unit)}</div>
         <div class="right">${inINR(it.qty * it.unit)}</div>
       </div>
+      ${fulfilmentHtml}
     </div>
   </div>`;
+}
+
+/* ============ Per-line rollup line ============ */
+function renderLineRollup(items, fulfilmentMap) {
+  // Only render when at least one line has a record (otherwise no useful info)
+  let hasAny = false;
+  const counts = { pending:0, in_progress:0, ready:0, shipped:0, partial:0, delivered:0, cancelled:0 };
+  for (let i = 0; i < items.length; i++) {
+    const f = fulfilmentMap[i];
+    const total = items[i] ? items[i].qty : 0;
+    const sq = (f && Number(f.shippedQty)) || 0;
+    if (f && f.status) {
+      hasAny = true;
+      counts[f.status] = (counts[f.status] || 0) + 1;
+      if ((f.status === 'shipped' || f.status === 'delivered') && sq > 0 && sq < total) {
+        counts.partial++;
+      }
+    }
+    else counts.pending++;
+  }
+  if (!hasAny) return '';
+  const pieces = [];
+  // Show only non-zero, in workflow order; partial sits between shipped and delivered
+  const order = ['delivered','partial','shipped','ready','in_progress','pending','cancelled'];
+  const partialLabel = 'partial';
+  for (const k of order) {
+    if (counts[k] > 0) {
+      const label = k === 'partial' ? partialLabel : LINE_STATUS_LABEL[k].toLowerCase();
+      pieces.push(`<span class="ls-rollup-chip"><span class="d ${k}"></span><strong>${counts[k]}</strong> ${label}</span>`);
+    }
+  }
+  if (!pieces.length) return '';
+  return `<span class="ls-rollup-sep">·</span> <span class="ls-rollup">${pieces.join('<span class="ls-rollup-sep">·</span>')}</span>`;
 }
 
 /* ============ Order detail page render ============ */
 function renderDetail(o) {
   const b = BUYERS[o.buyer];
   const sp = SPECIES[o.species];
+  const fulfilmentMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+    ? ZE.orders.lineFulfilment.forOrder(o.id)
+    : {};
 
   // State-aware CTAs
   const ctas = stateCTAs(o);
@@ -759,11 +887,11 @@ function renderDetail(o) {
   // Breadcrumb
   const isSample = !window.location.search.includes('id=');
   const sampleBanner = isSample
-    ? `<div class="sample-banner"><i data-lucide="info" class="w-4 h-4"></i><div>Showing sample order — click any order from <a href="vendor_orders_1_2.html" style="color:var(--brand);text-decoration:underline;font-weight:700">the listing</a> to see its detail.</div></div>`
+    ? `<div class="sample-banner"><i data-lucide="info" class="w-4 h-4"></i><div>Showing sample order — click any order from <a href="admin_orders_1.html" style="color:var(--brand);text-decoration:underline;font-weight:700">the listing</a> to see its detail.</div></div>`
     : '';
 
   // Line items
-  const itemsHtml = o.items.map((it,i) => renderItemCard(it, i, o.status)).join('');
+  const itemsHtml = o.items.map((it,i) => renderItemCard(it, i, o.status, fulfilmentMap[i])).join('');
   const subtotal = o.items.reduce((s,it)=>s + it.qty * it.unit, 0);
   const commission = Math.round(subtotal * 0.06);
   const tax = Math.round((subtotal - commission) * 0.18);
@@ -839,13 +967,13 @@ function renderDetail(o) {
   // Render
   return `
     <div class="crumbs">
-      <a href="vendor_dashboard_1.html">Dashboard</a>
+      <a href="admin_dashboard_1.html">Dashboard</a>
       <span style="color:var(--text-subtle)">›</span>
-      <a href="vendor_orders_1_2.html">Orders</a>
+      <a href="admin_orders_1.html">Orders</a>
       <span style="color:var(--text-subtle)">›</span>
       <span style="color:var(--text);font-weight:600">${o.id}</span>
     </div>
-    <a href="vendor_orders_1_2.html" class="back-link"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to orders</a>
+    <a href="admin_orders_1.html" class="back-link"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to orders</a>
 
     ${sampleBanner}
 
@@ -857,7 +985,7 @@ function renderDetail(o) {
           ${o.slaHoursLeft != null ? slaBig(o.slaHoursLeft) : ''}
         </div>
         <div class="dh-meta">
-          <span><i data-lucide="calendar" class="w-3.5 h-3.5" style="vertical-align:middle;color:var(--text-subtle)"></i> Placed <strong>${fmtDate(o.createdAt)}</strong></span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="calendar" class="w-3.5 h-3.5" style="color:var(--text-subtle)"></i> Placed <strong>${fmtDate(o.createdAt)}</strong></span>
           <span class="sep">·</span>
           <span><strong>${escapeHtml(b.nm)}</strong> · ${escapeHtml(b.zoo)}</span>
         </div>
@@ -881,7 +1009,7 @@ function renderDetail(o) {
 
         <!-- Items -->
         <div class="card">
-          <div class="card-head"><h3><i data-lucide="package" class="w-4 h-4"></i> Products · ${o.items.length} line${o.items.length>1?'s':''}</h3></div>
+          <div class="card-head"><h3><i data-lucide="package" class="w-4 h-4"></i> Products · ${o.items.length} line${o.items.length>1?'s':''} ${renderLineRollup(o.items, fulfilmentMap)}</h3></div>
           ${itemsHtml}
         </div>
 
@@ -986,7 +1114,7 @@ function stateCTAs(o) {
   let ctas = '';
   if (o.status === 'placed') {
     ctas = `
-      <button class="cta-btn cta-primary" onclick="openAcceptModal()"><i data-lucide="sparkles" class="w-4 h-4"></i> Accept &amp; Confirm</button>
+      <a class="cta-btn cta-primary" href="admin_accept_order_1.html?id=${encodeURIComponent(o.id)}"><i data-lucide="sparkles" class="w-4 h-4"></i> Accept &amp; Confirm</a>
       <button class="cta-btn cta-ghost" onclick="toast('Queued for later · reminders in 24h','warn')"><i data-lucide="timer" class="w-4 h-4"></i> Queue for later</button>
       <button class="cta-btn cta-danger" onclick="openGen('decline')"><i data-lucide="x" class="w-4 h-4"></i> Decline</button>`;
   } else if (o.status === 'confirmed') {
@@ -1015,7 +1143,7 @@ function stateCTAs(o) {
       <button class="cta-btn cta-ghost" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat buyer</button>`;
   } else if (o.status === 'returned') {
     ctas = `
-      <a class="cta-btn cta-primary" href="returns_vendor_1.html?id=${o.id}"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Manage Return</a>`;
+      <a class="cta-btn cta-primary" href="admin_returns_1.html?id=${o.id}"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Manage Return</a>`;
   }
   return ctas + revertBtn(o);
 }
@@ -1148,7 +1276,7 @@ function confirmRevert() {
   if (window.lucide?.createIcons) window.lucide.createIcons();
 }
 
-/* ============ Chat side sheet (copied from vendor_orders_1_2.html) ============ */
+/* ============ Chat side sheet (copied from admin_orders_1.html) ============ */
 function chatPanel(o){
   const b = BUYERS[o.buyer];
   const avatar = `https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true`;
@@ -1247,373 +1375,6 @@ function sendInSheet(ta, sendBtn) {
   ta.value = ''; ta.style.height = 'auto'; sendBtn.disabled = true;
   msgs.scrollTop = msgs.scrollHeight;
   if (window.lucide?.createIcons) window.lucide.createIcons();
-}
-
-/* ============ Accept Modal (3 steps + review) ============ */
-let acceptState = {
-  step: 1,            // 1 = items, 2 = days, 3 = note, 4 = review
-  days: 14,
-  note: '',
-  reviseTotal: null,
-  addedToCat: {},     // sku -> true
-  items: []           // live copy {qty, unit}
-};
-
-function openAcceptModal() {
-  if (!currentOrder) return;
-  // Reset state from order
-  acceptState = {
-    step: 1,
-    days: 14,
-    note: '',
-    reviseTotal: null,
-    addedToCat: {},
-    items: currentOrder.items.map(it => ({ qty: it.qty, unit: it.unit, sku: it.p.sku, name: it.p.name, img: it.p.img, note: it.note, custom: CUSTOM_IDS.has(it.p.sku) }))
-  };
-  renderAcceptModal();
-  document.getElementById('acceptOverlay').classList.add('open');
-}
-function closeAcceptModal() {
-  document.getElementById('acceptOverlay').classList.remove('open');
-}
-
-function computeDelivery() {
-  const d = new Date();
-  d.setDate(d.getDate() + acceptState.days);
-  return d;
-}
-
-function renderAcceptModal() {
-  const modal = document.getElementById('acceptModal');
-  const s = acceptState.step;
-  const subtotal = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
-  const finalTotal = acceptState.reviseTotal != null ? acceptState.reviseTotal : subtotal;
-
-  const progress = `
-    <div class="step-progress">
-      <div class="sp ${s>1?'done':(s===1?'active':'')}"><span class="sn">${s>1?'✓':'1'}</span><span>Review</span></div>
-      <div class="sp ${s>2?'done':(s===2?'active':'')}"><span class="sn">${s>2?'✓':'2'}</span><span>Delivery</span></div>
-      <div class="sp ${s>3?'done':(s===3?'active':'')}"><span class="sn">${s>3?'✓':'3'}</span><span>Note</span></div>
-      <div class="sp ${s===4?'active':''}"><span class="sn">4</span><span>Confirm</span></div>
-    </div>`;
-
-  let body = '';
-  let foot = '';
-
-  if (s === 1) {
-    const itemsHtml = acceptState.items.map((it, idx) => {
-      const addCatBtn = it.custom
-        ? (acceptState.addedToCat[it.sku]
-           ? `<div class="cat-added"><i data-lucide="check-circle" class="w-3 h-3"></i> Added to your catalog</div>`
-           : `<button class="cat-btn" onclick="openCatalogModal(${idx})"><i data-lucide="plus-circle" class="w-3 h-3"></i> Add to my catalog</button>`)
-        : '';
-      return `<div class="step-item ${it.custom?'custom':''}">
-        <div class="row1">
-          <div class="thumb"><img src="${it.img}" alt=""/></div>
-          <div style="flex:1;min-width:0;">
-            <div class="ttl">${escapeHtml(it.name)}</div>
-            <div class="sub">SKU ${it.sku}${it.custom?' · <span style="color:#A16207;font-weight:700;">Not in your catalog</span>':''}</div>
-          </div>
-        </div>
-        <div class="inputs">
-          <div class="field"><label>Quantity</label><input type="number" min="1" value="${it.qty}" data-item-idx="${idx}" data-field="qty"/></div>
-          <div class="field"><label>Unit price (₹)</label><input type="number" min="0" value="${it.unit}" data-item-idx="${idx}" data-field="unit"/></div>
-        </div>
-        ${it.note ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.4;"><strong style="color:var(--text);">Buyer spec:</strong> ${escapeHtml(it.note)}</div>` : ''}
-        ${addCatBtn}
-        <div class="line-total"><div class="lab">Line total</div><div class="val">${inINR(it.qty * it.unit)}</div></div>
-      </div>`;
-    }).join('');
-
-    body = `
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Review quantities and pricing. For any items not yet in your catalog, you can add them with a single click.</div>
-      ${itemsHtml}
-      <div class="subtotal-bar"><div class="lab">Running subtotal</div><div class="val">${inINR(subtotal)}</div></div>`;
-    foot = `
-      <button class="cta-btn cta-ghost" onclick="closeAcceptModal()">Cancel</button>
-      <button class="cta-btn cta-primary" onclick="nextStep()">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
-  }
-
-  else if (s === 2) {
-    const preview = computeDelivery();
-    const presets = [
-      { lbl:'1 week', days:7 },
-      { lbl:'2 weeks', days:14 },
-      { lbl:'3 weeks', days:21 },
-      { lbl:'1 month', days:30 }
-    ];
-    body = `
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Tell the buyer how many days you need to deliver. They'll see a countdown on their side and a clear "Delivers by" date.</div>
-
-      <div class="days-label" style="text-align:center;margin-bottom:8px;">How many days to deliver?</div>
-      <div class="days-big">
-        <button class="days-step-btn" onclick="tweakDays(-1)" aria-label="Decrease"><i data-lucide="minus" class="w-5 h-5"></i></button>
-        <input type="number" class="days-input" id="daysInput" min="1" max="180" value="${acceptState.days}"/>
-        <button class="days-step-btn" onclick="tweakDays(1)" aria-label="Increase"><i data-lucide="plus" class="w-5 h-5"></i></button>
-      </div>
-      <div class="days-label" style="text-align:center;margin-bottom:16px;">days</div>
-
-      <div class="preset-chips" id="presetChips">
-        ${presets.map(p => `<button class="preset-chip ${p.days === acceptState.days?'active':''}" data-days="${p.days}">${p.lbl}</button>`).join('')}
-      </div>
-
-      <div class="date-preview">
-        <div class="ic"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
-        <div class="txt">
-          <div class="lab">Delivers by</div>
-          <div class="big" id="deliveryPreview">${fmtDateLong(preview)}</div>
-        </div>
-      </div>
-
-      <div class="hint"><i data-lucide="info" class="w-3.5 h-3.5"></i><div>Include buffer for any rework requests. Buyers see this as a live countdown, so shorter but reliable beats optimistic.</div></div>
-
-      <label class="buffer-toggle">
-        <input type="checkbox" id="bufferChk" ${acceptState.bufferAdded?'checked':''}/>
-        <div>
-          <div class="tg-lab">Add 3-day risk padding</div>
-          <div class="tg-sub">Recommended for items with weather-dependent materials</div>
-        </div>
-      </label>`;
-    foot = `
-      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-      <button class="cta-btn cta-primary" onclick="nextStep()">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
-  }
-
-  else if (s === 3) {
-    body = `
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Optionally add a note. Buyers appreciate clarity around spec, pricing adjustments, or schedule caveats.</div>
-
-      <label class="label" style="font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:6px;">Note to buyer</label>
-      <textarea class="note-area" id="noteArea" placeholder="e.g., Teak will be kiln-dried. Silicone corners add ₹6k — reflected in total.">${escapeHtml(acceptState.note)}</textarea>
-
-      <label class="revise-toggle">
-        <input type="checkbox" id="reviseChk" ${acceptState.reviseTotal != null ? 'checked':''}/>
-        <div>
-          <div class="tg-lab">Price adjusted? Show new total</div>
-          <div class="tg-sub">Useful if buyer asked for add-ons or specs changed</div>
-        </div>
-      </label>
-
-      <div class="price-revise ${acceptState.reviseTotal != null ? 'open':''}" id="priceReviseBox">
-        <label>New final quote (₹)</label>
-        <input type="number" id="reviseInput" min="0" value="${acceptState.reviseTotal ?? subtotal}"/>
-        <div style="font-size:11px;color:#A16207;margin-top:6px;">Current subtotal from Step 1: <strong>${inINR(subtotal)}</strong></div>
-      </div>`;
-    foot = `
-      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-      <button class="cta-btn cta-primary" onclick="nextStep()">Review <i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
-  }
-
-  else if (s === 4) {
-    const preview = computeDelivery();
-    const linesHtml = acceptState.items.map(it => `
-      <div class="review-line">
-        <div class="thm"><img src="${it.img}" alt=""/></div>
-        <div class="nm">${escapeHtml(it.name)} <span style="color:var(--text-muted);">× ${it.qty}</span></div>
-        <div class="tot">${inINR(it.qty * it.unit)}</div>
-      </div>`).join('');
-
-    body = `
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Double-check before confirming. Once accepted, the buyer gets a notification and the countdown starts.</div>
-      <div class="review-card">
-        <div class="review-kv">
-          <div class="k">Final total</div><div class="v big">${inINR(finalTotal)}</div>
-          <div class="k">Delivery window</div><div class="v">${acceptState.days} days</div>
-          <div class="k">Delivers by</div><div class="v">${fmtDateLong(preview)}</div>
-        </div>
-        <div style="margin-top:4px;padding-top:12px;border-top:1px dashed var(--brand);">
-          <div style="font-size:11.5px;font-weight:700;color:var(--brand-hover);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Line items</div>
-          ${linesHtml}
-        </div>
-        ${acceptState.note ? `<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--brand);font-size:12.5px;color:var(--text);line-height:1.5;"><strong>Note:</strong> ${escapeHtml(acceptState.note)}</div>` : ''}
-      </div>`;
-    foot = `
-      <button class="cta-btn cta-ghost" onclick="prevStep()"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to edit</button>
-      <button class="cta-btn cta-primary" onclick="confirmAccept()">Confirm &amp; Accept <i data-lucide="check" class="w-4 h-4"></i></button>`;
-  }
-
-  modal.innerHTML = `
-    <div class="modal-head">
-      <div class="title" id="acceptTitle"><i data-lucide="sparkles" class="w-5 h-5"></i> Accept order ${currentOrder.id}</div>
-      <button class="modal-close" onclick="closeAcceptModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div class="modal-body">${body}</div>
-    <div class="modal-foot">${progress}${foot}</div>`;
-
-  if (window.lucide?.createIcons) window.lucide.createIcons();
-  wireAcceptModal();
-}
-
-function wireAcceptModal() {
-  // Step 1 qty/unit wiring
-  document.querySelectorAll('[data-item-idx]').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const idx = +e.target.dataset.itemIdx;
-      const field = e.target.dataset.field;
-      const val = Math.max(0, +e.target.value || 0);
-      acceptState.items[idx][field] = val;
-      const st = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
-      const bar = document.querySelector('.subtotal-bar .val');
-      if (bar) bar.textContent = inINR(st);
-      const lineTotal = e.target.closest('.step-item').querySelector('.line-total .val');
-      if (lineTotal) lineTotal.textContent = inINR(acceptState.items[idx].qty * acceptState.items[idx].unit);
-    });
-  });
-  // Step 2
-  const daysInput = document.getElementById('daysInput');
-  if (daysInput) {
-    daysInput.addEventListener('input', e => {
-      let v = Math.max(1, Math.min(180, +e.target.value || 1));
-      acceptState.days = v;
-      updateDatePreview();
-      highlightPreset();
-    });
-  }
-  document.querySelectorAll('#presetChips .preset-chip').forEach(c => c.addEventListener('click', () => {
-    acceptState.days = +c.dataset.days;
-    if (daysInput) daysInput.value = acceptState.days;
-    updateDatePreview();
-    highlightPreset();
-  }));
-  const bufferChk = document.getElementById('bufferChk');
-  if (bufferChk) bufferChk.addEventListener('change', e => {
-    const wasOn = acceptState.bufferAdded;
-    if (e.target.checked && !wasOn) { acceptState.days += 3; }
-    else if (!e.target.checked && wasOn) { acceptState.days = Math.max(1, acceptState.days - 3); }
-    acceptState.bufferAdded = e.target.checked;
-    if (daysInput) daysInput.value = acceptState.days;
-    updateDatePreview();
-    highlightPreset();
-  });
-  // Step 3
-  const noteA = document.getElementById('noteArea');
-  if (noteA) noteA.addEventListener('input', e => acceptState.note = e.target.value);
-  const reviseChk = document.getElementById('reviseChk');
-  if (reviseChk) reviseChk.addEventListener('change', e => {
-    const box = document.getElementById('priceReviseBox');
-    if (e.target.checked) {
-      box.classList.add('open');
-      const st = acceptState.items.reduce((t,it)=>t + it.qty * it.unit, 0);
-      acceptState.reviseTotal = st;
-    } else {
-      box.classList.remove('open');
-      acceptState.reviseTotal = null;
-    }
-  });
-  const reviseInp = document.getElementById('reviseInput');
-  if (reviseInp) reviseInp.addEventListener('input', e => { acceptState.reviseTotal = Math.max(0, +e.target.value || 0); });
-}
-
-function updateDatePreview() {
-  const el = document.getElementById('deliveryPreview');
-  if (el) el.textContent = fmtDateLong(computeDelivery());
-}
-function highlightPreset() {
-  document.querySelectorAll('#presetChips .preset-chip').forEach(c => {
-    if (+c.dataset.days === acceptState.days) c.classList.add('active');
-    else c.classList.remove('active');
-  });
-}
-function tweakDays(delta) {
-  acceptState.days = Math.max(1, Math.min(180, acceptState.days + delta));
-  const di = document.getElementById('daysInput');
-  if (di) di.value = acceptState.days;
-  updateDatePreview();
-  highlightPreset();
-}
-function nextStep() {
-  if (acceptState.step < 4) { acceptState.step++; renderAcceptModal(); }
-}
-function prevStep() {
-  if (acceptState.step > 1) { acceptState.step--; renderAcceptModal(); }
-}
-function confirmAccept() {
-  const preview = computeDelivery();
-  closeAcceptModal();
-  toast(`Order accepted · ETA ${acceptState.days} days · delivers by ${fmtDateMed(preview)}`, 'success');
-  // Simulate status change: update chip & CTA section
-  setTimeout(() => {
-    currentOrder.status = 'confirmed';
-    currentOrder.approvedAt = new Date().toISOString();
-    const chip = document.querySelector('.dh-id-row .chip-big');
-    if (chip) { chip.className = 'chip-big chip-confirmed'; chip.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Approved'; }
-    const sla = document.querySelector('.dh-id-row .sla-big');
-    if (sla) sla.remove();
-    const ctaGrp = document.querySelector('.cta-group');
-    if (ctaGrp) ctaGrp.innerHTML = stateCTAs(currentOrder);
-    const track = document.querySelector('.track-grid');
-    if (track) track.innerHTML = timelineSteps(currentOrder);
-    if (window.lucide?.createIcons) window.lucide.createIcons();
-  }, 100);
-}
-
-/* ============ Add-to-catalog nested modal ============ */
-let catTargetIdx = null;
-function openCatalogModal(idx) {
-  catTargetIdx = idx;
-  const it = acceptState.items[idx];
-  const modal = document.getElementById('catModal');
-  const categories = ['Climbing structures','Puzzle feeders','Scent enrichment','Browse & foraging','Structural','Pool inserts'];
-  const tags = Object.keys(SPECIES).map(k => SPECIES[k].name);
-  modal.innerHTML = `
-    <div class="modal-head">
-      <div class="title" id="catTitle"><i data-lucide="plus-circle" class="w-5 h-5"></i> Add "${escapeHtml(it.name)}" to catalog</div>
-      <button class="modal-close" onclick="closeCatalogModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <div class="modal-body cat-form">
-      <div class="field">
-        <label>Thumbnail</label>
-        <div class="thumb-drop" id="thumbDrop"><i data-lucide="upload-cloud" class="w-6 h-6"></i><span>Tap to upload or use existing buyer image</span></div>
-      </div>
-      <div class="field">
-        <label>Product name</label>
-        <input id="catName" type="text" value="${escapeHtml(it.name)}"/>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <div class="field" style="flex:1;">
-          <label>Category</label>
-          <select id="catCategory">${categories.map(c=>`<option>${c}</option>`).join('')}</select>
-        </div>
-        <div class="field" style="flex:1;">
-          <label>Starting price (₹)</label>
-          <input id="catPrice" type="number" min="0" value="${it.unit}"/>
-        </div>
-      </div>
-      <div class="field">
-        <label>Species tags <span style="font-weight:500;color:var(--text-muted);">(pick up to 3)</span></label>
-        <div class="tag-picker" id="tagPicker">${tags.map(t=>`<button class="tag-opt" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}</div>
-      </div>
-      <div class="field">
-        <label>Short spec</label>
-        <textarea id="catSpec" placeholder="Dimensions, materials, certifications…">${escapeHtml(it.note || '')}</textarea>
-      </div>
-    </div>
-    <div class="modal-foot" style="justify-content:flex-end;">
-      <button class="cta-btn cta-ghost" onclick="closeCatalogModal()">Cancel</button>
-      <button class="cta-btn cta-primary" onclick="saveCatalogItem()"><i data-lucide="check" class="w-4 h-4"></i> Save to catalog</button>
-    </div>`;
-  document.getElementById('catOverlay').classList.add('open');
-  // Wire
-  modal.querySelectorAll('#tagPicker .tag-opt').forEach(b => b.addEventListener('click', () => {
-    const picked = modal.querySelectorAll('#tagPicker .tag-opt.active');
-    if (!b.classList.contains('active') && picked.length >= 3) { toast('Max 3 species tags', 'warn'); return; }
-    b.classList.toggle('active');
-  }));
-  modal.querySelector('#thumbDrop').addEventListener('click', () => toast('Upload dialog (demo)','success'));
-  if (window.lucide?.createIcons) window.lucide.createIcons();
-}
-function closeCatalogModal() {
-  document.getElementById('catOverlay').classList.remove('open');
-  catTargetIdx = null;
-}
-function saveCatalogItem() {
-  if (catTargetIdx == null) return;
-  const sku = acceptState.items[catTargetIdx].sku;
-  acceptState.addedToCat[sku] = true;
-  closeCatalogModal();
-  toast('Added to your catalog · reuse for future orders', 'success');
-  // Re-render step 1 to show "Added" badge
-  if (acceptState.step === 1) renderAcceptModal();
 }
 
 /* ============ Generic action modal ============ */
@@ -1727,6 +1488,334 @@ function toast(msg, kind='default') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 2800);
 }
 
+/* ============ Per-line status popover ============ */
+let lsPopState = { open: false, lineIdx: null, anchorEl: null };
+
+function lsClosePopover() {
+  const pop = document.getElementById('lsPopover');
+  if (!pop) return;
+  if (lsPopState.open && lsPopState.anchorEl) {
+    try { lsPopState.anchorEl.setAttribute('aria-expanded', 'false'); } catch(e) {}
+  }
+  pop.classList.remove('is-open');
+  pop.innerHTML = '';
+  lsPopState = { open: false, lineIdx: null, anchorEl: null };
+}
+
+function lsBuildPopoverHtml(o, idx, fulfilment, item) {
+  const status = lineStatusOf(fulfilment);
+  const eta = (fulfilment && fulfilment.eta) ? String(fulfilment.eta).slice(0,10) : '';
+  const lineName = item ? item.p.name : ('Line ' + (idx + 1));
+  const isTerminal = isLineTerminal(status);
+  let sections = '';
+  // Header
+  sections += `<div class="ls-pop-head">
+    <div class="lbl">Update line</div>
+    <div class="nm">${escapeHtml(lineName)}</div>
+  </div>`;
+
+  if (status === 'cancelled') {
+    const reason = fulfilment && fulfilment.cancelReason ? fulfilment.cancelReason : '';
+    const hist = fulfilment && Array.isArray(fulfilment.history) ? fulfilment.history.filter(h => h.status === 'cancelled').slice(-1)[0] : null;
+    const who = hist && hist.byName ? hist.byName : 'Admin';
+    const at = hist && hist.at ? fmtDate(hist.at) : 'just now';
+    sections += `<div class="ls-pop-section">
+      <div class="ls-sec-lbl">Cancelled</div>
+      <div class="ls-audit">Cancelled by <strong>${escapeHtml(who)}</strong> · ${escapeHtml(at)}${reason?`<div style="margin-top:6px;">Reason: ${escapeHtml(reason)}</div>`:''}</div>
+    </div>`;
+  } else if (status === 'delivered') {
+    const hist = fulfilment && Array.isArray(fulfilment.history) ? fulfilment.history.filter(h => h.status === 'delivered').slice(-1)[0] : null;
+    const who = hist && hist.byName ? hist.byName : 'Admin';
+    const at = hist && hist.at ? fmtDate(hist.at) : 'just now';
+    sections += `<div class="ls-pop-section">
+      <div class="ls-sec-lbl">Delivered</div>
+      <div class="ls-audit">Delivered · marked by <strong>${escapeHtml(who)}</strong> · ${escapeHtml(at)}</div>
+    </div>`;
+  } else {
+    // Advance section
+    const next = LINE_STATUS_NEXT_LABEL[status];
+    if (next) {
+      sections += `<div class="ls-pop-section">
+        <button type="button" class="ls-pop-btn ls-pop-btn-primary" data-ls-action="advance">
+          <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Mark as ${escapeHtml(next)}
+        </button>
+      </div>`;
+    }
+    // Ship N of M section — only when status is in the shippable window
+    if (['pending','in_progress','ready','shipped'].includes(status)) {
+      const totalQty = item ? Number(item.qty) || 0 : 0;
+      const currentShipped = (fulfilment && Number(fulfilment.shippedQty)) || 0;
+      // Default input value: existing shippedQty if any, else totalQty (full ship)
+      const inputVal = currentShipped > 0 ? currentShipped : totalQty;
+      // If status is already 'shipped', clamp min to 1 to prevent regression to 0
+      const minVal = status === 'shipped' ? 1 : 0;
+      let helperHtml = '';
+      let helperCls = '';
+      if (currentShipped === totalQty && totalQty > 0) {
+        helperHtml = 'Full shipment';
+        helperCls = 'full';
+      } else if (currentShipped > 0 && currentShipped < totalQty) {
+        const bo = totalQty - currentShipped;
+        helperHtml = `${currentShipped} of ${totalQty} shipped · <span class="ls-ship-bo">${bo} backordered</span>`;
+        helperCls = 'partial';
+      }
+      sections += `<div class="ls-pop-section">
+        <div class="ls-sec-lbl">Ship units</div>
+        <div class="ls-ship-row">
+          <input type="number" class="ls-ship-input" id="lsShipInput" min="${minVal}" max="${totalQty}" step="1" value="${inputVal}" aria-label="Units to ship"/>
+          <span class="ls-ship-of">of ${totalQty}</span>
+        </div>
+        <div class="ls-ship-helper ${helperCls}" id="lsShipHelper">${helperHtml}</div>
+        <button type="button" class="ls-pop-btn ls-pop-btn-primary" data-ls-action="ship" id="lsShipBtn" disabled>
+          <i data-lucide="package-check" class="w-4 h-4"></i> Update shipment
+        </button>
+      </div>`;
+    }
+    // ETA section
+    sections += `<div class="ls-pop-section">
+      <div class="ls-sec-lbl">Estimated delivery</div>
+      <div class="ls-eta-row">
+        <input type="date" class="ls-eta-input" id="lsEtaInput" value="${escapeHtml(eta)}" aria-label="ETA date"/>
+        <button type="button" class="ls-pop-btn ls-pop-btn-ghost" data-ls-action="save-eta" style="width:auto;padding:8px 12px;flex-shrink:0;">Update</button>
+      </div>
+    </div>`;
+    // Cancel section
+    sections += `<div class="ls-pop-section ls-cancel-section">
+      <div class="ls-sec-lbl" style="color:#B91C1C;">Cancel this line</div>
+      <textarea class="ls-cancel-textarea" id="lsCancelReason" placeholder="Reason (visible to buyer) — required" aria-label="Cancellation reason"></textarea>
+      <div class="ls-inline-err" id="lsCancelErr">Please add a reason before cancelling.</div>
+      <button type="button" class="ls-pop-btn ls-pop-btn-danger" data-ls-action="cancel" disabled>
+        <i data-lucide="x-circle" class="w-4 h-4"></i> Cancel this line
+      </button>
+    </div>`;
+  }
+  return sections;
+}
+
+function lsPositionPopover(pop, anchor) {
+  // Position the popover under the anchor button, right-aligned to the meta column edge.
+  const r = anchor.getBoundingClientRect();
+  // Append to body so it floats — position with page coords
+  const sx = window.scrollX || window.pageXOffset;
+  const sy = window.scrollY || window.pageYOffset;
+  const popW = 280;
+  // Right-align to anchor's right edge but never overflow viewport
+  let left = r.right + sx - popW;
+  if (left < 8 + sx) left = 8 + sx;
+  const maxLeft = sx + document.documentElement.clientWidth - popW - 8;
+  if (left > maxLeft) left = maxLeft;
+  let top = r.bottom + sy + 6;
+  // If popover would overflow bottom of viewport, flip above
+  // (Estimate popover height ~ 280px worst case)
+  const estHeight = 320;
+  if (r.bottom + estHeight > window.innerHeight && r.top > estHeight) {
+    top = r.top + sy - estHeight - 6;
+  }
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+
+function lsOpenPopover(anchorBtn) {
+  if (!currentOrder) return;
+  const idx = Number(anchorBtn.dataset.lineIdx);
+  if (Number.isNaN(idx)) return;
+  // If clicking the same pill again, treat as toggle
+  if (lsPopState.open && lsPopState.lineIdx === idx) {
+    lsClosePopover();
+    return;
+  }
+  // Close any open popover first
+  if (lsPopState.open) lsClosePopover();
+  const pop = document.getElementById('lsPopover');
+  if (!pop) return;
+  const fulfilmentMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+    ? ZE.orders.lineFulfilment.forOrder(currentOrder.id)
+    : {};
+  const fulfilment = fulfilmentMap[idx] || null;
+  const item = currentOrder.items[idx];
+  pop.innerHTML = lsBuildPopoverHtml(currentOrder, idx, fulfilment, item);
+  // Move to body if not already
+  if (pop.parentNode !== document.body) document.body.appendChild(pop);
+  lsPositionPopover(pop, anchorBtn);
+  pop.classList.add('is-open');
+  anchorBtn.setAttribute('aria-expanded', 'true');
+  lsPopState = { open: true, lineIdx: idx, anchorEl: anchorBtn };
+
+  // Wire actions inside popover
+  pop.querySelectorAll('[data-ls-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const act = btn.dataset.lsAction;
+      lsHandleAction(act, idx);
+    });
+  });
+
+  // Cancel reason textarea — gate the Cancel button + clear inline error on type
+  const ta = pop.querySelector('#lsCancelReason');
+  const cancelBtn = pop.querySelector('[data-ls-action="cancel"]');
+  const err = pop.querySelector('#lsCancelErr');
+  if (ta && cancelBtn) {
+    ta.addEventListener('input', () => {
+      const ok = ta.value.trim().length > 0;
+      cancelBtn.disabled = !ok;
+      ta.classList.remove('invalid');
+      if (err) err.classList.remove('show');
+    });
+  }
+
+  // Ship N of M: live helper update + button enable based on diff vs current shippedQty
+  const shipInput = pop.querySelector('#lsShipInput');
+  const shipBtn = pop.querySelector('#lsShipBtn');
+  const shipHelper = pop.querySelector('#lsShipHelper');
+  if (shipInput && shipBtn) {
+    const totalQty = item ? Number(item.qty) || 0 : 0;
+    const currentShipped = (fulfilment && Number(fulfilment.shippedQty)) || 0;
+    const status = lineStatusOf(fulfilment);
+    const minVal = status === 'shipped' ? 1 : 0;
+    const syncShip = () => {
+      let v = parseInt(shipInput.value, 10);
+      if (Number.isNaN(v)) v = currentShipped;
+      // Clamp visually
+      if (v < minVal) v = minVal;
+      if (v > totalQty) v = totalQty;
+      if (String(v) !== shipInput.value) shipInput.value = String(v);
+      // Update helper line
+      if (shipHelper) {
+        shipHelper.classList.remove('full','partial');
+        if (v === totalQty && totalQty > 0) {
+          shipHelper.textContent = 'Full shipment';
+          shipHelper.classList.add('full');
+        } else if (v > 0 && v < totalQty) {
+          const bo = totalQty - v;
+          shipHelper.innerHTML = `${v} of ${totalQty} shipped · <span class="ls-ship-bo">${bo} backordered</span>`;
+          shipHelper.classList.add('partial');
+        } else {
+          shipHelper.textContent = '';
+        }
+      }
+      // Enable button only when value differs from current shippedQty
+      shipBtn.disabled = (v === currentShipped);
+    };
+    shipInput.addEventListener('input', syncShip);
+    shipInput.addEventListener('change', syncShip);
+    shipInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); if (!shipBtn.disabled) lsHandleAction('ship', idx); }
+    });
+    syncShip();
+  }
+
+  // ETA: commit on blur for the input (UX nicety: explicit Update button is also wired above)
+  const etaInput = pop.querySelector('#lsEtaInput');
+  if (etaInput) {
+    etaInput.addEventListener('blur', e => {
+      // Only commit if changed (don't fire on simple focus-out of unchanged value)
+      const before = (fulfilment && fulfilment.eta) ? String(fulfilment.eta).slice(0,10) : '';
+      const after = etaInput.value || '';
+      if (before === after) return;
+      // Commit only if the user has tabbed away to a different element (not a popover button)
+      const next = e.relatedTarget;
+      if (next && pop.contains(next)) return;
+      lsHandleAction('save-eta', idx);
+    });
+    // Commit on Enter key as well
+    etaInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); lsHandleAction('save-eta', idx); }
+    });
+  }
+
+  // Re-render lucide icons inside the popover
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+
+  // Focus first interactive element for keyboard users
+  setTimeout(() => {
+    const firstBtn = pop.querySelector('button:not(:disabled), input, textarea');
+    if (firstBtn) firstBtn.focus();
+  }, 30);
+}
+
+function lsHandleAction(act, idx) {
+  if (!currentOrder || !window.ZE || !ZE.orders || !ZE.orders.lineFulfilment) return;
+  const orderId = currentOrder.id;
+  const pop = document.getElementById('lsPopover');
+  if (act === 'advance') {
+    ZE.orders.lineFulfilment.advance(orderId, idx);
+    toast('Line moved forward', 'success');
+    lsClosePopover();
+  } else if (act === 'ship') {
+    const inp = pop && pop.querySelector('#lsShipInput');
+    const item = currentOrder.items[idx];
+    const totalQty = item ? Number(item.qty) || 0 : 0;
+    let v = inp ? parseInt(inp.value, 10) : 0;
+    if (Number.isNaN(v)) v = 0;
+    if (v < 0) v = 0;
+    if (v > totalQty) v = totalQty;
+    if (typeof ZE.orders.lineFulfilment.setShipped === 'function') {
+      ZE.orders.lineFulfilment.setShipped(orderId, idx, v, totalQty);
+    }
+    const msg = v === totalQty ? 'Full shipment recorded' : (v === 0 ? 'Shipment cleared' : `Partial shipment: ${v} of ${totalQty}`);
+    toast(msg, 'success');
+    lsClosePopover();
+  } else if (act === 'save-eta') {
+    const inp = pop && pop.querySelector('#lsEtaInput');
+    const v = inp ? inp.value : '';
+    ZE.orders.lineFulfilment.setEta(orderId, idx, v || null);
+    toast(v ? 'ETA updated' : 'ETA cleared', 'success');
+    lsClosePopover();
+  } else if (act === 'cancel') {
+    const ta = pop && pop.querySelector('#lsCancelReason');
+    const err = pop && pop.querySelector('#lsCancelErr');
+    const reason = ta ? ta.value.trim() : '';
+    if (!reason) {
+      if (ta) { ta.classList.add('invalid'); ta.focus(); }
+      if (err) err.classList.add('show');
+      return;
+    }
+    ZE.orders.lineFulfilment.cancel(orderId, idx, reason);
+    toast('Line cancelled', 'warn');
+    lsClosePopover();
+  }
+}
+
+// Delegated listeners — pill clicks, outside-click, Esc, focus trap
+document.addEventListener('click', e => {
+  // Pill open
+  const pill = e.target.closest('[data-ls-pill]');
+  if (pill) {
+    e.preventDefault();
+    e.stopPropagation();
+    lsOpenPopover(pill);
+    return;
+  }
+  // Click outside the popover when open → close
+  if (lsPopState.open) {
+    const pop = document.getElementById('lsPopover');
+    if (pop && !pop.contains(e.target)) lsClosePopover();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && lsPopState.open) {
+    e.stopPropagation();
+    const anchor = lsPopState.anchorEl;
+    lsClosePopover();
+    if (anchor) try { anchor.focus(); } catch(err) {}
+    return;
+  }
+  // Focus trap inside popover
+  if (e.key === 'Tab' && lsPopState.open) {
+    const pop = document.getElementById('lsPopover');
+    if (!pop) return;
+    const focusables = pop.querySelectorAll('button:not(:disabled), input, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+window.addEventListener('resize', () => { if (lsPopState.open) lsClosePopover(); });
+window.addEventListener('scroll', () => { if (lsPopState.open) lsClosePopover(); }, true);
+
 /* ============ Boot ============ */
 let currentOrder = null;
 function boot() {
@@ -1739,15 +1828,11 @@ function boot() {
   if (window.lucide?.createIcons) window.lucide.createIcons();
   // Overlay click-to-close
   document.getElementById('chatOverlay').addEventListener('click', closeChatSheet);
-  document.getElementById('acceptOverlay').addEventListener('click', e => { if (e.target.id === 'acceptOverlay') closeAcceptModal(); });
-  document.getElementById('catOverlay').addEventListener('click', e => { if (e.target.id === 'catOverlay') closeCatalogModal(); });
   document.getElementById('genOverlay').addEventListener('click', e => { if (e.target.id === 'genOverlay') closeGen(); });
   document.getElementById('revertOverlay').addEventListener('click', e => { if (e.target.id === 'revertOverlay') closeRevertModal(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (document.getElementById('catOverlay').classList.contains('open')) closeCatalogModal();
-      else if (document.getElementById('acceptOverlay').classList.contains('open')) closeAcceptModal();
-      else if (document.getElementById('revertOverlay').classList.contains('open')) closeRevertModal();
+      if (document.getElementById('revertOverlay').classList.contains('open')) closeRevertModal();
       else if (document.getElementById('genOverlay').classList.contains('open')) closeGen();
       else closeChatSheet();
     }
@@ -1775,6 +1860,20 @@ function boot() {
 })();
 
 boot();
+
+/* Re-render if fulfilment decision is captured (e.g. on Accept Order in another tab) */
+if (typeof ZE !== 'undefined' && ZE.on) {
+  ZE.on('orders:change', () => {
+    // Close any per-line popover first (anchor will be replaced on render)
+    lsClosePopover();
+    const id = getParam('id');
+    const o = id ? ORDERS.find(x => x.id === id) : (currentOrder || ORDERS[0]);
+    if (!o) return;
+    currentOrder = o;
+    document.getElementById('pageMain').innerHTML = renderDetail(o);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  });
+}
 </script>
 </body>
 </html>

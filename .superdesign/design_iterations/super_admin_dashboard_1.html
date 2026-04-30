@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Super Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
+  <style>
+    html, body { background: var(--card-subtle) !important; }
+    body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
+
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+
+    /* ========== HEADER (mirrors wallet_1.html) ========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { font-size: 11px; color: var(--text-muted); background: #fff; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); font-family: ui-monospace, monospace; }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 64px; transition: .15s; text-decoration: none; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn.is-active { background: var(--brand-soft); color: var(--brand-hover); }
+    .header-btn.is-active:hover { background: var(--brand-soft); color: var(--brand-hover); }
+    .header-btn .hb-badge { position: absolute; top: 4px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid #fff; line-height: 1; }
+    .header-btn .hb-badge.on { display: inline-flex; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+    .user-wrap { position: relative; margin-left: 8px; }
+    .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 60; }
+    .dd-menu.open { display: block; animation: ddIn .18s ease-out; }
+    @keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .dd-head { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .dd-head .nm { font-weight: 700; color: var(--text); font-size: 14px; }
+    .dd-head .em { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--text); cursor: pointer; text-decoration: none; }
+    .dd-item:hover { background: #F1F2F4; }
+
+    /* Crumbs */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .here { color: var(--text); font-weight: 600; }
+
+    /* Page heading */
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .page-head .hd-l { display: flex; flex-direction: column; gap: 4px; }
+    .page-head .role-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--brand-hover); text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+    .page-head h1 { font-size: 26px; font-weight: 700; color: var(--text); margin: 0; letter-spacing: -.01em; }
+    .page-head .sub { font-size: 13px; color: var(--text-muted); }
+    .fy-pill { font-size: 11px; font-weight: 700; color: var(--brand-hover); background: var(--brand-soft); padding: 5px 12px; border-radius: 999px; letter-spacing: .02em; }
+    .page-head .hd-r { display: inline-flex; align-items: center; gap: 10px; }
+    .btn-topup { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; background: var(--brand); color: #fff; border: 0; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s ease, transform .1s ease; box-shadow: var(--shadow-xs); }
+    .btn-topup:hover { background: var(--brand-hover); }
+    .btn-topup:active { transform: translateY(1px); }
+    .btn-topup-sm { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px; background: var(--brand); color: #fff; border: 0; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s ease, transform .1s ease; margin-left: 10px; }
+    .btn-topup-sm:hover { background: var(--brand-hover); }
+    .btn-topup-sm:active { transform: translateY(1px); }
+
+    /* Section card */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px; box-shadow: var(--shadow-xs);
+      margin-bottom: 18px;
+    }
+    .card-hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .card-hd .ttl { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -.005em; }
+    .card-hd .ttl .ico { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; }
+    .card-hd .sub { font-size: 12.5px; color: var(--text-muted); }
+
+    /* ========== KPI ROW ========== */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
+    @media (max-width: 1023px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px) { .kpi-row { grid-template-columns: 1fr; } }
+
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow-xs);
+      display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+      transition: box-shadow .15s ease, transform .15s ease;
+      animation: kpiIn .45s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .kpi-card:hover { box-shadow: var(--shadow-sm); }
+    .kpi-card:nth-child(1) { animation-delay: .02s; }
+    .kpi-card:nth-child(2) { animation-delay: .07s; }
+    .kpi-card:nth-child(3) { animation-delay: .12s; }
+    .kpi-card:nth-child(4) { animation-delay: .17s; }
+    @keyframes kpiIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .kpi-card .kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .kpi-card .kpi-lab { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+    .kpi-card .kpi-ico { width: 32px; height: 32px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; }
+    .kpi-card.k-allotted .kpi-ico { background: #EEF2FF; color: #475569; }
+    .kpi-card.k-spent .kpi-ico    { background: var(--brand-soft); color: #006D35; }
+    .kpi-card.k-locked .kpi-ico   { background: #FEF3C7; color: #A16207; }
+    .kpi-card.k-avail .kpi-ico    { background: var(--brand-soft); color: var(--brand-hover); }
+
+    .kpi-card .kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: var(--text); line-height: 1; font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, monospace; }
+    .kpi-card .kpi-sub { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; }
+    .kpi-card .kpi-sub .pct { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .kpi-card .kpi-mini-bar { height: 4px; background: #F1F2F4; border-radius: 999px; overflow: hidden; margin-top: 2px; }
+    .kpi-card .kpi-mini-bar .seg { height: 100%; border-radius: 999px; transition: width .4s cubic-bezier(.2,.8,.2,1); }
+    .kpi-card.k-spent .kpi-mini-bar .seg  { background: var(--brand); }
+    .kpi-card.k-locked .kpi-mini-bar .seg { background: #FBBF24; }
+    .kpi-card.k-avail .kpi-mini-bar .seg  { background: var(--brand); }
+
+    /* ========== CLUSTER BREAKDOWN ========== */
+    .cl-row { display: grid; grid-template-columns: 180px 1fr 220px; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .cl-row:last-child { border-bottom: none; }
+    .cl-row .cl-name { display: inline-flex; align-items: center; gap: 9px; }
+    .cl-row .cl-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+    .cl-dot.cl-south { background: #14B8A6; }
+    .cl-dot.cl-north { background: #F59E0B; }
+    .cl-dot.cl-west  { background: #F43F5E; }
+    .cl-dot.cl-east  { background: #A855F7; }
+    .cl-dot.cl-unassigned { background: #9CA3AF; }
+    .cl-row .cl-tt { font-size: 13.5px; font-weight: 700; color: var(--text); text-transform: capitalize; }
+    .cl-row .cl-cnt { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .cl-bar-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .cl-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #E5E7EB; }
+    .cl-bar .seg { height: 100%; transition: width .5s cubic-bezier(.2,.8,.2,1); }
+    .cl-bar .seg-spent  { background: var(--brand); }
+    .cl-bar .seg-locked { background: repeating-linear-gradient(45deg, #FCD34D, #FCD34D 5px, #FBBF24 5px, #FBBF24 10px); }
+    .cl-bar .seg-avail  { background: #E5E7EB; }
+    .cl-bar-leg { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+    .cl-bar-leg .lg { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+    .cl-bar-leg .lg .d { width: 7px; height: 7px; border-radius: 999px; }
+    .cl-bar-leg .lg .d.s { background: var(--brand); }
+    .cl-bar-leg .lg .d.l { background: #FBBF24; }
+    .cl-bar-leg .lg .d.a { background: #9CA3AF; }
+    .cl-bar-leg .lg b { font-weight: 700; color: var(--text); }
+
+    .cl-totals { font-size: 12.5px; color: var(--text-muted); text-align: right; line-height: 1.45; font-variant-numeric: tabular-nums; }
+    .cl-totals .alot { font-size: 14px; font-weight: 700; color: var(--text); display: block; }
+
+    @media (max-width: 720px) {
+      .cl-row { grid-template-columns: 1fr; gap: 10px; }
+      .cl-totals { text-align: left; }
+    }
+
+    /* ========== SITES TABLE ========== */
+    .st-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .st-search {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+      background: #F1F2F4; border-radius: 999px; min-width: 220px;
+    }
+    .st-search input { flex: 1; background: transparent; border: none; outline: none; font-size: 13px; color: var(--text); font-family: inherit; }
+    .st-pills { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+    .st-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+      border: 1px solid var(--border); background: #fff; color: var(--text-muted); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: .15s; font-family: inherit;
+    }
+    .st-pill:hover { border-color: var(--border-strong); color: var(--text); }
+    .st-pill.active { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-soft); }
+    .st-pill .d { width: 8px; height: 8px; border-radius: 999px; }
+
+    .st-tbl-wrap { overflow-x: auto; max-height: 540px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; }
+    .st-tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
+    .st-tbl thead th {
+      position: sticky; top: 0; z-index: 5; background: #FAFAFA;
+      padding: 11px 14px; font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .05em; text-align: left;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .st-tbl thead th.right { text-align: right; }
+    .st-tbl tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .st-tbl tbody tr { cursor: pointer; transition: background .12s ease; }
+    .st-tbl tbody tr:hover { background: #F9FAFB; }
+    .st-tbl tbody tr:last-child td { border-bottom: none; }
+    .st-tbl .nm { font-weight: 700; color: var(--text); }
+    .st-tbl .city { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .st-tbl .num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, monospace; font-weight: 600; }
+    .st-tbl .num.muted { color: var(--text-muted); font-weight: 500; }
+
+    .cl-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: capitalize; }
+    .cl-chip .d { width: 6px; height: 6px; border-radius: 999px; }
+    .cl-chip.cl-south { background: #CCFBF1; color: #0F766E; }
+    .cl-chip.cl-south .d { background: #14B8A6; }
+    .cl-chip.cl-north { background: #FEF3C7; color: #B45309; }
+    .cl-chip.cl-north .d { background: #F59E0B; }
+    .cl-chip.cl-west  { background: #FFE4E6; color: #BE123C; }
+    .cl-chip.cl-west .d { background: #F43F5E; }
+    .cl-chip.cl-east  { background: #F3E8FF; color: #7E22CE; }
+    .cl-chip.cl-east .d { background: #A855F7; }
+    .cl-chip.cl-unassigned { background: #F1F2F4; color: var(--text-muted); }
+    .cl-chip.cl-unassigned .d { background: #9CA3AF; }
+
+    .health { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .health .d { width: 6px; height: 6px; border-radius: 999px; }
+    .health.ok    { background: var(--brand-soft); color: #006D35; }
+    .health.ok .d { background: var(--brand); }
+    .health.warn  { background: #FEF3C7; color: #A16207; }
+    .health.warn .d { background: #F59E0B; }
+    .health.bad   { background: var(--danger-bg); color: var(--danger); }
+    .health.bad .d { background: var(--danger); }
+
+    .st-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+    /* ========== ORDER VOLUME CHART ========== */
+    .ov-tabs { display: inline-flex; padding: 3px; background: #F1F2F4; border-radius: 999px; gap: 2px; }
+    .ov-tab {
+      padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: .15s; font-family: inherit;
+    }
+    .ov-tab:hover { color: var(--text); }
+    .ov-tab.active { background: #fff; color: var(--text); box-shadow: var(--shadow-xs); }
+
+    .ov-chart-wrap { padding: 8px 0 0; }
+    .ov-chart {
+      display: flex; align-items: flex-end; gap: 18px; height: 200px;
+      padding: 12px 4px 8px; border-bottom: 1px solid var(--border); position: relative;
+    }
+    .ov-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; height: 100%; justify-content: flex-end; cursor: default; }
+    .ov-bar-val { font-size: 11px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .15s; }
+    .ov-bar-col:hover .ov-bar-val { opacity: 1; }
+    .ov-bar-col.has-val .ov-bar-val { opacity: 1; }
+    .ov-bar {
+      width: 100%; max-width: 64px; background: linear-gradient(180deg, var(--brand) 0%, var(--brand-hover) 100%);
+      border-radius: 8px 8px 4px 4px; min-height: 2px;
+      transition: height .55s cubic-bezier(.2,.8,.2,1), background .15s ease;
+      position: relative;
+    }
+    .ov-bar-col:hover .ov-bar { background: var(--brand-hover); }
+    .ov-bar.empty { background: #F1F2F4; }
+    .ov-bar-lab { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+
+    .ov-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 0; font-size: 12.5px; color: var(--text-muted); flex-wrap: wrap; }
+    .ov-summary b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .ov-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    .ov-empty .icoo { width: 48px; height: 48px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+
+    /* Page guard */
+    .guard {
+      max-width: 480px; margin: 80px auto; background: #fff; border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 28px; text-align: center; box-shadow: var(--shadow-xs);
+    }
+    .guard .gico { width: 56px; height: 56px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .guard h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .guard p { color: var(--text-muted); font-size: 13.5px; margin-bottom: 16px; }
+    .guard a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--brand); color: #fff; border-radius: 999px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .guard a:hover { background: var(--brand-hover); }
+
+    @media (max-width: 767px) {
+      .app-header .row { height: 60px; gap: 10px; }
+      .search-pill { display: none; }
+      .header-btn span { display: none; }
+      .header-btn { min-width: 44px; padding: 8px; }
+      .avatar { width: 36px; height: 36px; }
+      .ov-chart { gap: 8px; height: 160px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============== HEADER =============== -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="index_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <label class="search-pill">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input type="text" placeholder="Search sites, clusters…"/>
+      <span class="kbd">⌘K</span>
+    </label>
+    <div class="header-actions">
+      <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header title="Approvals" style="display:none !important; position:relative;">
+        <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+        <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
+      </a>
+      <a href="super_admin_dashboard_1.html" class="header-btn is-active" id="saNavDashboard" aria-current="page" title="Dashboard">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
+      </a>
+      <a href="wallet_1.html?tab=topup" class="header-btn" id="saNavTopups" title="Top-up Approvals" style="position:relative;">
+        <i data-lucide="wallet" class="w-5 h-5"></i><span>Top-ups</span>
+        <span id="saTopupBadge" class="hb-badge">0</span>
+      </a>
+      <a href="#sites-card" class="header-btn" id="saNavSites" title="Sites">
+        <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
+      </a>
+      <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+        <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+          <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+          <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+        </span>
+        <span class="ze-wp-amt" data-wallet-amount>—</span>
+        <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+      </button>
+      <div class="user-wrap" id="userWrap">
+        <img class="avatar" id="userAvatar" src="https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20finance%20director?width=80&height=80&seed=909&nologo=true" alt="Account"/>
+        <div class="dd-menu" id="userMenu" role="menu">
+          <div class="dd-head">
+            <div class="nm" id="userName">—</div>
+            <div class="em" id="userEmail">—</div>
+          </div>
+          <a class="dd-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
+          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
+          <a class="dd-item" href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Switch to Buyer view</a>
+          <a class="dd-item" href="admin_dashboard_1.html" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="briefcase" class="w-4 h-4"></i> Switch to Admin view</a>
+          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
+          <a class="dd-item" id="signOutItem" href="javascript:void(0)"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =============== MAIN =============== -->
+<main class="page-wrap" id="dashMain">
+  <div class="crumbs">
+    <a href="index_1.html" style="color:inherit;text-decoration:none">Home</a>
+    <span class="sep">·</span>
+    <span>Super Admin</span>
+    <span class="sep">·</span>
+    <span class="here">Dashboard</span>
+  </div>
+
+  <div id="dashContent"><!-- rendered by JS --></div>
+</main>
+
+<!-- Sign-out support + dropdown + SA nav wiring -->
+<script>
+(function(){
+  function init(){
+    // ===== Avatar dropdown =====
+    var av = document.getElementById('userAvatar');
+    var menu = document.getElementById('userMenu');
+    var wrap = document.getElementById('userWrap');
+    if (av && menu) {
+      av.setAttribute('tabindex', '0');
+      av.setAttribute('role', 'button');
+      av.setAttribute('aria-haspopup', 'menu');
+      av.setAttribute('aria-expanded', 'false');
+      av.addEventListener('click', function(e){
+        e.stopPropagation();
+        var isOpen = menu.classList.toggle('open');
+        av.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+      av.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          var isOpen = menu.classList.toggle('open');
+          av.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+      });
+      document.addEventListener('click', function(e){
+        if (!menu.contains(e.target) && e.target !== av) {
+          menu.classList.remove('open');
+          av.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && menu.classList.contains('open')) {
+          menu.classList.remove('open');
+          av.setAttribute('aria-expanded', 'false');
+          av.focus();
+        }
+      });
+    }
+
+    // ===== Populate user identity =====
+    try {
+      var u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+      if (u) {
+        var nm = document.getElementById('userName');
+        var em = document.getElementById('userEmail');
+        if (nm && u.name)  nm.textContent = u.name;
+        if (em && u.email) em.textContent = u.email;
+        if (av && u.seed) {
+          av.src = 'https://image.pollinations.ai/prompt/professional%20portrait%20headshot?width=80&height=80&seed=' + encodeURIComponent(u.seed) + '&nologo=true';
+        }
+      }
+    } catch(e) {}
+
+    // ===== Sign out =====
+    var so = document.getElementById('signOutItem');
+    if (so) so.addEventListener('click', function(){
+      try { ZE.user.signOut(); } catch(e) {
+        try { localStorage.removeItem('ze_user_v1'); } catch(_){}
+      }
+      window.location.href = 'login_1.html';
+    });
+
+    // ===== Hide buyer-style approvals link defensively =====
+    var legacyApr = document.getElementById('headerApprovalsLink');
+    if (legacyApr) legacyApr.style.display = 'none';
+
+    // ===== Top-up Approvals badge (live) =====
+    var topupBadge = document.getElementById('saTopupBadge');
+    function refreshTopupBadge(){
+      if (!topupBadge) return;
+      var n = 0;
+      try {
+        var list = (window.ZE && ZE.topup && ZE.topup.list) ? (ZE.topup.list() || []) : [];
+        n = list.filter(function(t){ return t && t.status === 'pending'; }).length;
+      } catch(e) { n = 0; }
+      if (n > 0) {
+        topupBadge.textContent = n > 99 ? '99+' : String(n);
+        topupBadge.classList.add('on');
+      } else {
+        topupBadge.classList.remove('on');
+      }
+    }
+    refreshTopupBadge();
+    try {
+      if (window.ZE && ZE.on) {
+        ZE.on('topup:change', refreshTopupBadge);
+        ZE.on('wallet:change', refreshTopupBadge);
+      }
+    } catch(e) {}
+    window.addEventListener('storage', function(ev){
+      if (ev && (ev.key === 'ze_topups_v1' || ev.key === 'ze_wallet_v1')) refreshTopupBadge();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+<!-- =============== SUPER ADMIN DASHBOARD LOGIC =============== -->
+<script>
+(function(){
+  function fmtINR(n){ try { return DB.fmtINR(Number(n) || 0); } catch(e) { return '₹' + (Number(n) || 0).toLocaleString('en-IN'); } }
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2).replace(/\.00$/, '') + ' Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(2).replace(/\.00$/, '') + ' L';
+    return fmtINR(n);
+  }
+  function pct(part, whole){
+    if (!whole) return 0;
+    return Math.round((part / whole) * 1000) / 10;  // 1 decimal
+  }
+  function pctText(part, whole){
+    var p = pct(part, whole);
+    if (p === Math.round(p)) return Math.round(p) + '%';
+    return p.toFixed(1) + '%';
+  }
+  function healthClass(avail, allotted){
+    if (!allotted) return 'warn';
+    var r = avail / allotted;
+    if (r < 0.20) return 'bad';
+    if (r < 0.50) return 'warn';
+    return 'ok';
+  }
+  function healthLabel(cls){
+    return cls === 'bad' ? 'Critical' : cls === 'warn' ? 'Watch' : 'Healthy';
+  }
+
+  // ----- Role guard -----
+  function showGuard(){
+    var el = document.getElementById('dashContent');
+    el.innerHTML =
+      '<div class="guard">' +
+        '<div class="gico"><i data-lucide="shield-check" class="w-6 h-6"></i></div>' +
+        '<h2>Super Admin only</h2>' +
+        '<p>The cross-site finance dashboard is restricted to the Super Admin role. Switch role to continue.</p>' +
+        '<a href="index_1.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to home</a>' +
+      '</div>';
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+  }
+
+  // ----- Build dashboard -----
+  function build(){
+    var sites = (window.ZE && ZE.wallet && ZE.wallet.allSites) ? ZE.wallet.allSites() : [];
+    var totals = sites.reduce(function(a, s){
+      a.allotted += Number(s.allotted) || 0;
+      a.spent    += Number(s.spent) || 0;
+      a.locked   += Number(s.locked) || 0;
+      a.available+= Number(s.available) || 0;
+      return a;
+    }, { allotted:0, spent:0, locked:0, available:0 });
+    var fyLabel = (sites[0] && sites[0].fy) || (window.DB && DB.FY_LABEL) || 'FY 2026-27';
+
+    // KPI ROW
+    var kpi =
+      '<div class="kpi-row">' +
+        kpiCard('k-allotted', 'circle-dollar-sign', 'Total allotted', fmtCompactINR(totals.allotted), 'Across ' + sites.length + ' sites', null) +
+        kpiCard('k-spent',    'check-circle-2',     'Total spent',    fmtCompactINR(totals.spent),    pctText(totals.spent, totals.allotted) + ' of allotted', pct(totals.spent, totals.allotted)) +
+        kpiCard('k-locked',   'lock',               'Total locked',   fmtCompactINR(totals.locked),   pctText(totals.locked, totals.allotted) + ' of allotted', pct(totals.locked, totals.allotted)) +
+        kpiCard('k-avail',    'wallet',             'Total available',fmtCompactINR(totals.available),pctText(totals.available, totals.allotted) + ' of allotted', pct(totals.available, totals.allotted)) +
+      '</div>';
+
+    // CLUSTER BREAKDOWN
+    var clusterOrder = ['south','north','west','east','unassigned'];
+    var byCluster = {};
+    sites.forEach(function(s){
+      var c = s.cluster || 'unassigned';
+      if (!byCluster[c]) byCluster[c] = { count:0, allotted:0, spent:0, locked:0, available:0 };
+      byCluster[c].count++;
+      byCluster[c].allotted  += Number(s.allotted) || 0;
+      byCluster[c].spent     += Number(s.spent) || 0;
+      byCluster[c].locked    += Number(s.locked) || 0;
+      byCluster[c].available += Number(s.available) || 0;
+    });
+    var clRows = clusterOrder.filter(function(k){ return byCluster[k]; }).map(function(k){
+      var c = byCluster[k];
+      var sPct = pct(c.spent, c.allotted);
+      var lPct = pct(c.locked, c.allotted);
+      var aPct = Math.max(0, 100 - sPct - lPct);
+      return (
+        '<div class="cl-row">' +
+          '<div class="cl-name">' +
+            '<span class="cl-dot cl-' + k + '"></span>' +
+            '<div>' +
+              '<div class="cl-tt">' + k + '</div>' +
+              '<div class="cl-cnt">' + c.count + ' site' + (c.count === 1 ? '' : 's') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cl-bar-wrap">' +
+            '<div class="cl-bar">' +
+              '<div class="seg seg-spent"  style="width:' + sPct + '%"></div>' +
+              '<div class="seg seg-locked" style="width:' + lPct + '%"></div>' +
+              '<div class="seg seg-avail"  style="width:' + aPct + '%"></div>' +
+            '</div>' +
+            '<div class="cl-bar-leg">' +
+              '<span class="lg"><span class="d s"></span> Spent <b>' + fmtCompactINR(c.spent) + '</b></span>' +
+              '<span class="lg"><span class="d l"></span> Locked <b>' + fmtCompactINR(c.locked) + '</b></span>' +
+              '<span class="lg"><span class="d a"></span> Available <b>' + fmtCompactINR(c.available) + '</b></span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cl-totals">' +
+            '<span class="alot">' + fmtCompactINR(c.allotted) + '</span>' +
+            '<span>allotted</span>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    var clusterCard =
+      '<div class="card">' +
+        '<div class="card-hd">' +
+          '<div class="ttl"><span class="ico"><i data-lucide="pie-chart" class="w-4 h-4"></i></span>By cluster</div>' +
+          '<div class="sub">Spent · Locked · Available across regional clusters</div>' +
+        '</div>' +
+        (clRows || '<div class="st-empty">No cluster data.</div>') +
+      '</div>';
+
+    // SITES TABLE (rendered fresh each filter)
+    var tableCard =
+      '<div class="card" id="sites-card">' +
+        '<div class="card-hd">' +
+          '<div class="ttl"><span class="ico"><i data-lucide="building-2" class="w-4 h-4"></i></span>Sites' +
+            '<span style="font-size:11.5px;font-weight:500;color:var(--text-muted);margin-left:10px;display:inline-flex;align-items:center;gap:5px;">' +
+              '<i data-lucide="info" class="w-3 h-3"></i> Click any site to open its wallet detail and approve pending top-ups.' +
+            '</span>' +
+            '<button type="button" class="btn-topup-sm" onclick="window.ZEOpenSuperAdminTopupModal({ siteIds: [] })">' +
+              '<i data-lucide="plus" class="w-4 h-4"></i> Add top-up' +
+            '</button>' +
+          '</div>' +
+          '<div class="st-tools">' +
+            '<label class="st-search">' +
+              '<i data-lucide="search" class="w-4 h-4" style="color:var(--text-muted)"></i>' +
+              '<input type="text" id="siteSearch" placeholder="Search by name or city…"/>' +
+            '</label>' +
+            '<div class="st-pills" id="clusterPills">' +
+              '<button class="st-pill active" data-cl="all">All</button>' +
+              '<button class="st-pill" data-cl="south"><span class="d" style="background:#14B8A6"></span>South</button>' +
+              '<button class="st-pill" data-cl="north"><span class="d" style="background:#F59E0B"></span>North</button>' +
+              '<button class="st-pill" data-cl="west"><span class="d" style="background:#F43F5E"></span>West</button>' +
+              '<button class="st-pill" data-cl="east"><span class="d" style="background:#A855F7"></span>East</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="sitesTableHost"></div>' +
+      '</div>';
+
+    // ORDER VOLUME
+    var ovCard =
+      '<div class="card">' +
+        '<div class="card-hd">' +
+          '<div class="ttl"><span class="ico"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></span>Order volume</div>' +
+          '<div class="ov-tabs" id="ovTabs">' +
+            '<button class="ov-tab" data-tab="day">Day</button>' +
+            '<button class="ov-tab" data-tab="week">Week</button>' +
+            '<button class="ov-tab active" data-tab="month">Month</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="ovHost"></div>' +
+      '</div>';
+
+    document.getElementById('dashContent').innerHTML = kpi + clusterCard + tableCard + ovCard;
+
+    // Animate the kpi mini-bars after paint
+    requestAnimationFrame(function(){
+      document.querySelectorAll('.kpi-card .kpi-mini-bar .seg').forEach(function(s){
+        var w = s.getAttribute('data-w');
+        if (w != null) s.style.width = Math.min(100, Math.max(0, Number(w))) + '%';
+      });
+    });
+
+    // Wire sites table + filters
+    var state = { q: '', cluster: 'all' };
+    function renderTable(){
+      var hostId = 'sitesTableHost';
+      var host = document.getElementById(hostId);
+      if (!host) return;
+      var rows = sites.filter(function(s){
+        if (state.cluster !== 'all' && (s.cluster || 'unassigned') !== state.cluster) return false;
+        if (state.q) {
+          var q = state.q.toLowerCase();
+          var hay = ((s.name || '') + ' ' + (s.city || '') + ' ' + (s.state || '')).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      if (!rows.length) {
+        host.innerHTML = '<div class="st-empty">No sites match this filter.</div>';
+        return;
+      }
+      var trs = rows.map(function(s){
+        var c = s.cluster || 'unassigned';
+        var hCls = healthClass(s.available, s.allotted);
+        return (
+          '<tr data-site="' + s.siteId + '">' +
+            '<td>' +
+              '<div class="nm">' + (s.name || s.siteId) + '</div>' +
+              '<div class="city">' + (s.city || '') + (s.state ? ' · ' + s.state : '') + '</div>' +
+            '</td>' +
+            '<td><span class="cl-chip cl-' + c + '"><span class="d"></span>' + c + '</span></td>' +
+            '<td class="num muted">' + fmtCompactINR(s.allotted) + '</td>' +
+            '<td class="num">' + fmtCompactINR(s.spent) + '</td>' +
+            '<td class="num">' + fmtCompactINR(s.locked) + '</td>' +
+            '<td class="num">' + fmtCompactINR(s.available) + '</td>' +
+            '<td><span class="health ' + hCls + '"><span class="d"></span>' + healthLabel(hCls) + '</span></td>' +
+          '</tr>'
+        );
+      }).join('');
+      host.innerHTML =
+        '<div class="st-tbl-wrap">' +
+          '<table class="st-tbl">' +
+            '<thead><tr>' +
+              '<th>Site</th>' +
+              '<th>Cluster</th>' +
+              '<th class="right">Allotted</th>' +
+              '<th class="right">Spent</th>' +
+              '<th class="right">Locked</th>' +
+              '<th class="right">Available</th>' +
+              '<th>Health</th>' +
+            '</tr></thead>' +
+            '<tbody>' + trs + '</tbody>' +
+          '</table>' +
+        '</div>';
+      host.querySelectorAll('tbody tr').forEach(function(tr){
+        tr.addEventListener('click', function(){
+          var sid = tr.getAttribute('data-site');
+          if (sid) window.location.href = 'wallet_1.html?site=' + encodeURIComponent(sid);
+        });
+      });
+    }
+    renderTable();
+
+    var search = document.getElementById('siteSearch');
+    if (search) search.addEventListener('input', function(){ state.q = search.value || ''; renderTable(); });
+    var pills = document.getElementById('clusterPills');
+    if (pills) pills.addEventListener('click', function(e){
+      var b = e.target.closest('.st-pill');
+      if (!b) return;
+      pills.querySelectorAll('.st-pill').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      state.cluster = b.getAttribute('data-cl') || 'all';
+      renderTable();
+    });
+
+    // ORDER VOLUME wiring
+    var ovState = { tab: 'month' };
+    function renderOv(){
+      var host = document.getElementById('ovHost');
+      if (!host) return;
+      var orders = [];
+      try { orders = (ZE.orders.read() || []); } catch(e) { orders = []; }
+      // filter to FY range when available
+      var fyStartMs = sites[0] && sites[0].fyStart ? Date.parse(sites[0].fyStart) : null;
+      var fyEndMs   = sites[0] && sites[0].fyEnd   ? (Date.parse(sites[0].fyEnd) + (24*60*60*1000) - 1) : null;
+      orders = orders.filter(function(o){
+        var t = o && o.createdAt ? Date.parse(o.createdAt) : NaN;
+        if (!isFinite(t)) return false;
+        if (fyStartMs && t < fyStartMs) return false;
+        if (fyEndMs && t > fyEndMs) return false;
+        return true;
+      });
+
+      if (!orders.length) {
+        host.innerHTML =
+          '<div class="ov-empty">' +
+            '<div class="icoo"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></div>' +
+            'No order data yet — orders placed by buyers will appear here.' +
+          '</div>';
+        if (window.lucide) try { lucide.createIcons(); } catch(e){}
+        return;
+      }
+
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var now = new Date();
+      var buckets = []; // [{ key, label, count, value }]
+      function bucketKey(d){
+        if (ovState.tab === 'day')   return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+        if (ovState.tab === 'week') {
+          // ISO week-ish: year + week index of year (rough but stable)
+          var oneJan = new Date(d.getFullYear(), 0, 1);
+          var wk = Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
+          return d.getFullYear() + '-W' + wk;
+        }
+        return d.getFullYear() + '-' + (d.getMonth()+1);
+      }
+      function bucketLabel(d){
+        if (ovState.tab === 'day') {
+          return d.getDate() + ' ' + months[d.getMonth()];
+        }
+        if (ovState.tab === 'week') {
+          var oneJan = new Date(d.getFullYear(), 0, 1);
+          var wk = Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
+          return 'Wk ' + wk;
+        }
+        return months[d.getMonth()] + ' ' + d.getFullYear();
+      }
+      // Build last 6 buckets ending now (inclusive)
+      for (var i = 5; i >= 0; i--) {
+        var d;
+        if (ovState.tab === 'day')   d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        else if (ovState.tab === 'week') d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i*7));
+        else d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        buckets.push({ key: bucketKey(d), label: bucketLabel(d), count: 0, value: 0 });
+      }
+      var keyIndex = {};
+      buckets.forEach(function(b, i){ keyIndex[b.key] = i; });
+
+      orders.forEach(function(o){
+        var d = new Date(Date.parse(o.createdAt));
+        var k = bucketKey(d);
+        var i = keyIndex[k];
+        if (i != null) {
+          buckets[i].count++;
+          buckets[i].value += Number(o.total) || 0;
+        }
+      });
+
+      var max = Math.max.apply(null, buckets.map(function(b){ return b.count; }).concat([1]));
+      var bars = buckets.map(function(b){
+        var hPct = max ? (b.count / max) * 100 : 0;
+        var hStyle = b.count ? 'height:' + Math.max(2, hPct) + '%' : 'height:2px';
+        var emptyCls = b.count ? '' : ' empty';
+        return (
+          '<div class="ov-bar-col' + (b.count ? ' has-val' : '') + '">' +
+            '<div class="ov-bar-val">' + b.count + '</div>' +
+            '<div class="ov-bar' + emptyCls + '" style="' + hStyle + '" title="' + b.label + ' · ' + b.count + ' orders · ' + fmtCompactINR(b.value) + '"></div>' +
+            '<div class="ov-bar-lab">' + b.label + '</div>' +
+          '</div>'
+        );
+      }).join('');
+      var totalOrders = buckets.reduce(function(a, b){ return a + b.count; }, 0);
+      var totalValue  = buckets.reduce(function(a, b){ return a + b.value; }, 0);
+
+      host.innerHTML =
+        '<div class="ov-chart-wrap">' +
+          '<div class="ov-chart">' + bars + '</div>' +
+          '<div class="ov-summary">' +
+            '<span>Last 6 ' + (ovState.tab === 'day' ? 'days' : ovState.tab === 'week' ? 'weeks' : 'months') + '</span>' +
+            '<span>Total: <b>' + totalOrders + ' orders</b> · <b>' + fmtCompactINR(totalValue) + '</b></span>' +
+          '</div>' +
+        '</div>';
+    }
+    renderOv();
+
+    var ovTabs = document.getElementById('ovTabs');
+    if (ovTabs) ovTabs.addEventListener('click', function(e){
+      var b = e.target.closest('.ov-tab');
+      if (!b) return;
+      ovTabs.querySelectorAll('.ov-tab').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      ovState.tab = b.getAttribute('data-tab') || 'month';
+      renderOv();
+    });
+
+    // ----- Header chrome: heading -----
+    var head =
+      '<div class="page-head">' +
+        '<div class="hd-l">' +
+          '<span class="role-eyebrow"><i data-lucide="shield-check" class="w-3 h-3"></i> Super Admin</span>' +
+          '<h1>Super Admin · Dashboard</h1>' +
+          '<div class="sub">' + fyLabel + ' · Cross-site enrichment finance</div>' +
+        '</div>' +
+        '<div class="hd-r">' +
+          '<span class="fy-pill">' + fyLabel + '</span>' +
+          '<button type="button" class="btn-topup" onclick="window.ZEOpenSuperAdminTopupModal({ siteIds: [] })">' +
+            '<i data-lucide="plus" class="w-4 h-4"></i> Add top-up' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('dashContent').insertAdjacentHTML('afterbegin', head);
+
+    if (window.lucide) try { lucide.createIcons(); } catch(e){}
+  }
+
+  function kpiCard(klass, icon, label, value, subText, barPct){
+    var bar = (barPct != null)
+      ? '<div class="kpi-mini-bar"><div class="seg" data-w="' + barPct + '" style="width:0%"></div></div>'
+      : '';
+    var subHtml = subText
+      ? '<div class="kpi-sub"><span class="pct">' + subText.split(' ')[0] + '</span><span>' + subText.split(' ').slice(1).join(' ') + '</span></div>'
+      : '';
+    return (
+      '<div class="kpi-card ' + klass + '">' +
+        '<div class="kpi-top">' +
+          '<span class="kpi-lab">' + label + '</span>' +
+          '<span class="kpi-ico"><i data-lucide="' + icon + '" class="w-4 h-4"></i></span>' +
+        '</div>' +
+        '<div class="kpi-val">' + value + '</div>' +
+        subHtml +
+        bar +
+      '</div>'
+    );
+  }
+
+  function start(){
+    var role = null;
+    try { role = ZE.user.role(); } catch(e) {}
+    // Note: ZE.user.resolve() doesn't recognise super_admin (it only resolves
+    // buyer/vendor/admin against DB.USERS/DB.VENDORS), so we gate on the
+    // raw role string from localStorage instead.
+    if (role !== 'super_admin') {
+      showGuard();
+      return;
+    }
+    build();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
+</body>
+</html>

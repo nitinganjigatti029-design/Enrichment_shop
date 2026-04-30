@@ -2,87 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>ZooEnrich · Admin — Catalog</title>
+  <title>ZooEnrich · Your products</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
-    /* =========== Buyer header (cloned from index_1 / orders_1) =========== */
+    /* =========== Vendor header (UNIFIED) =========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
-    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; text-decoration: none; }
-    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
 
-    .search-pill { flex: 1; max-width: 560px; height: 48px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--text-muted); transition: .15s; border: 1.5px solid transparent; }
-    .search-pill:focus-within { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.12); }
-    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
-    .search-pill .kbd { background: #fff; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
 
-    .header-actions { display: flex; align-items: center; gap: 6px; }
-    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; transition: .15s; background: transparent; border: none; position: relative; min-width: 64px; }
-    .header-btn:hover { background: #F1F2F4; color: var(--text); }
-    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
-    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
-    .header-btn .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #fff; }
-    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+    @media (max-width: 900px) {
+      .v-avatar-btn .v-name { display: none; }
+      .v-nav { display: none !important; }
+      .app-header .row { gap: 12px !important; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark > span:not(.logo-box) { display: none; }
+    }
 
-    /* Avatar dropdown */
-    .avatar-wrap { position: relative; margin-left: 8px; }
-    .avatar-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-md); min-width: 220px; padding: 6px; z-index: 60; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: .15s; }
-    .avatar-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
-    .avatar-menu .menu-header { padding: 10px 12px 8px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-    .avatar-menu .menu-header .name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .avatar-menu .menu-header .email { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
-    .avatar-menu a, .avatar-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; transition: .12s; text-decoration: none; }
-    .avatar-menu a:hover, .avatar-menu button:hover { background: var(--card-subtle); color: var(--brand-hover); }
-    .avatar-menu a.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
-    .avatar-menu a.active .menu-check { margin-left: auto; color: var(--brand-hover); }
-    .avatar-menu .menu-sep { height: 1px; background: var(--border); margin: 6px 0; }
-    .avatar-menu .sign-out { color: var(--danger); }
-    .signin-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; margin-left: 8px; transition: .15s; }
-    .signin-pill:hover { background: var(--brand-hover); }
-
-    /* =========== Mobile hamburger button + drawer =========== */
-    .mobile-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
-    .mobile-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
-    @media (max-width: 767px) { .mobile-menu-btn { display: inline-flex; } }
-
-    .mobile-nav-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); z-index: 110; opacity: 0; pointer-events: none; transition: opacity .2s; }
-    .mobile-nav-overlay.open { opacity: 1; pointer-events: auto; }
-    .mobile-nav-drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(320px, 82vw); background: #fff; z-index: 111; transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: 6px 0 24px rgba(0,0,0,.2); }
-    .mobile-nav-drawer.open { transform: translateX(0); }
-    .mobile-nav-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
-    .mobile-nav-head .avatar-big { width: 44px; height: 44px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); }
-    .mobile-nav-head .nav-name { font-size: 14px; font-weight: 700; color: var(--text); }
-    .mobile-nav-head .nav-sub  { font-size: 12px; color: var(--text-muted); }
-    .mobile-nav-head .close { margin-left: auto; width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    .mobile-nav-body { padding: 12px 10px; overflow-y: auto; flex: 1; }
-    .mobile-nav-body .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; font-size: 14px; color: var(--text); cursor: pointer; text-decoration: none; }
-    .mobile-nav-body .nav-item:hover { background: #F4F5F7; }
-    .mobile-nav-body .nav-item.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
-    .mobile-nav-body .nav-item.active i { color: var(--brand-hover); }
-    .mobile-nav-body .nav-item i { color: var(--text-muted); }
-    .mobile-nav-body .nav-divider { height: 1px; background: var(--border); margin: 8px 6px; }
-
-    /* =========== Breadcrumb =========== */
-    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .crumbs a { color: var(--text-muted); text-decoration: none; }
-    .crumbs a:hover { color: var(--brand); }
-    .crumbs .sep { color: var(--text-subtle); }
-    .crumbs .current { color: var(--text); font-weight: 600; }
+    /* =========== Shared vendor mobile drawer =========== */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
 
     /* =========== Title row =========== */
-    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 6px 0 20px; flex-wrap: wrap; }
+    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 28px 0 20px; flex-wrap: wrap; }
     .title-row h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.15; }
     .title-row .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
-    .cta-add { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); transition: .15s; white-space: nowrap; text-decoration: none; }
+    .cta-add { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); transition: .15s; white-space: nowrap; }
     .cta-add:hover { background: var(--brand-hover); transform: translateY(-1px); }
 
     /* =========== Stock summary strip =========== */
@@ -166,14 +158,11 @@
     .td-check input { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
 
     .prod-cell { display: flex; align-items: center; gap: 12px; min-width: 260px; }
-    .prod-thumb { display: block; width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; transition: .15s; }
-    a.prod-thumb:hover { box-shadow: 0 0 0 2px var(--brand-soft); }
+    .prod-thumb { width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
     .prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .prod-name-link { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
     .prod-name-link:hover { color: var(--brand); text-decoration: underline; }
     .prod-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: ui-monospace, Menlo, monospace; }
-    .prod-vendor { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: inline-flex; align-items: center; gap: 4px; }
-    .prod-vendor i { width: 10px; height: 10px; }
 
     .cat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--brand-soft); color: var(--brand-hover); white-space: nowrap; }
 
@@ -212,7 +201,7 @@
     .switch .switch-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-left: 8px; text-transform: uppercase; letter-spacing: .04em; }
 
     .actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-    .icon-act { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; color: var(--text-muted); transition: .12s; position: relative; text-decoration: none; }
+    .icon-act { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; color: var(--text-muted); transition: .12s; position: relative; }
     .icon-act:hover { background: #F1F2F4; color: var(--text); }
     .icon-act.danger:hover { background: var(--danger-bg); color: var(--danger); }
     .icon-act .tip {
@@ -231,7 +220,7 @@
     .g-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; transition: .2s ease; display: flex; flex-direction: column; box-shadow: var(--shadow-xs); position: relative; }
     .g-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
     .g-card.inactive { opacity: .6; }
-    .g-img-wrap { display: block; position: relative; aspect-ratio: 1 / 1; background: var(--card-subtle); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+    .g-img-wrap { position: relative; aspect-ratio: 1 / 1; background: var(--card-subtle); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
     .g-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
     .g-card:hover .g-img-wrap img { transform: scale(1.04); }
     .g-stock-badge {
@@ -243,15 +232,14 @@
     .g-stock-badge.out { background: var(--danger); color: #fff; }
 
     .g-meta { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; min-height: 50px; }
-    .g-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; text-decoration: none; }
+    .g-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
     .g-name:hover { color: var(--brand); }
     .g-cat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
     .g-cat .tag-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--brand); }
-    .g-vendor { font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
     .g-price { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
 
     .g-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border); }
-    .g-edit { flex: 1; background: var(--brand); color: #fff; border: none; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .15s; text-decoration: none; }
+    .g-edit { flex: 1; background: var(--brand); color: #fff; border: none; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: .15s; }
     .g-edit:hover { background: var(--brand-hover); }
     .g-more-wrap { position: relative; }
     .g-more { width: 36px; height: 36px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
@@ -263,8 +251,8 @@
       animation: fadeUp .18s ease both;
     }
     .g-menu.open { display: block; }
-    .g-menu button, .g-menu a { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 13px; background: transparent; border: none; cursor: pointer; color: var(--text); text-align: left; text-decoration: none; }
-    .g-menu button:hover, .g-menu a:hover { background: #F1F2F4; }
+    .g-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 13px; background: transparent; border: none; cursor: pointer; color: var(--text); text-align: left; }
+    .g-menu button:hover { background: #F1F2F4; }
     .g-menu button.danger { color: var(--danger); }
     .g-menu button.danger:hover { background: var(--danger-bg); }
 
@@ -321,23 +309,6 @@
 
     .anim-up { animation: fadeUp .45s cubic-bezier(.2,.8,.2,1) both; }
 
-    /* =========== Responsive: header =========== */
-    @media (max-width: 900px) {
-      .app-header .row { height: 60px !important; gap: 10px; }
-      .search-pill { display: none !important; }
-      .header-btn span { display: none !important; }
-      .header-btn { min-width: 40px !important; padding: 8px !important; }
-    }
-    @media (max-width: 767px) {
-      .header-btn#ordersBtn, .header-btn#savedBtn { display: none !important; }
-      .avatar-wrap { display: none !important; }
-      .brand-mark { font-size: 17px !important; }
-      .brand-mark .logo-box { width: 28px; height: 28px; }
-    }
-    @media (max-width: 400px) {
-      .brand-mark > span:not(.logo-box) { display: none; }
-    }
-
     /* =========== Responsive card-mode for table rows (< 900px) =========== */
     @media (max-width: 900px) {
       .vp-table thead { display: none; }
@@ -367,82 +338,82 @@
 <body data-device="desktop">
 <div class="device-shell"><div class="device-inner">
 
-  <!-- =============== BUYER HEADER =============== -->
+  <!-- =============== HEADER =============== -->
   <header class="app-header">
     <div class="page-wrap row">
-      <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu">
-        <i data-lucide="menu" class="w-5 h-5"></i>
-      </button>
-
-      <a href="index_1.html" class="brand-mark">
+      <a href="admin_dashboard_1.html" class="brand-mark">
         <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
         <span>ZooEnrich</span>
       </a>
 
-      <label class="search-pill">
-        <i data-lucide="search" class="w-4 h-4"></i>
-        <input type="text" placeholder="Search catalog…"/>
-        <span class="kbd">⌘K</span>
-      </label>
+      <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
 
-      <div class="header-actions">
-        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
-          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
-        </button>
-        <button class="header-btn" type="button" id="ordersBtn">
-          <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
-          <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
-        </button>
-        <button class="header-btn" type="button" id="savedBtn">
-          <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
-          <span class="badge-dot" id="savedBadge" style="display:none">0</span>
-        </button>
-        <button class="header-btn" type="button" id="cartBtn">
-          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
-          <span class="badge-dot" id="cartBadge" style="display:none">0</span>
-        </button>
-        <div id="userSlot"></div>
+      <nav class="v-nav" id="vNav">
+        <a href="admin_dashboard_1.html" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+        <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge" id="navPendingBadge" style="display:none;">0</span></a>
+        <a href="admin_products_1.html" class="active" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+        <a href="admin_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+        <a href="admin_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+        <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+        <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+      </nav>
+
+      <div class="v-right">
+        <div class="v-avatar-wrap">
+          <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
+            <span class="v-name" id="vName">TeakCraft</span>
+            <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+          </button>
+          <div class="v-menu" id="vMenu" role="menu">
+            <div class="muted" id="vMenuEmail">Signed in</div>
+            <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+            <a href="admin_profile_1.html">
+              <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
+            </a>
+            <button id="btnSignOut">
+              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- =============== MOBILE NAV DRAWER =============== -->
-  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
-  <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
-    <div class="mobile-nav-head">
-      <img class="avatar-big" id="mobileNavAvatar" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt=""/>
-      <div>
-        <div class="nav-name" id="mobileNavName">Hello there</div>
-        <div class="nav-sub" id="mobileNavSub">My account</div>
-      </div>
-      <button class="close" id="mobileNavClose" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+  <!-- =============== VENDOR MOBILE DRAWER =============== -->
+  <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
+    <div class="vd-head">
+      <span class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </span>
+      <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
-    <div class="mobile-nav-body">
-      <a class="nav-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
-      <a class="nav-item" href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
-      <a class="nav-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
-      <a class="nav-item" href="cart_1.html"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Cart</a>
-      <a class="nav-item active" href="admin_products_1.html"><i data-lucide="shield" class="w-4 h-4"></i> Admin · Catalog</a>
-      <div class="nav-divider"></div>
-      <button class="nav-item" id="mobileNavSignOut" style="color: var(--danger); width: 100%; text-align: left; background: transparent; border: none; font: inherit;"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+    <nav class="vd-nav">
+      <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="admin_products_1.html" class="active"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+      <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+      <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+      <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+      <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+    </nav>
+    <div class="vd-foot">
+      <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
     </div>
   </aside>
 
   <!-- =============== BODY =============== -->
   <main class="page-wrap">
 
-    <!-- Breadcrumb -->
-    <div class="crumbs">
-      <a href="index_1.html">Shop</a>
-      <span class="sep">·</span>
-      <span class="current">Admin · Catalog manager</span>
-    </div>
-
     <!-- Title row -->
     <section class="title-row anim-up">
       <div>
-        <h1>Catalog products</h1>
-        <div class="sub">Manage every listed product — pricing, stock, and visibility.</div>
+        <h1>Your products</h1>
+        <div class="sub">Manage your catalog — pricing, stock, and visibility.</div>
       </div>
       <a href="admin_add_product_1.html" class="cta-add">
         <i data-lucide="plus" class="w-4 h-4"></i>Add product
@@ -454,7 +425,7 @@
 
     <!-- Footer -->
     <div class="foot">
-      <div>ZooEnrich &middot; Admin — Catalog manager</div>
+      <div>ZooEnrich &middot; Admin portal</div>
       <div class="links">
         <a href="#" data-stub>Support</a>
         <a href="#" data-stub>Policies</a>
@@ -468,7 +439,7 @@
     <div class="modal">
       <div class="mico"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
       <h3 id="confirmTitle">Delete product?</h3>
-      <p id="confirmText">This action can't be undone. The product will be removed from the catalog.</p>
+      <p id="confirmText">This action can't be undone. The product will be removed from your catalog.</p>
       <div class="m-actions">
         <button class="m-btn" id="confirmCancel">Cancel</button>
         <button class="m-btn danger" id="confirmOk">Delete</button>
@@ -481,6 +452,9 @@
 
 <script>
   (function () {
+    // ---------- Page guard ----------
+    if (!ZE.user.requireRole('admin')) return;
+
     // ---------- Helpers ----------
     function toast(msg) {
       const el = document.getElementById('toast');
@@ -509,11 +483,44 @@
       let t; return function (...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms); };
     }
 
-    // ---------- Resolve user (buyer context; no vendor conversion) ----------
-    const user = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve() : null;
+    // ---------- Resolve vendor ----------
+    const vendor = ZE.user.resolve();
+    if (!vendor || !vendor.id) {
+      ZE.user.signOut();
+      location = 'login_1.html';
+      return;
+    }
+
+    // ---------- Header chrome ----------
+    document.getElementById('vAvatar').src = DB.vendorLogo(vendor);
+    document.getElementById('vName').textContent = vendor.name;
+    document.getElementById('vMenuEmail').textContent = 'Signed in as ' + vendor.name;
+    var _navSf = document.getElementById('navStorefront'); if (_navSf) _navSf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+    var _vps = document.getElementById('viewPublicStore'); if (_vps) _vps.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+
+    // Avatar menu
+    const avatarBtn = document.getElementById('avatarBtn');
+    const vMenu = document.getElementById('vMenu');
+    avatarBtn.addEventListener('click', (e) => { e.stopPropagation(); vMenu.classList.toggle('open'); });
+    document.addEventListener('click', (e) => {
+      if (!vMenu.contains(e.target) && !avatarBtn.contains(e.target)) vMenu.classList.remove('open');
+    });
+    document.getElementById('btnSignOut').addEventListener('click', () => {
+      ZE.user.signOut();
+      location = 'login_1.html';
+    });
+
+    // Orders nav badge — mirror dashboard behaviour
+    try {
+      const demoOrders = Array.isArray(DB.DEMO_ORDERS) ? DB.DEMO_ORDERS : [];
+      const userOrders = (ZE.orders && typeof ZE.orders.read === 'function') ? (ZE.orders.read() || []) : [];
+      const all = demoOrders.concat(userOrders).filter(o => o && o.vendorId === vendor.id && o.status === 'placed');
+      const badge = document.getElementById('navPendingBadge');
+      if (all.length > 0) { badge.textContent = all.length; badge.style.display = ''; }
+    } catch (_) { /* ignore */ }
 
     // ---------- State ----------
-    const VIEW_KEY = 'ze_admin_products_view';
+    const VIEW_KEY = 'ze_vendor_products_view';
     const state = {
       q: '',
       cat: '',
@@ -525,9 +532,9 @@
       })()
     };
 
-    // ---------- Data (ALL products, no vendor filter) ----------
-    function allProducts() {
-      return (DB.PRODUCTS || []).slice();
+    // ---------- Data ----------
+    function vendorProducts() {
+      return (DB.PRODUCTS || []).filter(p => p && p.vendorId === vendor.id);
     }
     function stockBand(n) {
       const s = Number(n) || 0;
@@ -535,17 +542,10 @@
       if (s <= 5) return 'low';
       return 'in';
     }
-    function vendorName(vid) {
-      const v = DB.byId(DB.VENDORS || [], vid);
-      return v ? (v.name || '—') : '—';
-    }
     function filteredProducts() {
-      let list = allProducts();
+      let list = vendorProducts().slice();
       const q = state.q.trim().toLowerCase();
-      if (q) list = list.filter(p =>
-        (p.name || '').toLowerCase().includes(q) ||
-        vendorName(p.vendorId).toLowerCase().includes(q)
-      );
+      if (q) list = list.filter(p => (p.name || '').toLowerCase().includes(q));
       if (state.cat) list = list.filter(p => p.cat === state.cat);
       if (state.stock !== 'all') {
         list = list.filter(p => {
@@ -571,6 +571,7 @@
           }); break;
         case 'recent':
         default:
+          // Fallback: keep source order (latest defined last) — reverse for "recent first"
           list.reverse(); break;
       }
       return list;
@@ -583,7 +584,7 @@
         '<div class="filter-strip anim-up">' +
           '<div class="search-wrap">' +
             '<i data-lucide="search" class="w-4 h-4"></i>' +
-            '<input id="fSearch" type="text" placeholder="Search products or vendors…" value="' + escapeHtml(state.q) + '"/>' +
+            '<input id="fSearch" type="text" placeholder="Search your products…" value="' + escapeHtml(state.q) + '"/>' +
           '</div>' +
           '<select class="select" id="fCat">' +
             '<option value="">All categories</option>' +
@@ -610,14 +611,14 @@
     }
 
     function renderSummary() {
-      const prods = allProducts();
+      const prods = vendorProducts();
       const total = prods.length;
       const inN  = prods.filter(p => stockBand(p.stock) === 'in').length;
       const lowN = prods.filter(p => stockBand(p.stock) === 'low').length;
       const outN = prods.filter(p => stockBand(p.stock) === 'out').length;
       return '' +
         '<div class="summary-strip anim-up">' +
-          '<span class="total-label">Catalog</span>' +
+          '<span class="total-label">Inventory</span>' +
           '<span class="sum-pill"><span class="num">' + total + '</span> total</span>' +
           '<span class="divider-v"></span>' +
           '<span class="sum-pill in"><span class="dot"></span><span class="num">' + inN + '</span> in stock</span>' +
@@ -639,17 +640,15 @@
         const ratingHtml = rating.count > 0
           ? ('<span class="rating-cell">' + starsHtml(rating.avg) + '<span class="rv-count">(' + rating.count + ')</span></span>')
           : '<span class="rating-cell no-reviews">No reviews</span>';
-        const vName = vendorName(p.vendorId);
         return '' +
           '<tr data-pid="' + escapeHtml(p.id) + '" class="' + (active ? '' : 'inactive') + '">' +
             '<td class="td-check"><input type="checkbox" aria-label="Select"/></td>' +
             '<td class="td-prod" data-label="Product">' +
               '<div class="prod-cell">' +
-                '<a class="prod-thumb img-frame" href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '" title="View"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></a>' +
+                '<div class="prod-thumb img-frame"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></div>' +
                 '<div>' +
-                  '<a class="prod-name-link" href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
+                  '<a class="prod-name-link" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
                   '<div class="prod-sub">' + escapeHtml(p.id) + '</div>' +
-                  '<div class="prod-vendor"><i data-lucide="store"></i>' + escapeHtml(vName) + '</div>' +
                 '</div>' +
               '</div>' +
             '</td>' +
@@ -669,9 +668,6 @@
             '</td>' +
             '<td class="td-actions" data-label="">' +
               '<div class="actions-cell">' +
-                '<a class="icon-act" href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '" title="View">' +
-                  '<i data-lucide="eye" class="w-4 h-4"></i><span class="tip">View</span>' +
-                '</a>' +
                 '<a class="icon-act" href="admin_add_product_1.html?edit=' + encodeURIComponent(p.id) + '" title="Edit">' +
                   '<i data-lucide="pencil" class="w-4 h-4"></i><span class="tip">Edit</span>' +
                 '</a>' +
@@ -716,17 +712,15 @@
         const band = stockBand(stock);
         const badgeTxt = band === 'out' ? 'Out of stock' : (band === 'low' ? ('Low stock (' + stock + ')') : ('In stock (' + stock + ')'));
         const active = p._active !== false;
-        const vName = vendorName(p.vendorId);
         return '' +
           '<article class="g-card ' + (active ? '' : 'inactive') + ' anim-in" data-pid="' + escapeHtml(p.id) + '">' +
-            '<a class="g-img-wrap img-frame" href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '" title="View">' +
+            '<div class="g-img-wrap img-frame">' +
               '<span class="g-stock-badge ' + band + '">' + escapeHtml(badgeTxt) + '</span>' +
               '<img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '" loading="lazy"/>' +
-            '</a>' +
+            '</div>' +
             '<div class="g-meta">' +
-              '<a class="g-name" href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
+              '<a class="g-name" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
               '<div class="g-cat"><span class="tag-dot"></span>' + escapeHtml(cat ? cat.name : '—') + '</div>' +
-              '<div class="g-vendor"><i data-lucide="store" class="w-3 h-3"></i>' + escapeHtml(vName) + '</div>' +
               '<div class="g-price">' + DB.fmtINR(price) + '</div>' +
             '</div>' +
             '<div class="g-bottom">' +
@@ -734,7 +728,6 @@
               '<div class="g-more-wrap">' +
                 '<button class="g-more" data-more="' + escapeHtml(p.id) + '" aria-label="More"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>' +
                 '<div class="g-menu" data-menu="' + escapeHtml(p.id) + '">' +
-                  '<a href="admin_product_detail_1.html?id=' + encodeURIComponent(p.id) + '" style="color:var(--text);text-decoration:none;"><i data-lucide="eye" class="w-4 h-4"></i>View</a>' +
                   '<button data-dup="' + escapeHtml(p.id) + '"><i data-lucide="copy" class="w-4 h-4"></i>Duplicate</button>' +
                   '<button class="danger" data-del="' + escapeHtml(p.id) + '"><i data-lucide="trash-2" class="w-4 h-4"></i>Delete</button>' +
                 '</div>' +
@@ -758,9 +751,9 @@
       return '' +
         '<div class="empty-state anim-up">' +
           '<span class="ico"><i data-lucide="package" class="w-10 h-10"></i></span>' +
-          '<h2>No products in the catalog</h2>' +
-          '<p>Start building the catalog — buyers are looking for enrichment that works.</p>' +
-          '<a href="admin_add_product_1.html" class="cta-add"><i data-lucide="plus" class="w-4 h-4"></i>Add first product</a>' +
+          '<h2>No products yet</h2>' +
+          '<p>Start building your catalog — buyers are looking for enrichment that works.</p>' +
+          '<a href="admin_add_product_1.html" class="cta-add"><i data-lucide="plus" class="w-4 h-4"></i>Add your first product</a>' +
         '</div>';
     }
 
@@ -769,7 +762,7 @@
         '<div class="empty-state anim-up">' +
           '<span class="ico"><i data-lucide="search-x" class="w-10 h-10"></i></span>' +
           '<h2>No products match your filters</h2>' +
-          '<p>Try clearing a filter or tweaking your search to see more of the catalog.</p>' +
+          '<p>Try clearing a filter or tweaking your search to see more of your catalog.</p>' +
           '<button class="cta-add" id="emptyReset"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Reset filters</button>' +
         '</div>';
     }
@@ -777,9 +770,9 @@
     // ---------- Main render ----------
     function render() {
       const host = document.getElementById('mainHost');
-      const totalAll = allProducts().length;
+      const totalMine = vendorProducts().length;
 
-      if (totalAll === 0) {
+      if (totalMine === 0) {
         host.innerHTML = renderEmpty();
         if (window.lucide?.createIcons) window.lucide.createIcons();
         return;
@@ -803,30 +796,6 @@
         });
       }
       if (window.lucide?.createIcons) window.lucide.createIcons();
-    }
-
-    // ---------- Duplicate product ----------
-    function duplicateProduct(pid) {
-      const base = DB.byId(DB.PRODUCTS, pid);
-      if (!base) return;
-      let n = 1, newId;
-      do {
-        newId = base.id + '_copy' + (n > 1 ? n : '');
-        n++;
-      } while (DB.byId(DB.PRODUCTS, newId));
-      const copy = JSON.parse(JSON.stringify(base));
-      copy.id = newId;
-      copy.name = base.name + ' (copy)';
-      copy.stock = 0;
-      copy._active = false;
-      copy.status = 'paused';
-      copy.createdAt = new Date().toISOString();
-      copy.updatedAt = copy.createdAt;
-      DB.PRODUCTS.push(copy);
-      toast('Duplicated "' + base.name + '" — opening editor');
-      setTimeout(() => {
-        window.location.href = 'admin_add_product_1.html?edit=' + encodeURIComponent(newId) + '&duplicated=1';
-      }, 450);
     }
 
     // ---------- Wiring: filter strip ----------
@@ -906,7 +875,7 @@
       document.querySelectorAll('[data-dup]').forEach(el => {
         el.addEventListener('click', (e) => {
           e.preventDefault();
-          duplicateProduct(el.dataset.dup);
+          toast('Duplicate — coming soon');
         });
       });
 
@@ -946,7 +915,7 @@
       });
 
       document.querySelectorAll('.g-menu [data-dup]').forEach(b => {
-        b.addEventListener('click', (e) => { e.stopPropagation(); duplicateProduct(b.dataset.dup); closeAllGridMenus(); });
+        b.addEventListener('click', (e) => { e.stopPropagation(); toast('Duplicate — coming soon'); closeAllGridMenus(); });
       });
       document.querySelectorAll('.g-menu [data-del]').forEach(b => {
         b.addEventListener('click', (e) => { e.stopPropagation(); openConfirm(b.dataset.del); closeAllGridMenus(); });
@@ -969,7 +938,7 @@
       if (!p) return;
       pendingDelete = pid;
       confirmTitle.textContent = 'Delete "' + p.name + '"?';
-      confirmText.textContent = 'This action can\'t be undone. The product will be removed from the catalog (in-memory until persistence lands).';
+      confirmText.textContent = 'This action can\'t be undone. The product will be removed from your catalog (in-memory until persistence lands).';
       confirmModal.classList.add('open');
     }
     function closeConfirm() {
@@ -994,167 +963,28 @@
       a.addEventListener('click', (e) => { e.preventDefault(); toast('Coming soon'); });
     });
 
-    // ---------- Header: user slot (avatar dropdown with Admin highlighted) ----------
-    function renderUserSlot() {
-      const slot = document.getElementById('userSlot');
-      if (!slot) return;
-      const role = (ZE && ZE.user && ZE.user.role) ? ZE.user.role() : null;
-      const u = (role && ZE.user.resolve) ? ZE.user.resolve() : null;
-
-      if (!role || !u) {
-        slot.innerHTML = '<a href="login_1.html" class="signin-pill"><i data-lucide="log-in" class="w-4 h-4"></i> Sign in</a>';
-        if (window.lucide?.createIcons) window.lucide.createIcons();
-        return;
-      }
-
-      const avatarUrl = u.avatar || u.photo || 'https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true';
-      const name = u.name || u.fullName || 'Account';
-      const email = u.email || '';
-
-      slot.innerHTML =
-        '<div class="avatar-wrap">' +
-          '<img class="avatar" id="avatarTrigger" src="' + escapeHtml(avatarUrl) + '" alt="' + escapeHtml(name) + '" loading="eager" style="margin-left:0;"/>' +
-          '<div class="avatar-menu" id="avatarMenu" role="menu">' +
-            '<div class="menu-header">' +
-              '<div class="name">' + escapeHtml(name) + '</div>' +
-              (email ? '<div class="email">' + escapeHtml(email) + '</div>' : '') +
-            '</div>' +
-            '<a href="profile_1.html" role="menuitem"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>' +
-            '<a href="orders_1.html" role="menuitem"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>' +
-            '<a href="saved_1.html" role="menuitem"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>' +
-            '<a href="admin_products_1.html" class="active" role="menuitem" aria-current="page">' +
-              '<i data-lucide="shield" class="w-4 h-4"></i> Admin · Catalog' +
-              '<i data-lucide="check" class="w-4 h-4 menu-check"></i>' +
-            '</a>' +
-            '<div class="menu-sep"></div>' +
-            '<button type="button" class="sign-out" id="signOutBtn" role="menuitem">' +
-              '<i data-lucide="log-out" class="w-4 h-4"></i> Sign out' +
-            '</button>' +
-          '</div>' +
-        '</div>';
-
-      const trigger = document.getElementById('avatarTrigger');
-      const menu = document.getElementById('avatarMenu');
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.toggle('open');
-      });
-      document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && e.target !== trigger) menu.classList.remove('open');
-      });
-      const signOut = document.getElementById('signOutBtn');
-      if (signOut) {
-        signOut.addEventListener('click', () => {
-          if (ZE.user && ZE.user.signOut) ZE.user.signOut();
-          window.location.href = 'login_1.html';
-        });
-      }
-      if (window.lucide?.createIcons) window.lucide.createIcons();
-    }
-
-    // ---------- Header badges ----------
-    function renderBadges() {
-      try {
-        const cartN = (ZE.cart && ZE.cart.count) ? ZE.cart.count() : 0;
-        const cartB = document.getElementById('cartBadge');
-        if (cartB) {
-          if (cartN > 0) { cartB.style.display = 'inline-flex'; cartB.textContent = cartN; }
-          else cartB.style.display = 'none';
-        }
-
-        const savN = (ZE.saved && ZE.saved.count) ? ZE.saved.count() : 0;
-        const savB = document.getElementById('savedBadge');
-        if (savB) {
-          if (savN > 0) { savB.style.display = 'inline-flex'; savB.textContent = savN; }
-          else savB.style.display = 'none';
-        }
-
-        const ordN = (ZE.orders && ZE.orders.count) ? ZE.orders.count() : 0;
-        const ordB = document.getElementById('ordersBadge');
-        if (ordB) {
-          if (ordN > 0) { ordB.style.display = 'inline-flex'; ordB.textContent = ordN; }
-          else ordB.style.display = 'none';
-        }
-      } catch (_) { /* ignore */ }
-    }
-
-    // ---------- Header button nav ----------
-    const ordersBtn = document.getElementById('ordersBtn');
-    if (ordersBtn) ordersBtn.addEventListener('click', () => { window.location.href = 'orders_1.html'; });
-    const savedBtn = document.getElementById('savedBtn');
-    if (savedBtn) savedBtn.addEventListener('click', () => { window.location.href = 'saved_1.html'; });
-    const cartBtn = document.getElementById('cartBtn');
-    if (cartBtn) cartBtn.addEventListener('click', () => { window.location.href = 'cart_1.html'; });
-
-    // ---------- Subscribe ----------
-    if (ZE.on) {
-      ZE.on('cart:change',   renderBadges);
-      ZE.on('saved:change',  renderBadges);
-      ZE.on('orders:change', renderBadges);
-      ZE.on('user:change',   renderUserSlot);
-    }
-
-    // ---------- Mobile nav drawer ----------
-    (function initMobileNav(){
-      const openBtn  = document.getElementById('mobileMenuBtn');
-      const overlay  = document.getElementById('mobileNavOverlay');
-      const drawer   = document.getElementById('mobileNavDrawer');
-      const closeBtn = document.getElementById('mobileNavClose');
-      if (!openBtn || !overlay || !drawer) return;
-
-      // Populate header area from current user
-      try {
-        const u = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve() : null;
-        if (u) {
-          const av = u.avatar || u.photo || null;
-          if (av) { const img = document.getElementById('mobileNavAvatar'); if (img) img.src = av; }
-          const nameEl = document.getElementById('mobileNavName');
-          const subEl  = document.getElementById('mobileNavSub');
-          if (nameEl && u.name) nameEl.textContent = u.name;
-          if (subEl) subEl.textContent = 'Admin · Catalog';
-        }
-      } catch(_){}
-
-      const open  = () => { overlay.classList.add('open'); drawer.classList.add('open'); document.body.style.overflow = 'hidden'; if (window.lucide?.createIcons) window.lucide.createIcons(); };
-      const close = () => { overlay.classList.remove('open'); drawer.classList.remove('open'); document.body.style.overflow = ''; };
-      openBtn.addEventListener('click', (e) => { e.stopPropagation(); open(); });
-      closeBtn.addEventListener('click', close);
-      overlay.addEventListener('click', close);
-
-      const signOut = document.getElementById('mobileNavSignOut');
-      if (signOut) signOut.addEventListener('click', () => {
-        if (ZE.user && ZE.user.signOut) ZE.user.signOut();
-        window.location.href = 'login_1.html';
-      });
-    })();
-
     // ---------- Initial render ----------
     render();
-    renderBadges();
-    renderUserSlot();
-    if (typeof ZE.init === 'function') ZE.init();
 
-    // ---------- One-time success toast from URL params ----------
-    (function handleUrlToasts(){
-      try {
-        const qp = new URLSearchParams(location.search);
-        const deleted = qp.get('deleted');
-        const duplicated = qp.get('duplicated');
-        const saved = qp.get('saved');
-        if (deleted) {
-          setTimeout(() => toast('Deleted "' + deleted + '"'), 300);
-        } else if (duplicated) {
-          setTimeout(() => toast('Duplicated "' + duplicated + '"'), 300);
-        } else if (saved) {
-          setTimeout(() => toast('Saved "' + saved + '"'), 300);
-        }
-        if (deleted || duplicated || saved) {
-          qp.delete('deleted'); qp.delete('duplicated'); qp.delete('saved');
-          const newUrl = location.pathname + (qp.toString() ? '?' + qp.toString() : '') + location.hash;
-          history.replaceState({}, '', newUrl);
-        }
-      } catch(_){ /* ignore */ }
+    // ---------- Vendor mobile drawer ----------
+    (function initVendorDrawer(){
+      const btn = document.getElementById('vendorMenuBtn');
+      const dr  = document.getElementById('vDrawer');
+      const ov  = document.getElementById('vDrawerOverlay');
+      if (!btn || !dr || !ov) return;
+      const openDr = () => { dr.classList.add('open'); ov.classList.add('open'); dr.setAttribute('aria-hidden','false'); };
+      const closeDr = () => { dr.classList.remove('open'); ov.classList.remove('open'); dr.setAttribute('aria-hidden','true'); };
+      btn.addEventListener('click', openDr);
+      ov.addEventListener('click', closeDr);
+      dr.querySelector('.vd-close').addEventListener('click', closeDr);
+      const sf = document.getElementById('vDrawerStorefront');
+      if (sf && vendor && vendor.id) sf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+      const so = document.getElementById('vDrawerSignOut');
+      if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
     })();
+
+    // ---------- Init shared bits ----------
+    ZE.init();
   })();
 </script>
 </body>

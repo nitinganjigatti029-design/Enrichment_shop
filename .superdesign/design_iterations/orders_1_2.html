@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     :root{
       --st-amber-fg:#A16207; --st-amber-bg:#FEF3C7;
@@ -78,7 +80,7 @@
     /* ========== TOOLBAR ========== */
     .toolbar { display:flex; align-items:center; gap:10px; margin-bottom: 14px; flex-wrap: wrap; }
     .search-input-wrap { flex:1; min-width: 240px; position:relative; }
-    .search-input-wrap i { position:absolute; left:14px; top:50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-input-wrap > i, .search-input-wrap > svg { position:absolute; left:14px; top:50%; transform: translateY(-50%); color: var(--text-muted); pointer-events:none; }
     .search-input-wrap input { width:100%; padding: 11px 14px 11px 40px; border-radius: 999px; border: 1px solid var(--border); background:#fff; font-size: 14px; outline:none; color: var(--text); }
     .search-input-wrap input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
     .dd-trigger { display:inline-flex; align-items:center; gap:8px; padding: 11px 16px; border-radius: 999px; border:1px solid var(--border); background:#fff; font-size:13px; font-weight:600; color: var(--text); cursor:pointer; white-space:nowrap; position:relative; }
@@ -94,7 +96,7 @@
 
     /* ========== DESKTOP TABLE ========== */
     .table-wrap { background:#fff; border:1px solid var(--border); border-radius: 16px; overflow-x: auto; overflow-y: visible; position: relative; box-shadow: var(--shadow-xs); }
-    .orders-table { width:100%; border-collapse: separate; border-spacing: 0; min-width: 960px; }
+    .orders-table { width:100%; border-collapse: separate; border-spacing: 0; min-width: 760px; }
     .orders-table thead th { position: sticky; top: 0; background: var(--card-subtle); z-index: 2; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; user-select: none; }
     .orders-table thead th.sortable { cursor: pointer; }
     .orders-table thead th.sortable:hover { color: var(--text); }
@@ -103,16 +105,16 @@
     .orders-table thead th.sorted.desc .chev { transform: rotate(180deg); }
     .orders-table tbody td { padding: 10px 12px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--border); background:#fff; vertical-align: middle; height: 56px; }
     .orders-table tbody tr:last-child td { border-bottom: none; }
+    .orders-table tbody tr { cursor: pointer; }
     .orders-table tbody tr:hover td { background: #F9FAFB; }
     .orders-table tbody tr.selected td { background: var(--brand-soft); }
     .orders-table tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--brand), 2px 0 6px -3px rgba(15,23,42,.08); }
 
     /* Column widths */
     .orders-table th.col-check, .orders-table td.col-check { width: 44px; padding-left: 14px; padding-right: 4px; }
-    .orders-table th.col-id, .orders-table td.col-id { width: 140px; }
-    .orders-table th.col-date, .orders-table td.col-date { width: 96px; }
-    .orders-table th.col-items, .orders-table td.col-items { width: 220px; }
-    .orders-table th.col-vendor, .orders-table td.col-vendor { width: 160px; }
+    .orders-table th.col-id, .orders-table td.col-id { width: 120px; }
+    .orders-table th.col-date, .orders-table td.col-date { width: 120px; white-space: nowrap; }
+    .orders-table th.col-items, .orders-table td.col-items { width: 100px; }
     .orders-table th.col-total, .orders-table td.col-total { width: 104px; text-align: right; font-variant-numeric: tabular-nums; }
     .orders-table th.col-status, .orders-table td.col-status { width: 140px; }
     .orders-table th.col-act, .orders-table td.col-act { width: 72px; text-align: center; padding-right: 14px; padding-left: 4px; }
@@ -134,23 +136,10 @@
     .table-wrap.scroll-end-hidden .orders-table th.col-act { box-shadow: -2px 0 6px -3px rgba(15,23,42,.18); }
 
     /* ID cell */
-    .cell-id { display:flex; flex-direction:column; gap:2px; }
-    .cell-id .id-main { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); }
-    .cell-id .id-sub { font-size: 11px; color: var(--text-muted); }
+    .id-main { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); }
 
     /* Items cell */
-    .cell-items { display:flex; align-items:center; gap:10px; }
-    .cell-items .thumb-stack { display:inline-flex; }
-    .cell-items .thumb { width: 36px; height: 36px; border-radius: 8px; overflow: hidden; background: #F1F2F4; border: 2px solid #fff; margin-left: -8px; box-shadow: 0 0 0 1px var(--border); }
-    .cell-items .thumb:first-child { margin-left: 0; }
-    .cell-items .thumb img { width: 100%; height: 100%; object-fit: cover; display:block; }
-    .cell-items .more-thumb { width: 36px; height: 36px; border-radius: 8px; background:#F1F2F4; color: var(--text-muted); display:inline-flex; align-items:center; justify-content:center; font-size: 11px; font-weight:700; margin-left: -8px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); }
-    .cell-items .item-count-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-
-    /* Vendor cell */
-    .cell-vendor { display:inline-flex; align-items:center; gap:8px; }
-    .cell-vendor img { width: 22px; height: 22px; border-radius: 999px; object-fit: cover; flex-shrink:0; }
-    .cell-vendor .v-name { font-size: 13px; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+    .cell-items-count { font-size: 13px; color: var(--text); }
 
     /* Total cell */
     .cell-total { font-weight: 700; color: var(--text); font-size: 13.5px; }
@@ -258,7 +247,7 @@
       .avatar { width: 36px; height: 36px; }
     }
     @media (min-width: 768px) and (max-width: 1023px) {
-      .orders-table { min-width: 800px; }
+      .orders-table { min-width: 700px; }
     }
 
     /* ========== PRINT-ONLY VIEW ========== */
@@ -294,6 +283,45 @@
     /* Dropdown overlay helper */
     .dd-backdrop { position: fixed; inset: 0; background: transparent; z-index: 35; display:none; }
     .dd-backdrop.show { display: block; }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
   </style>
   <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
@@ -321,7 +349,19 @@
       <a href="cart_1.html" class="header-btn" title="Cart">
         <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
       </a>
-      <div class="user-wrap" id="userWrap">
+      <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header title="Approvals" style="display:none; position:relative;">
+        <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+        <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
+      </a>
+      <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
+        <div class="user-wrap" id="userWrap">
         <img class="avatar" id="userAvatar" src="https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20zoo%20curator?width=80&height=80&seed=401&nologo=true" alt="Account"/>
         <div class="dd-menu" id="userMenu" role="menu">
           <div class="dd-head">
@@ -333,7 +373,7 @@
           <div class="dd-item"><i data-lucide="heart" class="w-4 h-4"></i> Saved</div>
           <div class="dd-item"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Cart</div>
           <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
-          <div class="dd-item"><i data-lucide="shield" class="w-4 h-4"></i> Admin</div>
+          <a class="dd-item" id="personaSwitchItem" data-persona-item data-mode-switch="to-other-persona" onclick="window.location.reload();return false;" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></a><a href="admin_dashboard_1.html" class="dd-item" data-mode-switch="to-admin" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</a>
           <div class="dd-item"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</div>
         </div>
       </div>
@@ -368,7 +408,7 @@
   <div class="toolbar">
     <div class="search-input-wrap">
       <i data-lucide="search" class="w-4 h-4"></i>
-      <input id="tbSearch" type="search" placeholder="Search by order ID, item or vendor…" aria-label="Search orders"/>
+      <input id="tbSearch" type="search" placeholder="Search by order ID or item…" aria-label="Search orders"/>
     </div>
     <div class="dd-trigger" id="dateTrigger" tabindex="0" role="button" aria-haspopup="listbox">
       <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -393,7 +433,6 @@
           <th class="col-id sortable" data-sort="id">Order ID <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
           <th class="col-date sortable sorted desc" data-sort="date">Date <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
           <th class="col-items">Items</th>
-          <th class="col-vendor sortable" data-sort="vendor">Vendor <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
           <th class="col-total sortable" data-sort="total">Total <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
           <th class="col-status sortable" data-sort="status">Status <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
           <th class="col-act" aria-label="Actions"></th>
@@ -442,7 +481,7 @@ const VENDORS = {
 const P = (name, seed) => ({ name, img: `https://image.pollinations.ai/prompt/${encodeURIComponent(name+' zoo enrichment product studio shot')}?width=140&height=140&seed=${seed}&nologo=true` });
 
 /* 24 mock orders across all status buckets (3 awaiting, 8 in transit, 10 delivered, 3 cancelled). */
-const ORDERS = [
+const _MOCK_ORDERS = [
   // ==== AWAITING (3) ====
   { id:'ORD-9012', status:'awaiting', subStatus:'Awaiting approval', vendor:'wildforge',
     createdAt:'2026-04-23', total:186500,
@@ -570,6 +609,109 @@ const ORDERS = [
 ];
 
 /* ================================================================
+   Real-orders bridge — pulls live orders from ZE.orders.read() so
+   anything placed via checkout (junior pending-approval, senior placed,
+   etc.) shows up in this listing. Mock data still appended for demo richness.
+   ================================================================ */
+function _zeMapRealOrder(o){
+  var statusMap = {
+    pending_approval:    { status:'awaiting',  subStatus:'Awaiting approval' },
+    placed:              { status:'transit',   subStatus:'Sent to admin · awaiting confirmation' },
+    confirmed:           { status:'transit',   subStatus:'Confirmed · awaiting production' },
+    packed:              { status:'transit',   subStatus:'Packed · ready for shipment' },
+    shipped:             { status:'transit',   subStatus:'Shipped' },
+    out_for_delivery:    { status:'transit',   subStatus:'Out for delivery' },
+    delivered:           { status:'delivered', subStatus:'Delivered' },
+    cancelled:           { status:'cancelled', subStatus: o.rejectReason ? ('Rejected: '+o.rejectReason) : 'Cancelled' }
+  };
+  var sm = statusMap[o.status] || { status:'awaiting', subStatus: o.status || '—' };
+  var prodLookup = function(pid){ try { return (window.DB && DB.byId) ? DB.byId(DB.PRODUCTS, pid) : null; } catch(_){ return null; } };
+  var siteName = '';
+  try {
+    siteName = (o.shippingAddress && o.shippingAddress.site)
+            || (window.DB && DB.byId(DB.SITES, o.siteId) && DB.byId(DB.SITES, o.siteId).name)
+            || '—';
+  } catch(_){ siteName='—'; }
+  var approverName = null;
+  try {
+    if (o.approverId && window.DB && DB.byId) {
+      var ap = DB.byId(DB.USERS, o.approverId);
+      if (ap) approverName = ap.name;
+    }
+  } catch(_){}
+  // Ensure the VENDORS dict has an entry for this vendor so the renderer can find name+logo
+  try {
+    if (window.DB && DB.VENDORS && o.vendorId) {
+      var realVend = DB.byId(DB.VENDORS, o.vendorId);
+      if (realVend) {
+        var key = o.vendorId.replace(/^ven_/, '');
+        if (!VENDORS[key]) {
+          VENDORS[key] = {
+            name: realVend.name,
+            logo: (typeof DB.vendorLogo === 'function') ? DB.vendorLogo(realVend) : ''
+          };
+        }
+      }
+    }
+  } catch(_){}
+  return {
+    id: o.id,
+    status: sm.status,
+    subStatus: sm.subStatus,
+    vendor: (o.vendorId || '').replace(/^ven_/,'') || 'in-house',
+    createdAt: (o.createdAt || '').slice(0,10),
+    total: o.total || 0,
+    items: (o.items || []).map(function(it){
+      var prod = prodLookup(it.productId);
+      var img  = (prod && (prod.imgSmall || prod.img))
+              || (prod && prod.imgQ && window.DB && DB.img ? DB.img(prod.imgQ, 140, 140, prod.seed||0) : '')
+              || '';
+      return { p: { name: (prod && prod.name) || it.productId, id: it.productId, img: img }, qty: it.qty };
+    }),
+    site: siteName,
+    pin: (o.shippingAddress && o.shippingAddress.pincode) || '',
+    approver: approverName,
+    tracking: (o.tracking && o.tracking.carrier) ? { carrier: o.tracking.carrier, awb: o.tracking.number || '', event: 'Tracking updated' } : null,
+    reason: (o.status === 'cancelled' ? (o.rejectReason || '') : undefined),
+    _real: true,
+    _approvalStatus: o.approvalStatus,
+    _approvedBy: o.approverId,
+    _approvedAt: o.approvedAt
+  };
+}
+
+function _zeLoadRealOrders(){
+  if (!window.ZE || !ZE.orders || !ZE.orders.read) return [];
+  var u = (ZE.user && ZE.user.read) ? ZE.user.read() : null;
+  var uid = u && u.id;
+  var arr = ZE.orders.read() || [];
+  var mine = uid ? arr.filter(function(o){ return o.buyerId === uid || o.createdBy === uid; }) : arr;
+  return mine.map(_zeMapRealOrder);
+}
+
+// Default entry for in-house fulfilment (admin orders without external vendor)
+if (!VENDORS['in-house']) {
+  VENDORS['in-house'] = { name: 'In-house (Admin)', logo: 'https://image.pollinations.ai/prompt/minimal%20paw%20print%20logo%20green%20brand?width=60&height=60&seed=900&nologo=true' };
+}
+
+let ORDERS = _zeLoadRealOrders().concat(_MOCK_ORDERS);
+
+function _zeRefreshOrders(){
+  ORDERS = _zeLoadRealOrders().concat(_MOCK_ORDERS);
+  if (typeof updateCounts === 'function') updateCounts();
+  if (typeof render === 'function') render();
+}
+
+if (window.ZE && typeof ZE.on === 'function') {
+  ZE.on('orders:change', _zeRefreshOrders);
+  ZE.on('user:change',   _zeRefreshOrders);
+}
+window.addEventListener('storage', function(e){
+  if (e.key === 'ze_orders_v1' || e.key === 'ze_user_v1') _zeRefreshOrders();
+});
+
+
+/* ================================================================
  *  STATE + HELPERS
  * ================================================================ */
 const state = {
@@ -649,8 +791,6 @@ function filterList(){
     total_desc:(a,b) => b.total - a.total,
     id_asc:    (a,b) => a.id.localeCompare(b.id),
     id_desc:   (a,b) => b.id.localeCompare(a.id),
-    vendor_asc:(a,b) => (VENDORS[a.vendor]?.name||'').localeCompare(VENDORS[b.vendor]?.name||''),
-    vendor_desc:(a,b) => (VENDORS[b.vendor]?.name||'').localeCompare(VENDORS[a.vendor]?.name||''),
     status_asc:(a,b) => a.status.localeCompare(b.status),
     status_desc:(a,b) => b.status.localeCompare(a.status)
   }[state.sortBy] || ((a,b)=>0);
@@ -675,42 +815,23 @@ function updateCounts(){
  *  RENDER TABLE ROWS
  * ================================================================ */
 function itemsCell(o){
-  const shown = o.items.slice(0, 4);
-  const remaining = o.items.length - shown.length;
   const totalQty = o.items.reduce((s,it)=> s + it.qty, 0);
-  const thumbs = shown.map(it => `<div class="thumb"><img src="${it.p.img}" loading="lazy" alt=""/></div>`).join('');
-  const moreT = remaining > 0 ? `<div class="more-thumb">+${remaining}</div>` : '';
-  return `<div class="cell-items">
-    <div class="thumb-stack">${thumbs}${moreT}</div>
-    <span class="item-count-label">· ${totalQty} itm</span>
-  </div>`;
+  return `<span class="cell-items-count">${totalQty} ${totalQty === 1 ? 'item' : 'items'}</span>`;
 }
 
 function renderTableRows(list){
   const tb = document.getElementById('ordersTbody');
   if (!list.length) { tb.innerHTML = ''; return; }
   tb.innerHTML = list.map(o => {
-    const v = VENDORS[o.vendor];
     const sel = state.selectedIds.has(o.id);
     return `
       <tr data-id="${o.id}" class="${sel?'selected':''}">
         <td class="col-check">
           <input type="checkbox" class="cb row-cb" data-id="${o.id}" ${sel?'checked':''} aria-label="Select ${o.id}"/>
         </td>
-        <td class="col-id">
-          <div class="cell-id">
-            <span class="id-main">${o.id}</span>
-            <span class="id-sub">${o.site}</span>
-          </div>
-        </td>
-        <td class="col-date">${fmtDate(o.createdAt)}<br><span style="font-size:11px;color:var(--text-muted)">${new Date(o.createdAt).getFullYear()}</span></td>
+        <td class="col-id"><span class="id-main">${o.id}</span></td>
+        <td class="col-date">${fmtDate(o.createdAt)} ${new Date(o.createdAt).getFullYear()}</td>
         <td class="col-items">${itemsCell(o)}</td>
-        <td class="col-vendor">
-          <div class="cell-vendor">
-            <img src="${v?.logo}" alt=""/>
-            <span class="v-name" title="${v?.name||''}">${v?.name||''}</span>
-          </div>
-        </td>
         <td class="col-total"><span class="cell-total">${fmtINR(o.total)}</span></td>
         <td class="col-status">
           <span class="st-chip ${statusChipClass(o)}">
@@ -813,7 +934,6 @@ function updateSortIndicators(){
   const mapping = {
     id:{a:'id_asc',d:'id_desc'},
     date:{a:'date_asc',d:'date_desc'},
-    vendor:{a:'vendor_asc',d:'vendor_desc'},
     total:{a:'total_asc',d:'total_desc'},
     status:{a:'status_asc',d:'status_desc'}
   };
@@ -898,7 +1018,6 @@ function wireEvents(){
       const map = {
         id:['id_desc','id_asc'],
         date:['date_desc','date_asc'],
-        vendor:['vendor_asc','vendor_desc'],
         total:['total_desc','total_asc'],
         status:['status_asc','status_desc']
       }[k];
@@ -942,6 +1061,22 @@ function wireEvents(){
       document.querySelectorAll('#tabsRow button').forEach(x => x.classList.remove('active'));
       document.querySelector('#tabsRow button[data-tab="all"]').classList.add('active');
       render();
+      return;
+    }
+    // Row / card click → open order detail. Skip clicks on checkboxes,
+    // download button, or any anchor/button inside the row.
+    if (e.target.closest('input,button,a,label')) return;
+    const row = e.target.closest('#ordersTbody tr[data-id], #ordersCards article.o-card[data-id]');
+    if (row) {
+      const id = row.dataset.id;
+      if (!id) return;
+      // Stash full order payload so order_detail can render seeded mocks
+      // that don't live in ZE.orders / DB.DEMO_ORDERS.
+      const o = ORDERS.find(x => x.id === id);
+      if (o) {
+        try { sessionStorage.setItem('ze_view_order_' + id, JSON.stringify(o)); } catch(_) {}
+      }
+      window.location.href = 'order_detail_1.html?id=' + encodeURIComponent(id);
     }
   });
 
@@ -1129,6 +1264,134 @@ function refreshIcons(){ if (window.lucide?.createIcons) window.lucide.createIco
   updateCounts();
   wireEvents();
   render();
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pop = document.getElementById('walletPillPop');
+      if (siteSwitch && pill.contains(siteSwitch)) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      if (pillTarget && !siteSwitch && !opt) {
+        window.location.href = 'wallet_1.html';
+      }
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
 })();
 </script>
 </body>

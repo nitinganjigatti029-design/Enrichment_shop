@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=20260430e"></script>
+  <script src="app.js?v=20260430e"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -198,52 +198,86 @@
     .field .site-address .ship-ico { flex-shrink: 0; color: var(--text-muted); margin-top: 2px; }
     .char-count { font-size: 11px; color: var(--text-subtle); text-align: right; margin-top: 4px; }
 
-    /* =========== Delivery radio cards =========== */
-    .delivery-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 500px) { .delivery-row { grid-template-columns: 1fr; } }
-
-    .delivery-opt {
-      position: relative;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      cursor: pointer;
-      transition: .15s ease;
-      background: #fff;
+    /* =========== Wallet check card =========== */
+    .wallet-check .wc-site {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+    .wallet-check .wc-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .wallet-check .wc-row {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #F9FAFB;
+      border: 1px solid var(--border);
+      border-radius: 10px;
     }
-    .delivery-opt:hover { border-color: var(--border-strong); }
-    .delivery-opt.active {
-      border-color: var(--brand);
+    .wallet-check .wc-row.highlight {
       background: var(--brand-soft);
-      box-shadow: 0 0 0 3px rgba(55,189,105,.12);
+      border-color: rgba(55,189,105,.25);
     }
-    .delivery-opt input { position: absolute; opacity: 0; pointer-events: none; }
-    .delivery-opt .radio-dot {
-      position: absolute; top: 14px; right: 14px;
-      width: 18px; height: 18px; border-radius: 999px;
-      border: 2px solid var(--border-strong);
+    .wallet-check .wc-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .wallet-check .wc-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .wallet-check .wc-row.highlight .wc-value { color: var(--brand); }
+    .wallet-check .wc-row.danger { background: var(--danger-bg); border-color: rgba(220,69,69,.25); }
+    .wallet-check .wc-row.danger .wc-value { color: var(--danger); }
+    .wallet-check .wc-status {
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      width: 100%;
+      justify-content: center;
+    }
+    .wallet-check .wc-status.ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .wallet-check .wc-status.warn {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+    .wallet-check .wc-topup-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
       background: #fff;
+      border: 1.5px solid var(--brand);
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       transition: .15s;
     }
-    .delivery-opt.active .radio-dot {
-      border-color: var(--brand);
-      background: var(--brand);
-      box-shadow: inset 0 0 0 3px #fff;
-    }
-    .delivery-opt .d-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
-    .delivery-opt.active .d-ico { background: #fff; color: var(--brand); }
-    .delivery-opt .d-name { font-size: 14px; font-weight: 700; color: var(--text); }
-    .delivery-opt .d-eta { font-size: 12px; color: var(--text-muted); }
-    .delivery-opt .d-fee { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
-
-    /* =========== Segmented control (priority) =========== */
-    .seg-control { display: flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; }
-    .seg-control button { flex: 1; padding: 9px 14px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-    .seg-control button.active { background: var(--brand); color: #fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
-    .seg-control button:not(.active):hover { color: var(--text); }
+    .wallet-check .wc-topup-btn:hover { background: var(--brand-soft); }
 
     /* =========== Order summary =========== */
     .vendor-group { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
@@ -391,8 +425,47 @@
     .place-btn:hover:not(:disabled) { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 10px 20px -8px rgba(55,189,105,.55); }
     .place-btn:active:not(:disabled) { transform: scale(.98); }
     .place-btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+    /* Wallet-block enforcement: keeps brand colour but desaturated, no hover */
+    .place-btn.po-blocked,
+    .place-btn.po-blocked:hover,
+    .place-btn.po-blocked:active {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      filter: grayscale(0.25);
+      background: var(--brand);
+    }
 
     .place-help { font-size: 11px; color: var(--text-subtle); text-align: center; margin-top: 10px; line-height: 1.5; display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
+
+    /* Compact warning ribbon shown only when funds are insufficient */
+    .po-warn-ribbon {
+      background: #FEE2E2;
+      color: #B91C1C;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.4;
+    }
+    .po-warn-ribbon .po-warn-ico { flex-shrink: 0; }
+
+    /* Inline secondary CTA row inside wallet-check warn state */
+    .wallet-check .wc-topup-row { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .wallet-check .wc-topup-btn.wc-topup-btn-fill {
+      margin-top: 0;
+      background: var(--danger, #DC4545);
+      border-color: var(--danger, #DC4545);
+      color: #fff;
+    }
+    .wallet-check .wc-topup-btn.wc-topup-btn-fill:hover {
+      background: #B91C1C;
+      border-color: #B91C1C;
+    }
 
     /* =========== Empty cart =========== */
     .empty-cart {
@@ -442,12 +515,6 @@
     @media (max-width: 600px) {
       .field-grid { grid-template-columns: 1fr !important; }
       .field-grid .full { grid-column: auto !important; }
-      .delivery-row { grid-template-columns: 1fr !important; }
-      .delivery-opt { align-items: center; text-align: center; }
-      .delivery-opt .d-ico { margin: 0 auto; }
-      .delivery-opt .radio-dot { top: 12px; right: 12px; }
-      .seg-control { width: 100%; }
-      .seg-control button { flex: 1 1 0 !important; padding: 10px 6px; font-size: 12px; }
       .vendor-body { padding: 4px 10px 10px; }
       .vendor-head { padding: 8px 10px; }
       .sum-line .thumb { width: 52px; height: 52px; }
@@ -456,6 +523,45 @@
       .page-head h1 { font-size: 22px; }
       .field input, .field textarea, .field select { padding: 12px 14px; min-height: 40px; }
     }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
   </style>
   <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
@@ -491,6 +597,18 @@
         <button class="header-btn" type="button" id="cartBtn" onclick="window.location.href='cart_1.html'">
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
           <span class="badge-dot" id="cartBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="headerApprovalsLink" data-approvals-header onclick="window.location.href='approvals_1.html'" style="display:none">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </button>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
         </button>
         <div id="avatarSlot"><!-- avatar or sign-in pill injected by JS --></div>
       </div>
@@ -593,44 +711,14 @@
           </form>
         </section>
 
-        <!-- Delivery option -->
-        <section class="card anim-in">
+        <!-- Wallet check -->
+        <section class="card anim-in wallet-check" id="walletCheckCard">
           <div class="card-head">
-            <span class="ico"><i data-lucide="truck" class="w-4 h-4"></i></span>
-            <h2>Delivery option</h2>
+            <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+            <h2>Wallet check</h2>
+            <span class="hint">For this site</span>
           </div>
-          <div class="delivery-row" id="deliveryRow">
-            <label class="delivery-opt active" data-method="Standard" data-fee="80">
-              <input type="radio" name="delivery" value="Standard" checked/>
-              <span class="radio-dot"></span>
-              <span class="d-ico"><i data-lucide="truck" class="w-4 h-4"></i></span>
-              <span class="d-name">Standard</span>
-              <span class="d-eta">4–6 business days</span>
-              <span class="d-fee">₹80</span>
-            </label>
-            <label class="delivery-opt" data-method="Express" data-fee="200">
-              <input type="radio" name="delivery" value="Express"/>
-              <span class="radio-dot"></span>
-              <span class="d-ico"><i data-lucide="zap" class="w-4 h-4"></i></span>
-              <span class="d-name">Express</span>
-              <span class="d-eta">1–2 business days</span>
-              <span class="d-fee">₹200</span>
-            </label>
-          </div>
-        </section>
-
-        <!-- Order priority -->
-        <section class="card anim-in">
-          <div class="card-head">
-            <span class="ico"><i data-lucide="flag" class="w-4 h-4"></i></span>
-            <h2>Order priority</h2>
-            <span class="hint">Internal hint for the seller</span>
-          </div>
-          <div class="seg-control" id="prioritySeg">
-            <button type="button" data-priority="Normal" class="active">Normal</button>
-            <button type="button" data-priority="High">High</button>
-            <button type="button" data-priority="Critical">Critical</button>
-          </div>
+          <div id="walletCheckBody"><!-- populated by JS --></div>
         </section>
 
         <!-- Notes -->
@@ -877,6 +965,7 @@
         updateSiteAddressLine();
         if (_encDd) _encDd.refresh();
         validateAll(false);
+        renderWalletCheck();
       }
     });
 
@@ -1053,8 +1142,12 @@
       ${shippingRowHtml}
       <div class="sum-row total"><span>${vendorCount > 1 ? 'Grand total' : 'Total'}</span><span>${DB.fmtINR(grandTotal)}</span></div>
       ${multiBannerHtml}
-      <button class="place-btn" id="placeBtn" type="button">
-        <i data-lucide="${placeIcon}" class="w-4 h-4"></i> ${escapeHtml(placeLabel)}
+      <div class="po-warn-ribbon" id="placeWarnRibbon" style="display:none">
+        <i data-lucide="alert-triangle" class="w-4 h-4 po-warn-ico"></i>
+        <span id="placeWarnRibbonText"></span>
+      </div>
+      <button class="place-btn" id="placeBtn" type="button" data-default-label="${escapeHtml(placeLabel)}" data-default-icon="${placeIcon}">
+        <i data-lucide="${placeIcon}" class="w-4 h-4"></i> <span class="place-btn-label">${escapeHtml(placeLabel)}</span>
       </button>
       <div class="place-help">
         <i data-lucide="info" class="w-3 h-3"></i>
@@ -1067,32 +1160,143 @@
     document.getElementById('placeBtn').addEventListener('click', onPlaceOrder);
     validateAll(false);
     if (window.lucide?.createIcons) window.lucide.createIcons();
+    applyWalletGuard();
   }
 
-  /* ---------- Delivery option handling ---------- */
-  function bindDelivery() {
-    document.querySelectorAll('#deliveryRow .delivery-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        document.querySelectorAll('#deliveryRow .delivery-opt').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
-        const input = opt.querySelector('input[type="radio"]');
-        if (input) input.checked = true;
-        state.shippingMethod = opt.dataset.method;
-        renderSummary();
-      });
-    });
+  /* ---------- Wallet check (left card) ---------- */
+  function activeSiteIdForWallet() {
+    const fromActive = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    return fromActive || state.siteId || (state.user && state.user.siteId) || null;
   }
 
-  /* ---------- Priority segmented control ---------- */
-  function bindPriority() {
-    document.querySelectorAll('#prioritySeg button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#prioritySeg button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.priority = btn.dataset.priority;
+  function renderWalletCheck() {
+    const body = document.getElementById('walletCheckBody');
+    if (!body) return;
+    const siteId = activeSiteIdForWallet();
+    if (!siteId) {
+      body.innerHTML = `<div class="wc-row"><span class="wc-label">No active site selected</span></div>`;
+      return;
+    }
+    const site = DB.byId(DB.SITES, siteId) || {};
+    const wallet = (ZE.wallet && ZE.wallet.forSite) ? ZE.wallet.forSite(siteId) : { available: 0 };
+    const available = Number(wallet.available) || 0;
+
+    // Order total from cart subtotal + shipping (per-vendor) — same math as renderSummary
+    const lines = ZE.cart.lines() || [];
+    const grouped = ZE.cart.groupByVendor();
+    const vendorCount = Object.keys(grouped).length || 0;
+    const subtotal = ZE.cart.subtotal() || 0;
+    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
+    const orderTotal = subtotal + totalShipping;
+
+    const after = available - orderTotal;
+    const ok = available >= orderTotal && orderTotal > 0;
+    const empty = orderTotal <= 0;
+
+    const shortfall = ok || empty ? 0 : Math.ceil(orderTotal - available);
+
+    body.innerHTML = `
+      <div class="wc-site">${escapeHtml(site.name || 'Site')}</div>
+      <div class="wc-grid">
+        <div class="wc-row">
+          <span class="wc-label">Available now</span>
+          <span class="wc-value">${DB.fmtINR(available)}</span>
+        </div>
+        <div class="wc-row">
+          <span class="wc-label">This order will lock</span>
+          <span class="wc-value">${DB.fmtINR(orderTotal)}</span>
+        </div>
+        <div class="wc-row ${after < 0 ? 'danger' : 'highlight'}">
+          <span class="wc-label">After delivery</span>
+          <span class="wc-value">${DB.fmtINR(after)}</span>
+        </div>
+      </div>
+      ${empty
+        ? ''
+        : (ok
+            ? `<div class="wc-status ok"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Funds available</div>`
+            : `<div class="wc-status warn"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Insufficient funds — short by ${DB.fmtINR(shortfall)}</div>
+               <div class="wc-topup-row">
+                 <button type="button" class="wc-topup-btn wc-topup-btn-fill" id="checkoutTopupPrefillBtn" data-topup-trigger data-topup-amount="${shortfall}"><i data-lucide="zap" class="w-4 h-4"></i> Top-up ${DB.fmtINR(shortfall)} to enable Place Order</button>
+                 <button type="button" class="wc-topup-btn" id="checkoutTopupBtn"><i data-lucide="plus-circle" class="w-4 h-4"></i> Request top-up</button>
+               </div>`)}
+    `;
+
+    const tBtn = document.getElementById('checkoutTopupBtn');
+    if (tBtn) {
+      tBtn.addEventListener('click', () => {
+        // Try to open the global top-up modal (defined on wallet_1.html via shared markup)
+        if (window.ZEOpenTopupModal) { window.ZEOpenTopupModal(); }
+        else { location.href = 'wallet_1.html'; }
       });
-    });
+    }
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+    applyWalletGuard();
   }
+
+  /* ---------- Wallet guard: compute and apply Place-button block state ---------- */
+  function computeWalletGuard() {
+    const siteId = activeSiteIdForWallet();
+    if (!siteId) return { blocked: false, shortfall: 0, orderTotal: 0 };
+    const wallet = (ZE.wallet && ZE.wallet.forSite) ? ZE.wallet.forSite(siteId) : { available: 0 };
+    const available = Number(wallet.available) || 0;
+    const lines = ZE.cart.lines() || [];
+    const grouped = ZE.cart.groupByVendor();
+    const vendorCount = Object.keys(grouped).length || 0;
+    const subtotal = ZE.cart.subtotal() || 0;
+    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
+    const orderTotal = subtotal + totalShipping;
+    if (orderTotal <= 0) return { blocked: false, shortfall: 0, orderTotal: 0 };
+    const blocked = available < orderTotal;
+    const shortfall = blocked ? Math.ceil(orderTotal - available) : 0;
+    return { blocked, shortfall, orderTotal, available };
+  }
+
+  function applyWalletGuard() {
+    const btn = document.getElementById('placeBtn');
+    if (!btn) return;
+    const ribbon = document.getElementById('placeWarnRibbon');
+    const ribbonTxt = document.getElementById('placeWarnRibbonText');
+    const labelEl = btn.querySelector('.place-btn-label');
+    const g = computeWalletGuard();
+
+    if (g.blocked) {
+      btn.classList.add('po-blocked');
+      btn.setAttribute('disabled', 'disabled');
+      btn.setAttribute('aria-disabled', 'true');
+      if (labelEl) labelEl.textContent = 'Insufficient funds';
+      if (ribbon && ribbonTxt) {
+        ribbonTxt.textContent = `Place Order is disabled until your site wallet has enough balance for ${DB.fmtINR(g.orderTotal)}.`;
+        ribbon.style.display = 'flex';
+      }
+    } else {
+      btn.classList.remove('po-blocked');
+      btn.removeAttribute('disabled');
+      btn.removeAttribute('aria-disabled');
+      const def = btn.getAttribute('data-default-label') || 'Place order';
+      if (labelEl) labelEl.textContent = def;
+      if (ribbon) ribbon.style.display = 'none';
+    }
+  }
+
+  // Pre-fill the global top-up modal amount when the inline shortfall CTA is used.
+  // The existing global delegated handler ([data-topup-trigger]) opens the modal;
+  // this handler runs alongside and fills the amount field a tick later.
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest && e.target.closest('[data-topup-trigger][data-topup-amount]');
+    if (!t) return;
+    const amt = parseInt(t.getAttribute('data-topup-amount'), 10);
+    if (!amt || amt <= 0) return;
+    setTimeout(() => {
+      const inp = document.getElementById('zeTopupAmt');
+      if (!inp) return;
+      // Format with thousands separators (modal expects formatted display, parses digits)
+      try { inp.value = amt.toLocaleString('en-IN'); } catch(e) { inp.value = String(amt); }
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.focus();
+      try { inp.select(); } catch(e){}
+    }, 50);
+  });
 
   /* ---------- Notes counter ---------- */
   function bindNotes() {
@@ -1182,6 +1386,15 @@
 
   /* ---------- Place order (Task 6) ---------- */
   function onPlaceOrder() {
+    // Wallet guard: block placement (and "Send for approval") when site wallet is short.
+    const guard = computeWalletGuard();
+    if (guard.blocked) {
+      toast(`Insufficient site wallet — short by ${DB.fmtINR(guard.shortfall)}`);
+      const ribbon = document.getElementById('placeWarnRibbon');
+      if (ribbon && ribbon.scrollIntoView) ribbon.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     const ok = validateAll(true);
     if (!ok) {
       toast('Please fix the highlighted fields');
@@ -1246,12 +1459,13 @@
         priority,
         notes,
         vendorId: vid,
-        siteId: state.siteId,
+        siteId: (ZE.activeSite && ZE.activeSite.get && ZE.activeSite.get()) || state.siteId,
         speciesId: null,
         enclosureId: state.orderEnclosureId || null,
         requiresApproval,
         approverId,
-        buyerId: user.id
+        buyerId: user.id,
+        createdBy: user.id
       });
 
       // Fallback: ensure vendorId is actually persisted on the stored order,
@@ -1307,6 +1521,7 @@
           <button type="button" data-act="profile"><i data-lucide="user" class="w-4 h-4"></i> Profile</button>
           <button type="button" data-act="orders"><i data-lucide="package" class="w-4 h-4"></i> Orders</button>
           <button type="button" data-act="saved"><i data-lucide="heart" class="w-4 h-4"></i> Saved</button>
+          <button type="button" id="personaSwitchItem" data-persona-item data-act="persona" data-mode-switch="to-other-persona" onclick="window.location.reload();return false;"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></button><button type="button" data-act="admin" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</button>
           <div class="sep-line"></div>
           <button type="button" data-act="signout"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
         </div>
@@ -1331,6 +1546,7 @@
         if (act === 'profile') location.href = 'profile_1.html';
         else if (act === 'orders') location.href = 'orders_1.html';
         else if (act === 'saved') location.href = 'saved_1.html';
+        else if (act === 'admin') location.href = 'admin_dashboard_1.html';
         else if (act === 'signout') {
           if (ZE.user && ZE.user.signOut) ZE.user.signOut();
           location.href = 'login_1.html';
@@ -1371,9 +1587,11 @@
 
   renderAvatar();
   updateBadges();
-  ZE.on('cart:change', () => { updateBadges(); renderSummary(); });
+  ZE.on('cart:change', () => { updateBadges(); renderSummary(); renderWalletCheck(); });
   ZE.on('saved:change', updateBadges);
   ZE.on('orders:change', updateBadges);
+  if (ZE.on) ZE.on('activeSite:change', () => { renderWalletCheck(); });
+  if (ZE.on) ZE.on('topup:change', () => { renderWalletCheck(); });
   if (ZE.on) ZE.on('user:change', () => {
     state.user = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
     renderAvatar();
@@ -1388,6 +1606,7 @@
       updateSiteAddressLine();
     }
     renderSummary();
+    renderWalletCheck();
   });
 
   // Task 4 — approval callout
@@ -1400,12 +1619,632 @@
   // Task 1 — pre-fill from user
   prefillFromUser();
 
-  bindDelivery();
-  bindPriority();
   bindNotes();
   bindLiveValidation();
   renderSummary();
+  renderWalletCheck();
   validateAll(false);
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pop = document.getElementById('walletPillPop');
+      if (siteSwitch && pill.contains(siteSwitch)) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      if (pillTarget && !siteSwitch && !opt) {
+        window.location.href = 'wallet_1.html';
+      }
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+
+
+<!-- ===================================================================
+     TOP-UP REQUEST MODAL (mirrored from wallet_1.html)
+     Trigger: any element with id="checkoutTopupBtn", id="walletRequestTopupBtn",
+     or [data-topup-trigger] (or call window.ZEOpenTopupModal()).
+     Depends on: ZE.activeSite, ZE.topup.submit, DB.byId/DB.SITES,
+     DB.fmtINR; lucide icons (already loaded by host page).
+     =================================================================== -->
+<style>
+  /* Top-up modal */
+  .ze-topup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .ze-topup-overlay.open { display: flex; opacity: 1; }
+  .ze-topup-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.4);
+    transform: translateY(8px) scale(.98);
+    transition: transform .2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+  }
+  .ze-topup-overlay.open .ze-topup-modal { transform: translateY(0) scale(1); }
+  .ze-topup-head {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border, #E5E7EB);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .ze-topup-head .ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--brand-soft, #E6F7EE);
+    color: var(--brand, #37BD69);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ze-topup-head .ze-topup-title {
+    font-size: 16px; font-weight: 700; color: var(--text, #0F172A);
+    line-height: 1.2;
+  }
+  .ze-topup-head .ze-topup-sub {
+    font-size: 12px; color: var(--text-muted, #6B7280);
+    margin-top: 4px;
+  }
+  .ze-topup-head .close-x {
+    margin-left: auto;
+    background: transparent; border: none;
+    width: 32px; height: 32px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-muted, #6B7280);
+    cursor: pointer; transition: .15s;
+  }
+  .ze-topup-head .close-x:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ze-topup-field label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--text, #0F172A);
+    margin-bottom: 6px;
+  }
+  .ze-topup-field label .req { color: var(--danger, #DC4545); margin-left: 2px; }
+  .ze-topup-amt-wrap { position: relative; }
+  .ze-topup-amt-wrap .currency {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; font-weight: 600; color: var(--text-muted, #6B7280);
+    pointer-events: none;
+  }
+  .ze-topup-field input,
+  .ze-topup-field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border, #E5E7EB);
+    background: #fff;
+    font-size: 14px;
+    color: var(--text, #0F172A);
+    outline: none;
+    transition: .15s;
+    font-family: inherit;
+  }
+  .ze-topup-field input.amt { padding-left: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ze-topup-field input:focus,
+  .ze-topup-field textarea:focus {
+    border-color: var(--brand, #37BD69);
+    box-shadow: 0 0 0 3px rgba(55,189,105,.15);
+  }
+  .ze-topup-field input.err,
+  .ze-topup-field textarea.err {
+    border-color: var(--danger, #DC4545);
+    background: var(--danger-bg, #FEF2F2);
+  }
+  .ze-topup-field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .ze-topup-field .helper {
+    font-size: 11px; color: var(--text-muted, #6B7280);
+    margin-top: 6px; line-height: 1.4;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+  .ze-topup-field .err-msg {
+    font-size: 11px; color: var(--danger, #DC4545);
+    margin-top: 4px; display: none;
+    align-items: center; gap: 4px;
+  }
+  .ze-topup-field.has-err .err-msg { display: inline-flex; }
+
+  .ze-topup-urgency {
+    display: flex; gap: 6px;
+    background: #F1F2F4;
+    padding: 4px;
+    border-radius: 999px;
+  }
+  .ze-topup-urgency button {
+    flex: 1;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #6B7280);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: .15s;
+  }
+  .ze-topup-urgency button.active {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 2px 6px -2px rgba(55,189,105,.5);
+  }
+
+  .ze-topup-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border, #E5E7EB);
+    background: #FAFBFC;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .ze-topup-foot button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .ze-topup-cancel {
+    background: transparent;
+    color: var(--text-muted, #6B7280);
+  }
+  .ze-topup-cancel:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-submit {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 4px 10px -3px rgba(55,189,105,.5);
+  }
+  .ze-topup-submit:hover:not(:disabled) { background: var(--brand-hover, #2DA058); }
+  .ze-topup-submit:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+  .ze-topup-form-err {
+    padding: 10px 12px;
+    background: var(--danger-bg, #FEF2F2);
+    border: 1px solid rgba(220,69,69,.25);
+    border-radius: 10px;
+    color: var(--danger, #DC4545);
+    font-size: 12px;
+    display: none;
+    align-items: center; gap: 6px;
+  }
+  .ze-topup-form-err.show { display: inline-flex; }
+
+  /* Generic toast (only injected if host page doesn't already have one) */
+  .ze-topup-toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A; color: #fff;
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 10px 30px -8px rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: .25s;
+    z-index: 400;
+  }
+  .ze-topup-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Mobile bottom-sheet */
+  @media (max-width: 600px) {
+    .ze-topup-overlay { padding: 0; align-items: flex-end; }
+    .ze-topup-modal {
+      max-width: 100%;
+      border-radius: 20px 20px 0 0;
+      max-height: 92vh;
+    }
+    .ze-topup-modal::before {
+      content: '';
+      display: block;
+      width: 40px; height: 4px;
+      background: #D1D5DB;
+      border-radius: 999px;
+      margin: 8px auto 4px;
+    }
+  }
+</style>
+
+<div class="ze-topup-overlay" id="zeTopupOverlay" role="dialog" aria-modal="true" aria-labelledby="zeTopupTitle">
+  <div class="ze-topup-modal" role="document">
+    <div class="ze-topup-head">
+      <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+      <div>
+        <div class="ze-topup-title" id="zeTopupTitle">Request a top-up</div>
+        <div class="ze-topup-sub" id="zeTopupSubtitle">Site: —</div>
+      </div>
+      <button type="button" class="close-x" id="zeTopupClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <form class="ze-topup-body" id="zeTopupForm" novalidate>
+      <div class="ze-topup-form-err" id="zeTopupFormErr">
+        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+        <span id="zeTopupFormErrMsg">Could not submit request.</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupAmtField">
+        <label for="zeTopupAmt">Amount<span class="req">*</span></label>
+        <div class="ze-topup-amt-wrap">
+          <span class="currency">₹</span>
+          <input id="zeTopupAmt" class="amt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="12"/>
+        </div>
+        <div class="helper">
+          <span>Up to ₹50,00,000 per request</span>
+          <span id="zeTopupAmtPretty"></span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Enter an amount greater than zero</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupReasonField">
+        <label for="zeTopupReason">Reason<span class="req">*</span></label>
+        <textarea id="zeTopupReason" rows="4" maxlength="500" placeholder="Why is this top-up needed? (e.g. monsoon enclosure repairs, urgent feed restock)"></textarea>
+        <div class="helper">
+          <span>Be specific — admins approve faster with context.</span>
+          <span><span id="zeTopupReasonCount">0</span> / 500</span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Please add a reason</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupLinksField">
+        <label for="zeTopupLinks">Product links <span style="font-weight:500;color:var(--text-muted);font-size:11px;margin-left:4px">(optional)</span></label>
+        <textarea id="zeTopupLinks" rows="3" placeholder="https://example.com/product-1&#10;https://example.com/product-2 | 1500" style="font-family: ui-monospace, Menlo, monospace; font-size: 12px;"></textarea>
+        <div class="helper">
+          <span>One link per line · add <code style="background:#F1F2F4;padding:1px 5px;border-radius:4px;font-size:11px">| 1500</code> after a URL to note its cost</span>
+          <span><span id="zeTopupLinksCount">0</span> links</span>
+        </div>
+      </div>
+      <div class="ze-topup-field">
+        <label>Urgency</label>
+        <div class="ze-topup-urgency" id="zeTopupUrgency">
+          <button type="button" data-urg="Normal" class="active">Normal</button>
+          <button type="button" data-urg="High">High</button>
+        </div>
+      </div>
+    </form>
+    <div class="ze-topup-foot">
+      <button type="button" class="ze-topup-cancel" id="zeTopupCancel">Cancel</button>
+      <button type="button" class="ze-topup-submit" id="zeTopupSubmit">
+        <i data-lucide="send" class="w-4 h-4"></i> Submit request
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__zeTopupModalInited) return;
+  window.__zeTopupModalInited = true;
+
+  const ZE = window.ZE; const DB = window.DB;
+  if (!ZE || !DB) { console.warn('Top-up modal: ZE/DB not found'); return; }
+
+  const overlay   = document.getElementById('zeTopupOverlay');
+  const subtitle  = document.getElementById('zeTopupSubtitle');
+  const amtInput  = document.getElementById('zeTopupAmt');
+  const amtPretty = document.getElementById('zeTopupAmtPretty');
+  const amtField  = document.getElementById('zeTopupAmtField');
+  const reasonInp = document.getElementById('zeTopupReason');
+  const reasonField = document.getElementById('zeTopupReasonField');
+  const reasonCnt = document.getElementById('zeTopupReasonCount');
+  const linksInput = document.getElementById('zeTopupLinks');
+  const linksCount = document.getElementById('zeTopupLinksCount');
+  const urgWrap   = document.getElementById('zeTopupUrgency');
+  const submitBtn = document.getElementById('zeTopupSubmit');
+  const cancelBtn = document.getElementById('zeTopupCancel');
+  const closeBtn  = document.getElementById('zeTopupClose');
+  const formErr   = document.getElementById('zeTopupFormErr');
+  const formErrMsg = document.getElementById('zeTopupFormErrMsg');
+
+  let state = { urgency: 'Normal' };
+  let lastFocus = null;
+
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+  function getAmount(){
+    const raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    return raw ? parseInt(raw, 10) : 0;
+  }
+  function parseLinks(raw) {
+    return String(raw || '').split(/\r?\n/).map(line => {
+      const t = line.trim();
+      if (!t) return null;
+      const m = t.match(/^(.*?)\s*\|\s*(\d[\d,]*)\s*$/);
+      if (m) {
+        const url = m[1].trim();
+        const cost = parseInt(m[2].replace(/,/g, ''), 10) || 0;
+        return url ? { url, cost } : null;
+      }
+      return { url: t, cost: 0 };
+    }).filter(Boolean);
+  }
+  function formatINR(n){
+    if (typeof DB.fmtINR === 'function') return DB.fmtINR(n);
+    return '₹' + Number(n||0).toLocaleString('en-IN');
+  }
+  function formatThou(n){
+    return Number(n||0).toLocaleString('en-IN');
+  }
+
+  function showToast(msg){
+    // Reuse host page toast if present
+    const host = document.getElementById('toast');
+    if (host) {
+      host.textContent = msg;
+      host.classList.add('show');
+      clearTimeout(window.__zeToastT);
+      window.__zeToastT = setTimeout(()=>host.classList.remove('show'), 2400);
+      return;
+    }
+    let t = document.getElementById('zeTopupToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'zeTopupToast';
+      t.className = 'ze-topup-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__zeTopupToastT);
+    window.__zeTopupToastT = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  function open(){
+    lastFocus = document.activeElement;
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    const site = siteId ? DB.byId(DB.SITES, siteId) : null;
+    subtitle.textContent = 'Site: ' + (site && site.name ? site.name : '—');
+
+    // Reset form
+    amtInput.value = '';
+    amtPretty.textContent = '';
+    amtField.classList.remove('has-err'); amtInput.classList.remove('err');
+    reasonInp.value = '';
+    reasonCnt.textContent = '0';
+    reasonField.classList.remove('has-err'); reasonInp.classList.remove('err');
+    if (linksInput) linksInput.value = '';
+    if (linksCount) linksCount.textContent = '0';
+    state.urgency = 'Normal';
+    urgWrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.urg === 'Normal'));
+    formErr.classList.remove('show');
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(()=> amtInput.focus(), 50);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch(e){}
+  }
+  window.ZEOpenTopupModal = open;
+  window.ZECloseTopupModal = close;
+
+  // Trigger button(s) on the page
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('#checkoutTopupBtn, #walletRequestTopupBtn, [data-topup-trigger]');
+    if (t) { e.preventDefault(); open(); }
+  });
+
+  closeBtn.addEventListener('click', close);
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) close();
+  });
+
+  // Amount: keep only digits, cap at 50,00,000
+  amtInput.addEventListener('input', () => {
+    let raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    if (raw) {
+      let n = parseInt(raw, 10);
+      if (n > 5000000) { n = 5000000; raw = '5000000'; }
+      amtInput.value = formatThou(n);
+      amtPretty.textContent = '= ' + formatINR(n);
+    } else {
+      amtInput.value = '';
+      amtPretty.textContent = '';
+    }
+    if (getAmount() > 0) { amtField.classList.remove('has-err'); amtInput.classList.remove('err'); }
+  });
+  amtInput.addEventListener('blur', () => {
+    const n = getAmount();
+    if (n > 0) amtInput.value = formatThou(n);
+  });
+  amtInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); reasonInp.focus(); }
+  });
+
+  reasonInp.addEventListener('input', () => {
+    reasonCnt.textContent = String(reasonInp.value.length);
+    if (reasonInp.value.trim().length > 0) { reasonField.classList.remove('has-err'); reasonInp.classList.remove('err'); }
+  });
+  reasonInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSubmit(); }
+  });
+
+  if (linksInput) {
+    linksInput.addEventListener('input', () => {
+      const n = (linksInput.value || '').split(/\r?\n/).filter(s => s.trim().length).length;
+      if (linksCount) linksCount.textContent = String(n);
+    });
+  }
+
+  urgWrap.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-urg]');
+    if (!b) return;
+    state.urgency = b.dataset.urg;
+    urgWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+  });
+
+  function doSubmit(){
+    formErr.classList.remove('show');
+    const amount = getAmount();
+    const reason = (reasonInp.value || '').trim();
+    let ok = true;
+    if (amount <= 0) { amtField.classList.add('has-err'); amtInput.classList.add('err'); ok = false; }
+    if (reason.length === 0) { reasonField.classList.add('has-err'); reasonInp.classList.add('err'); ok = false; }
+    if (!ok) return;
+
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    if (!siteId) {
+      formErrMsg.textContent = 'No active site selected — pick a site first.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    const productLinks = parseLinks(linksInput ? linksInput.value : '');
+
+    submitBtn.disabled = true;
+    let req = null;
+    try {
+      req = (ZE.topup && ZE.topup.submit) ? ZE.topup.submit({
+        siteId, amount, reason, urgency: state.urgency, productLinks
+      }) : null;
+    } catch (err) { req = null; }
+    submitBtn.disabled = false;
+
+    if (!req) {
+      formErrMsg.textContent = 'Could not submit request — please try again.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    close();
+    showToast('Top-up request submitted — pending approval' + (productLinks.length ? ' · ' + productLinks.length + ' product link' + (productLinks.length === 1 ? '' : 's') : ''));
+  }
+
+  submitBtn.addEventListener('click', doSubmit);
 
   if (window.lucide?.createIcons) window.lucide.createIcons();
 })();

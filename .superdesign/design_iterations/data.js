@@ -92,31 +92,54 @@
   };
 
   const USERS = [
-    { id: 'u_rao',    name: 'Dr. M. Rao',     role: 'biologist',      title: 'Senior Biologist',          species: ['sp_tiger','sp_lion','sp_snow'],                   seed: 401, email: 'm.rao@zooenrich.in',    phone: '+91 98401 12233', canPurchase: true,  approverId: 'u_singh', siteId: 'site_hyd', additionalSites: ['site_blr'] },
-    { id: 'u_iyer',   name: 'K. Iyer',        role: 'keeper',         title: 'Primate Keeper',             species: ['sp_orang','sp_chimp','sp_gibbon','sp_gorilla'],   seed: 402, email: 'k.iyer@zooenrich.in',   phone: '+91 98455 66778', canPurchase: false, approverId: 'u_rao',   siteId: 'site_blr', additionalSites: [] },
-    { id: 'u_patel',  name: 'Dr. R. Patel',   role: 'vet',            title: 'Senior Veterinarian',        species: [],                                                 seed: 403, email: 'r.patel@zooenrich.in',  phone: '+91 98211 00998', canPurchase: true,  approverId: 'u_singh', siteId: 'site_mum', additionalSites: [] },
-    { id: 'u_singh',  name: 'Dr. N. Singh',   role: 'curator',        title: 'Curator of Animal Care',     species: [],                                                 seed: 404, email: 'n.singh@zooenrich.in',  phone: '+91 98112 23344', canPurchase: true,  approverId: null,      siteId: 'site_del', additionalSites: ['site_hyd','site_mum'] },
-    { id: 'u_kumar',  name: 'S. Kumar',       role: 'lab_manager',    title: 'Enrichment Lab Manager',     species: [],                                                 seed: 405, email: 's.kumar@zooenrich.in',  phone: '+91 98400 55667', canPurchase: true,  approverId: 'u_admin', siteId: 'site_hyd', additionalSites: [] },
-    { id: 'u_joshi',  name: 'A. Joshi',       role: 'lab_tech',       title: 'Lab Technician',             species: [],                                                 seed: 406, email: 'a.joshi@zooenrich.in',  phone: '+91 98406 77889', canPurchase: false, approverId: 'u_kumar', siteId: 'site_hyd', additionalSites: [] },
-    { id: 'u_mehta',  name: 'P. Mehta',       role: 'lab_tech',       title: 'Lab Technician (Jr.)',       species: [],                                                 seed: 407, email: 'p.mehta@zooenrich.in',  phone: '+91 98407 88990', canPurchase: false, approverId: 'u_kumar', siteId: 'site_mys', additionalSites: [] },
-    { id: 'u_das',    name: 'T. Das',         role: 'keeper',         title: 'Big Cat Keeper',             species: ['sp_tiger','sp_lion','sp_snow','sp_bear'],         seed: 408, email: 't.das@zooenrich.in',    phone: '+91 98884 44556', canPurchase: false, approverId: 'u_rao',   siteId: 'site_hyd', additionalSites: [] },
-    { id: 'u_farah',  name: 'F. Karim',       role: 'biologist',      title: 'Avian Specialist',           species: ['sp_macaw','sp_pengu'],                            seed: 409, email: 'f.karim@zooenrich.in',  phone: '+91 98492 23344', canPurchase: true,  approverId: 'u_singh', siteId: 'site_che', additionalSites: ['site_viz'] },
-    { id: 'u_admin',  name: 'V. Verma',       role: 'admin',          title: 'Site Director',              species: [],                                                 seed: 410, email: 'v.verma@zooenrich.in',  phone: '+91 98410 99001', canPurchase: true,  approverId: null,      siteId: 'site_del', additionalSites: [] }
+    { id: 'u_rao',    name: 'Dr. M. Rao',     role: 'biologist',      title: 'Senior Biologist',          species: ['sp_tiger','sp_lion','sp_snow'],                   seed: 401, email: 'm.rao@zooenrich.in',    phone: '+91 98401 12233', canPurchase: true,  approverId: 'u_singh', siteId: 'site_hyd', additionalSites: ['site_blr'], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_iyer',   name: 'K. Iyer',        role: 'keeper',         title: 'Primate Keeper',             species: ['sp_orang','sp_chimp','sp_gibbon','sp_gorilla'],   seed: 402, email: 'k.iyer@zooenrich.in',   phone: '+91 98455 66778', canPurchase: false, approverId: 'u_rao',   siteId: 'site_blr', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_patel',  name: 'Dr. R. Patel',   role: 'vet',            title: 'Senior Veterinarian',        species: [],                                                 seed: 403, email: 'r.patel@zooenrich.in',  phone: '+91 98211 00998', canPurchase: true,  approverId: 'u_singh', siteId: 'site_mum', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_singh',  name: 'Dr. N. Singh',   role: 'curator',        title: 'Curator of Animal Care',     species: [],                                                 seed: 404, email: 'n.singh@zooenrich.in',  phone: '+91 98112 23344', canPurchase: true,  approverId: null,      siteId: 'site_del', additionalSites: ['site_hyd','site_mum'], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_kumar',  name: 'S. Kumar',       role: 'lab_manager',    title: 'Enrichment Lab Manager',     species: [],                                                 seed: 405, email: 's.kumar@zooenrich.in',  phone: '+91 98400 55667', canPurchase: true,  approverId: 'u_admin', siteId: 'site_hyd', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_joshi',  name: 'A. Joshi',       role: 'lab_tech',       title: 'Lab Technician',             species: [],                                                 seed: 406, email: 'a.joshi@zooenrich.in',  phone: '+91 98406 77889', canPurchase: false, approverId: 'u_kumar', siteId: 'site_hyd', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_mehta',  name: 'P. Mehta',       role: 'lab_tech',       title: 'Lab Technician (Jr.)',       species: [],                                                 seed: 407, email: 'p.mehta@zooenrich.in',  phone: '+91 98407 88990', canPurchase: false, approverId: 'u_kumar', siteId: 'site_mys', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_das',    name: 'T. Das',         role: 'keeper',         title: 'Big Cat Keeper',             species: ['sp_tiger','sp_lion','sp_snow','sp_bear'],         seed: 408, email: 't.das@zooenrich.in',    phone: '+91 98884 44556', canPurchase: false, approverId: 'u_rao',   siteId: 'site_hyd', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_farah',  name: 'F. Karim',       role: 'biologist',      title: 'Avian Specialist',           species: ['sp_macaw','sp_pengu'],                            seed: 409, email: 'f.karim@zooenrich.in',  phone: '+91 98492 23344', canPurchase: true,  approverId: 'u_singh', siteId: 'site_che', additionalSites: ['site_viz'], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_admin',  name: 'V. Verma',       role: 'admin',          title: 'Site Director',              species: [],                                                 seed: 410, email: 'v.verma@zooenrich.in',  phone: '+91 98410 99001', canPurchase: true,  approverId: null,      siteId: 'site_del', additionalSites: [], imgQ: 'professional portrait headshot person smile' },
+    { id: 'u_super',  name: 'A. Banerjee',    role: 'super_admin',    title: 'Finance Controller (Org)',   species: [],                                                 seed: 411, email: 'a.banerjee@zooenrich.in', phone: '+91 98430 11223', canPurchase: false, approverId: null,    siteId: 'site_del', additionalSites: [], imgQ: 'professional portrait headshot person smile' }
   ];
 
-  /* -------- Sites (10 Indian zoo facilities) -------- */
+  /* -------- Sites (10 Indian zoo facilities) --------
+     `cluster` groups sites for org-level rollup (Super Admin reports). Three regional
+     clusters: south, north, east. Used by ZE.wallet.allSites and the dashboard. */
   const SITES = [
-    { id:'site_hyd',  name:'Nehru Zoological Park',                         city:'Hyderabad',    state:'Telangana',     pincode:'500064', addressLine1:'Nehru Zoo Park Rd, Bahadurpura' },
-    { id:'site_mys',  name:'Mysore Zoo',                                    city:'Mysuru',       state:'Karnataka',     pincode:'570010', addressLine1:'Indira Nagar' },
-    { id:'site_del',  name:'National Zoological Park Delhi',                city:'New Delhi',    state:'Delhi',         pincode:'110003', addressLine1:'Mathura Road' },
-    { id:'site_che',  name:'Vandalur Arignar Anna Zoological Park',         city:'Chennai',      state:'Tamil Nadu',    pincode:'600048', addressLine1:'GST Road, Vandalur' },
-    { id:'site_mum',  name:'Byculla Zoo',                                   city:'Mumbai',       state:'Maharashtra',   pincode:'400027', addressLine1:'Lal Bahadur Shastri Rd' },
-    { id:'site_blr',  name:'Bannerghatta Biological Park',                  city:'Bengaluru',    state:'Karnataka',     pincode:'560083', addressLine1:'Bannerghatta Main Rd' },
-    { id:'site_viz',  name:'Indira Gandhi Zoological Park',                 city:'Visakhapatnam',state:'Andhra Pradesh',pincode:'530040', addressLine1:'Zoo Park Rd' },
-    { id:'site_pat',  name:'Patna Zoo',                                     city:'Patna',        state:'Bihar',         pincode:'800014', addressLine1:'Bailey Road' },
-    { id:'site_kan',  name:'Kanpur Zoological Park',                        city:'Kanpur',       state:'Uttar Pradesh', pincode:'208002', addressLine1:'Ratan Lal Nagar' },
-    { id:'site_gwt',  name:'Assam State Zoo',                               city:'Guwahati',     state:'Assam',         pincode:'781005', addressLine1:'RG Barua Rd' }
+    { id:'site_hyd',  name:'Nehru Zoological Park',                         city:'Hyderabad',    state:'Telangana',     pincode:'500064', addressLine1:'Nehru Zoo Park Rd, Bahadurpura', cluster:'south' },
+    { id:'site_mys',  name:'Mysore Zoo',                                    city:'Mysuru',       state:'Karnataka',     pincode:'570010', addressLine1:'Indira Nagar',                    cluster:'south' },
+    { id:'site_del',  name:'National Zoological Park Delhi',                city:'New Delhi',    state:'Delhi',         pincode:'110003', addressLine1:'Mathura Road',                    cluster:'north' },
+    { id:'site_che',  name:'Vandalur Arignar Anna Zoological Park',         city:'Chennai',      state:'Tamil Nadu',    pincode:'600048', addressLine1:'GST Road, Vandalur',              cluster:'south' },
+    { id:'site_mum',  name:'Byculla Zoo',                                   city:'Mumbai',       state:'Maharashtra',   pincode:'400027', addressLine1:'Lal Bahadur Shastri Rd',          cluster:'west'  },
+    { id:'site_blr',  name:'Bannerghatta Biological Park',                  city:'Bengaluru',    state:'Karnataka',     pincode:'560083', addressLine1:'Bannerghatta Main Rd',            cluster:'south' },
+    { id:'site_viz',  name:'Indira Gandhi Zoological Park',                 city:'Visakhapatnam',state:'Andhra Pradesh',pincode:'530040', addressLine1:'Zoo Park Rd',                     cluster:'south' },
+    { id:'site_pat',  name:'Patna Zoo',                                     city:'Patna',        state:'Bihar',         pincode:'800014', addressLine1:'Bailey Road',                     cluster:'east'  },
+    { id:'site_kan',  name:'Kanpur Zoological Park',                        city:'Kanpur',       state:'Uttar Pradesh', pincode:'208002', addressLine1:'Ratan Lal Nagar',                 cluster:'north' },
+    { id:'site_gwt',  name:'Assam State Zoo',                               city:'Guwahati',     state:'Assam',         pincode:'781005', addressLine1:'RG Barua Rd',                     cluster:'east'  }
   ];
+
+  /* -------- Per-site annual enrichment budget (FY 2026–27) --------
+     The wallet model: each site has an annual allotment for enrichment purchases.
+     Buyers placing orders deduct from the site wallet. Funds sit "Locked" until
+     delivery (then "Spent" / paid to admin). Cancellation refunds back to wallet. */
+  const FY_LABEL = '2026-27';
+  const FY_START = '2026-04-01';
+  const FY_END   = '2027-03-31';
+  const SITE_BUDGETS = {
+    site_hyd: { allotted: 7500000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_mys: { allotted: 5500000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_del: { allotted: 8500000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_che: { allotted: 6500000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_mum: { allotted: 5000000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_blr: { allotted: 7000000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_viz: { allotted: 4500000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_pat: { allotted: 4000000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_kan: { allotted: 4000000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END },
+    site_gwt: { allotted: 5000000, fy: FY_LABEL, fyStart: FY_START, fyEnd: FY_END }
+  };
 
   /* -------- Enclosures (per-site, per-species) -------- */
   const ENCLOSURES = [
@@ -349,6 +372,89 @@
         eta:'2026-04-27T18:00:00+05:30',
         events:[
           { status:'placed', at:'2026-04-22T09:15:00+05:30', location:'Online', note:'Order placed' }
+        ]
+      },
+      source:'demo'
+    },
+
+    // 2a — pending approval (u_joshi needs u_kumar approval) — newest
+    { id:'ORD-J103', createdAt:'2026-04-27T14:20:00+05:30', createdBy:'u_joshi', species:'sp_tiger', speciesId:'sp_tiger',
+      siteId:'site_hyd', enclosureId:'enc_hyd_1',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop',
+      vendorResponse: null,
+      items:[
+        { productId:'prod_001', qty:3, config:{ size:'L', scent:'Catnip' } },
+        { productId:'prod_016', qty:2 }
+      ],
+      subtotal: 120*3 + 320*2, // 1000
+      shippingMethod:'Standard', shippingFee:80, total: 1080,
+      status:'pending_approval', priority:'Normal',
+      notes:'Big-cat enclosure refresh — needed for next week rotation.',
+      shippingAddress:{
+        name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank',
+        city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889'
+      },
+      tracking:{
+        carrier:null, number:null, url:null,
+        eta:null,
+        events:[
+          { status:'pending_approval', at:'2026-04-27T14:20:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' }
+        ]
+      },
+      source:'demo'
+    },
+
+    // 2b — pending approval (u_joshi needs u_kumar approval) — high-priority larger basket
+    { id:'ORD-J102', createdAt:'2026-04-26T10:05:00+05:30', createdBy:'u_joshi', species:'sp_orang', speciesId:'sp_orang',
+      siteId:'site_hyd', enclosureId:'enc_hyd_2',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft',
+      vendorResponse: null,
+      items:[
+        { productId:'prod_009', qty:4, config:{ size:'L' } },
+        { productId:'prod_013', qty:6 }
+      ],
+      subtotal: 200*4 + 100*6, // 1400
+      shippingMethod:'Express', shippingFee:200, total: 1600,
+      status:'pending_approval', priority:'High',
+      notes:'Primate puzzle feeders — current set damaged.',
+      shippingAddress:{
+        name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank',
+        city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889'
+      },
+      tracking:{
+        carrier:null, number:null, url:null,
+        eta:null,
+        events:[
+          { status:'pending_approval', at:'2026-04-26T10:05:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' }
+        ]
+      },
+      source:'demo'
+    },
+
+    // 2c — pending approval (u_joshi needs u_kumar approval) — small order
+    { id:'ORD-J101', createdAt:'2026-04-25T16:50:00+05:30', createdBy:'u_joshi', species:'sp_macaw', speciesId:'sp_macaw',
+      siteId:'site_hyd', enclosureId:'enc_hyd_3',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft',
+      vendorResponse: null,
+      items:[
+        { productId:'prod_013', qty:3 }
+      ],
+      subtotal: 100*3, // 300
+      shippingMethod:'Standard', shippingFee:80, total: 380,
+      status:'pending_approval', priority:'Normal',
+      notes:'Top-up for avian foraging blocks.',
+      shippingAddress:{
+        name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank',
+        city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889'
+      },
+      tracking:{
+        carrier:null, number:null, url:null,
+        eta:null,
+        events:[
+          { status:'pending_approval', at:'2026-04-25T16:50:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' }
         ]
       },
       source:'demo'
@@ -807,5 +913,5 @@
     return bank;
   };
 
-  window.DB = { SPECIES, TAGS, CATEGORIES, ATTRIBUTES, categoryAttributeSchema, USERS, VENDORS, PRODUCTS, REVIEWS, PENDING, DEMO_ORDERS, CARRIERS, SCREENS, SITES, ENCLOSURES, byId, fmtINR, orderTotal, orderItemCount, img, galleryFor, filterBankForProducts, vendorLogo, vendorCover, reviewsForProduct, productRating, enclosuresForSite, enclosuresForSpecies, enclosuresForSiteAndSpecies, subordinatesOf, isApprover };
+  window.DB = { SPECIES, TAGS, CATEGORIES, ATTRIBUTES, categoryAttributeSchema, USERS, VENDORS, PRODUCTS, REVIEWS, PENDING, DEMO_ORDERS, CARRIERS, SCREENS, SITES, ENCLOSURES, SITE_BUDGETS, FY_LABEL, FY_START, FY_END, byId, fmtINR, orderTotal, orderItemCount, img, galleryFor, filterBankForProducts, vendorLogo, vendorCover, reviewsForProduct, productRating, enclosuresForSite, enclosuresForSpecies, enclosuresForSiteAndSpecies, subordinatesOf, isApprover };
 })();
