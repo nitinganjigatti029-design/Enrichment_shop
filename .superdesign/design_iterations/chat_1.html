@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430e"></script>
-  <script src="app.js?v=20260430e"></script>
+  <script src="data.js?v=20260430g"></script>
+  <script src="app.js?v=20260430g"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
     @media (max-width: 900px) { .page-wrap { padding: 0 12px; } }
@@ -301,6 +301,7 @@
           <i data-lucide="user-check" class="w-5 h-5"></i>
           <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:-4px; right:-4px; min-width:18px; height:18px; padding:0 5px; background:var(--danger,#ef4444); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
         </a>
+        <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
         <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
           <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
             <span class="ze-wp-site-name" data-wallet-site-name>—</span>
@@ -988,8 +989,10 @@
       var pill = document.getElementById('walletPill');
       if (!pill) return;
       var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
       var pop = document.getElementById('walletPillPop');
-      if (siteSwitch && pill.contains(siteSwitch)) {
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
         var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
         if (sites.length > 1 && pop) {
           e.preventDefault(); e.stopPropagation();
@@ -1008,9 +1011,7 @@
         closePop(); return;
       }
       var pillTarget = e.target.closest && e.target.closest('#walletPill');
-      if (pillTarget && !siteSwitch && !opt) {
-        window.location.href = 'wallet_1.html';
-      }
+      
     });
     document.addEventListener('click', function(e){
       var mob = e.target.closest && e.target.closest('#mobileWalletRow');

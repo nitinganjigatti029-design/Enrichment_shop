@@ -2071,3 +2071,153 @@
     window.ZEOpenSuperAdminTopupModal = openSuperAdminTopupModal;
   }
 
+  /* ========================================================================
+   * Auto-clear (X) button on every search input across the prototype.
+   * Single source of truth — no per-page edits. Detects search-like inputs by
+   * type/placeholder/id, ensures the input's parent is positioned, overlays a
+   * small × button on the right that's visible only when the input has text.
+   * Click → clears value + focuses input + dispatches input/change events so
+   * downstream filter/search listeners react as if user manually deleted.
+   * ======================================================================== */
+  if (typeof document !== 'undefined') {
+    var ZE_CLEAR_STYLE_ID = 'ze-search-clear-style';
+    function _zeEnsureClearStyle() {
+      if (document.getElementById(ZE_CLEAR_STYLE_ID)) return;
+      var s = document.createElement('style');
+      s.id = ZE_CLEAR_STYLE_ID;
+      s.textContent = [
+        '.ze-clear-x { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 999px; border: none; background: rgba(15,23,42,.06); color: var(--text-muted, #6B7280); display: none; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: background .12s, color .12s; z-index: 5; }',
+        '.ze-clear-x:hover { background: rgba(15,23,42,.12); color: var(--text, #0F172A); }',
+        '.ze-clear-x svg, .ze-clear-x i { width: 12px; height: 12px; pointer-events: none; }',
+        '.ze-clear-x.is-visible { display: inline-flex; }',
+        // Bump kbd shortcuts (⌘K, etc.) leftward when the X is visible so they don\'t collide
+        '.ze-clear-host .kbd, .ze-clear-host kbd { transition: margin-right .12s; }',
+        '.ze-clear-host.has-value .kbd, .ze-clear-host.has-value kbd { margin-right: 28px; }'
+      ].join('\n');
+      document.head.appendChild(s);
+    }
+
+    function _zeIsSearchInput(inp) {
+      if (!inp || inp.tagName !== 'INPUT') return false;
+      if (inp.dataset && inp.dataset.zeNoClear === '1') return false;
+      var t = (inp.getAttribute('type') || 'text').toLowerCase();
+      if (t === 'search') return true;
+      if (t !== 'text' && t !== '') return false;
+      var ph = (inp.getAttribute('placeholder') || '').toLowerCase();
+      if (ph.indexOf('search') !== -1) return true;
+      var id = (inp.id || '').toLowerCase();
+      if (id.indexOf('search') !== -1) return true;
+      var name = (inp.name || '').toLowerCase();
+      if (name.indexOf('search') !== -1) return true;
+      // role="search" on input or its parent
+      if ((inp.getAttribute('role') || '').toLowerCase() === 'search') return true;
+      var p = inp.parentElement;
+      if (p && (p.getAttribute('role') || '').toLowerCase() === 'search') return true;
+      return false;
+    }
+
+    function _zeFindHostFor(inp) {
+      // Walk up to find a positioned ancestor that's small enough to host the X.
+      // Stop at the first ancestor with display flex/inline-flex/inline-block where
+      // adding `position: relative` is safe.
+      var el = inp.parentElement;
+      var depth = 0;
+      while (el && depth < 4) {
+        var st = window.getComputedStyle(el);
+        var pos = st.position;
+        if (pos === 'relative' || pos === 'absolute' || pos === 'fixed') return el;
+        // If parent is a typical input wrapper (small horizontal box), make it relative.
+        var d = st.display;
+        if (d === 'flex' || d === 'inline-flex' || d === 'inline-block' || d === 'grid' || d === 'inline-grid') {
+          el.style.position = 'relative';
+          return el;
+        }
+        el = el.parentElement;
+        depth++;
+      }
+      // Fallback: wrap the input in a span we control
+      var wrap = document.createElement('span');
+      wrap.className = 'ze-clear-wrap';
+      wrap.style.cssText = 'position: relative; display: inline-block; width: 100%;';
+      var orig = inp.parentElement;
+      if (!orig) return null;
+      orig.insertBefore(wrap, inp);
+      wrap.appendChild(inp);
+      return wrap;
+    }
+
+    function _zeWireOneClear(inp) {
+      if (!inp || inp.dataset.zeClearWired === '1') return;
+      if (!_zeIsSearchInput(inp)) return;
+      var host = _zeFindHostFor(inp);
+      if (!host) return;
+      // If a button already exists in this host (manual one), skip
+      if (host.querySelector('.ze-clear-x')) { inp.dataset.zeClearWired = '1'; return; }
+      inp.dataset.zeClearWired = '1';
+      host.classList.add('ze-clear-host');
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ze-clear-x';
+      btn.setAttribute('aria-label', 'Clear');
+      btn.setAttribute('tabindex', '-1');
+      btn.innerHTML = '<i data-lucide="x"></i>';
+      host.appendChild(btn);
+
+      function refresh() {
+        var hasVal = !!(inp.value && inp.value.length);
+        btn.classList.toggle('is-visible', hasVal);
+        host.classList.toggle('has-value', hasVal);
+      }
+      inp.addEventListener('input', refresh);
+      inp.addEventListener('change', refresh);
+      btn.addEventListener('mousedown', function(e){ e.preventDefault(); }); // keep focus on input
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeSetter.call(inp, '');
+        // dispatch both events so any listener reacts the same as a manual delete
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.dispatchEvent(new Event('change', { bubbles: true }));
+        refresh();
+        try { inp.focus(); } catch(e2){}
+      });
+      refresh();
+      if (window.lucide && window.lucide.createIcons) {
+        try { window.lucide.createIcons(); } catch(e){}
+      }
+    }
+
+    function _zeAutoWireSearchClear() {
+      _zeEnsureClearStyle();
+      try {
+        document.querySelectorAll('input').forEach(_zeWireOneClear);
+      } catch (e) {}
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', _zeAutoWireSearchClear);
+    } else {
+      _zeAutoWireSearchClear();
+    }
+    // Catch JS-rendered inputs that mount later
+    setTimeout(_zeAutoWireSearchClear, 250);
+    setTimeout(_zeAutoWireSearchClear, 1200);
+    // Watch for inputs added dynamically (modals, side sheets, etc.)
+    if (typeof MutationObserver !== 'undefined') {
+      try {
+        new MutationObserver(function(muts){
+          var anyNew = false;
+          muts.forEach(function(m){
+            m.addedNodes && m.addedNodes.forEach(function(n){
+              if (n.nodeType !== 1) return;
+              if (n.tagName === 'INPUT') anyNew = true;
+              else if (n.querySelectorAll && n.querySelectorAll('input').length) anyNew = true;
+            });
+          });
+          if (anyNew) _zeAutoWireSearchClear();
+        }).observe(document.body, { childList: true, subtree: true });
+      } catch (e) {}
+    }
+  }
+

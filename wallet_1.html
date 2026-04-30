@@ -7,14 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430e"></script>
-  <script src="app.js?v=20260430e"></script>
+  <script src="data.js?v=20260430g"></script>
+  <script src="app.js?v=20260430g"></script>
   <style>
     html, body { background: var(--card-subtle) !important; }
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
 
-    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
     /* ========== HEADER ========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
@@ -353,6 +353,7 @@
       <a href="customise_product_1.html" class="header-btn" title="Customise" data-buyer-only style="background: var(--brand); color: #fff; min-width: auto; padding: 8px 14px; flex-direction: row; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;">
         <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0; font-size: 12px; font-weight: 600;">Customise</span>
       </a>
+      <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span></button>
       <a href="orders_1_2.html" class="header-btn" title="Orders" data-buyer-only>
         <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
       </a>
@@ -377,6 +378,7 @@
       <a href="super_admin_dashboard_1.html#sites-card" class="header-btn" title="Sites" data-sa-only id="saHeaderSites">
         <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
       </a>
+      <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
       <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
         <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
           <span class="ze-wp-site-name" data-wallet-site-name>—</span>
@@ -1202,8 +1204,10 @@
       var pill = document.getElementById('walletPill');
       if (!pill) return;
       var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
       var pop = document.getElementById('walletPillPop');
-      if (siteSwitch && pill.contains(siteSwitch)) {
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
         var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
         if (sites.length > 1 && pop) {
           e.preventDefault(); e.stopPropagation();
@@ -1222,9 +1226,7 @@
         closePop(); return;
       }
       var pillTarget = e.target.closest && e.target.closest('#walletPill');
-      if (pillTarget && !siteSwitch && !opt) {
-        // Already on wallet page — just close pop
-      }
+      
     });
     if (typeof ZE !== 'undefined' && ZE.on) {
       ZE.on('activeSite:change', renderPill);

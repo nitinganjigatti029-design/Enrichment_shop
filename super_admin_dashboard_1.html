@@ -7,14 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430e"></script>
-  <script src="app.js?v=20260430e"></script>
+  <script src="data.js?v=20260430g"></script>
+  <script src="app.js?v=20260430g"></script>
   <style>
     html, body { background: var(--card-subtle) !important; }
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
 
-    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
     /* ========== HEADER (mirrors wallet_1.html) ========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
@@ -289,6 +289,7 @@
       <a href="#sites-card" class="header-btn" id="saNavSites" title="Sites">
         <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
       </a>
+      <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
       <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
         <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
           <span class="ze-wp-site-name" data-wallet-site-name>—</span>
