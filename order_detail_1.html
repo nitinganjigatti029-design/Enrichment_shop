@@ -226,6 +226,30 @@
     .item-row.bls-cancelled .item-name,
     .item-row.bls-cancelled .item-config,
     .item-row.bls-cancelled .item-price { opacity: .7; }
+    .item-row.bls-line-cancelled { background: #FEF2F2; opacity: 0.7; }
+    .item-row.bls-line-cancelled:hover { background: #FEE7E7; }
+    .item-row.bls-line-cancelled .item-price span:not(.bls-no-charge),
+    .item-row.bls-line-cancelled .item-line-total {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+    .item-row.bls-line-cancelled .item-qty-chip { text-decoration: none; }
+    .bls-no-charge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #047857;
+      background: #ECFDF5;
+      border-radius: 999px;
+      text-decoration: none !important;
+      letter-spacing: .01em;
+    }
+    .item-right .bls-no-charge { display: block; margin: 4px 0 0; text-align: right; }
+    .sum-row.sum-cancelled .lbl,
+    .sum-row.sum-cancelled .val { color: var(--danger); font-weight: 500; }
     .top-row .lf-summary { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
     .top-row .lf-summary .sep { color: var(--text-subtle); margin: 0 6px; }
 
@@ -1162,7 +1186,10 @@
       const noteHtml = it.note ? `<div class="item-note">${escapeHtml(it.note)}</div>` : '';
       const lineRec = lineFulfilmentMap[i] || null;
       const lineStatusHtml = renderLineStatus(lineRec, it.qty);
-      const rowClass = (lineRec && lineRec.status === 'cancelled') ? 'item-row bls-cancelled' : 'item-row';
+      const isLineCancelled = !!(lineRec && lineRec.status === 'cancelled');
+      const rowClass = isLineCancelled ? 'item-row bls-cancelled bls-line-cancelled' : 'item-row';
+      const noChargeInline = isLineCancelled ? `<span class="bls-no-charge">No charge</span>` : '';
+      const noChargeRight  = isLineCancelled ? `<span class="bls-no-charge">No charge</span>` : '';
       return `
         <div class="${rowClass}" data-prod="${p.id}">
           <div class="item-thumb img-frame"><img src="${p.imgSmall}" alt="${escapeHtml(p.name)}" loading="lazy"/></div>
@@ -1174,11 +1201,13 @@
             <div class="item-price">
               <span class="item-qty-chip">Qty ${it.qty}</span>
               <span>${DB.fmtINR(unit)} each</span>
+              ${noChargeInline}
             </div>
             ${lineStatusHtml}
           </div>
           <div class="item-right">
             <div class="item-line-total">${DB.fmtINR(unit * it.qty)}</div>
+            ${noChargeRight}
           </div>
         </div>`;
     }).join('');
@@ -1197,6 +1226,24 @@
     const subtotal = order.subtotal || 0;
     const fee = order.shippingFee || 0;
     const total = (typeof order.total === 'number') ? order.total : (subtotal + fee);
+    // Transparency-only line: sum of cancelled item prices. Does NOT change subtotal/total math.
+    const lfMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    let cancelledSum = 0;
+    (order.items || []).forEach((it, i) => {
+      const rec = lfMap[i];
+      if (!rec || rec.status !== 'cancelled') return;
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { price: it.p.price || { material:0, labor:0 } } : null);
+      const unit = (p && p.price) ? (p.price.material + p.price.labor) : (it.unit != null ? it.unit : 0);
+      cancelledSum += unit * (it.qty || 0);
+    });
+    const cancelledRow = cancelledSum > 0
+      ? `<div class="sum-row sum-cancelled" title="Transparency note — these items will not be charged.">
+           <span class="lbl">Cancelled items</span>
+           <span class="val">−${DB.fmtINR(cancelledSum)}</span>
+         </div>`
+      : '';
     return `
       <div class="d-card">
         <div class="card-head">
@@ -1204,6 +1251,7 @@
         </div>
         <div>
           <div class="sum-row"><span class="lbl">Subtotal</span><span class="val">${DB.fmtINR(subtotal)}</span></div>
+          ${cancelledRow}
           <div class="sum-row">
             <span class="lbl">Shipping${order.shippingMethod ? ' · ' + escapeHtml(order.shippingMethod) : ''}</span>
             <span class="val">${DB.fmtINR(fee)}</span>

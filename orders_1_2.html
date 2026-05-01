@@ -161,6 +161,13 @@
     .st-return   { background: var(--st-ret-bg); color: var(--st-ret-fg); }
     .st-return .dot { background: var(--st-ret-fg); }
 
+    /* Line-level tally tags (rendered inside status cell, after the main chip) */
+    .row-line-tag { display: inline-flex; align-items: center; padding: 2px 8px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1.4; white-space: nowrap; cursor: pointer; text-decoration: none; vertical-align: middle; }
+    .row-line-tag + .row-line-tag { margin-left: 4px; }
+    .row-tag-cancel  { background: #FEE2E2; color: #B91C1C; }
+    .row-tag-partial { background: #FEF3C7; color: #A16207; }
+    .row-line-tag:hover { filter: brightness(.96); }
+
     /* Download icon button */
     .icon-dl { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-hover); border: none; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; transition: .15s; }
     .icon-dl:hover { background: var(--brand); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
@@ -824,6 +831,33 @@ function itemsCell(o){
   return `<span class="cell-items-count">${totalQty} ${totalQty === 1 ? 'item' : 'items'}</span>`;
 }
 
+// Build inline line-level tally tags (cancelled / partial). Returns '' when nothing to show.
+function lineTagsHTML(o){
+  if (!o || !o.id || !Array.isArray(o.items)) return '';
+  let lines = null;
+  try {
+    if (window.ZE && ZE.orders && ZE.orders.lineFulfilment && typeof ZE.orders.lineFulfilment.forOrder === 'function') {
+      lines = ZE.orders.lineFulfilment.forOrder(o.id) || null;
+    }
+  } catch(_){ lines = null; }
+  if (!lines) return '';
+  let cancelled = 0, partial = 0;
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf) return;
+    if (lf.status === 'cancelled') { cancelled++; return; }
+    const shipped = Number(lf.shippedQty || 0);
+    const qty = Number(it.qty || 0);
+    if ((lf.status === 'shipped' || lf.status === 'delivered') && shipped > 0 && qty > 0 && shipped < qty) partial++;
+  });
+  if (!cancelled && !partial) return '';
+  const href = 'order_detail_1.html?id=' + encodeURIComponent(o.id);
+  let html = '';
+  if (cancelled) html += `<a href="${href}" class="row-line-tag row-tag-cancel" title="${cancelled} of ${o.items.length} ${cancelled===1?'line':'lines'} cancelled">${cancelled} cancelled</a>`;
+  if (partial)   html += `<a href="${href}" class="row-line-tag row-tag-partial" title="${partial} of ${o.items.length} ${partial===1?'line':'lines'} partially shipped">${partial} partial</a>`;
+  return html;
+}
+
 function renderTableRows(list){
   const tb = document.getElementById('ordersTbody');
   if (!list.length) { tb.innerHTML = ''; return; }
@@ -841,7 +875,7 @@ function renderTableRows(list){
         <td class="col-status">
           <span class="st-chip ${statusChipClass(o)}">
             <span class="dot"></span>${statusLabel(o)}
-          </span>
+          </span>${lineTagsHTML(o)}
         </td>
         <td class="col-act">
           <button class="icon-dl" data-dl="${o.id}" aria-label="Download PDF for ${o.id}" title="Download PDF">
@@ -882,7 +916,7 @@ function renderCards(list){
         </div>
         <div class="foot">
           <span class="total-line">${fmtINR(o.total)}</span>
-          <span class="st-chip ${statusChipClass(o)}"><span class="dot"></span>${statusLabel(o)}</span>
+          <span class="st-chip ${statusChipClass(o)}"><span class="dot"></span>${statusLabel(o)}</span>${lineTagsHTML(o)}
         </div>
       </article>`;
   }).join('');

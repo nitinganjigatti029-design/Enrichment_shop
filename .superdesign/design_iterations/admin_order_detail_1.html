@@ -161,6 +161,14 @@
     .item .add-cat { font-size: 11.5px; color: var(--brand); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; cursor: pointer; border: none; transition: .15s; }
     .item .add-cat:hover { background: var(--brand); color: #fff; }
     .item .added-badge { font-size: 11px; color: var(--brand-hover); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--brand-soft); margin-top: 8px; }
+    /* Cancelled (voided) line — additive treatment; status pill + popover untouched */
+    .item.item-cancelled { opacity: 0.7; background: linear-gradient(0deg, #FFFBFB, #FFFBFB); }
+    .item.item-cancelled .price-line .left,
+    .item.item-cancelled .price-line .right { text-decoration: line-through; text-decoration-color: var(--text-muted); text-decoration-thickness: 1px; }
+    .item-void-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #B91C1C; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; cursor: help; }
+    /* Math card — cancelled-lines breakout row */
+    .math-line .val.neg.cancelled-amt { color: var(--danger); }
+    .math-foot { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px; line-height: 1.4; }
     /* Fulfilment summary (read-only, mirrors decision captured during Accept Order) */
     .fl-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; margin-top: 10px; line-height: 1; }
     .fl-pill-inhouse { background: #ECFDF5; color: #047857; }
@@ -821,7 +829,15 @@ function renderItemCard(it, idx, orderStatus, fulfilment) {
     </button>${suffixChip}
   </div>`;
 
-  return `<div class="item" data-line-idx="${idx}">
+  // Voided-line additive visual: dim + strike price + small VOIDED tag (status pill / popover untouched)
+  const lineCancelled = status === 'cancelled';
+  const lineCancelReason = lineCancelled && fulfilment && fulfilment.cancelReason ? String(fulfilment.cancelReason) : '';
+  const itemClass = `item${lineCancelled ? ' item-cancelled' : ''}`;
+  const voidTag = lineCancelled
+    ? `<span class="item-void-tag"${lineCancelReason ? ` title="Reason: ${escapeHtml(lineCancelReason)}"` : ''}><i data-lucide="ban" class="w-3 h-3"></i> Voided · won't be charged</span>`
+    : '';
+
+  return `<div class="${itemClass}" data-line-idx="${idx}">
     <div class="thumb"><img src="${it.p.img}" alt=""/></div>
     <div class="meta">
       <div class="title-row">
@@ -830,6 +846,7 @@ function renderItemCard(it, idx, orderStatus, fulfilment) {
       </div>
       <div class="sku">SKU ${it.p.sku}</div>
       <div class="chips">${chips.join('')}</div>
+      ${voidTag}
       ${it.note?`<div class="desc">${escapeHtml(it.note)}</div>`:''}
       <div class="price-line">
         <div class="left">Qty <strong>${it.qty}</strong> × ${inINR(it.unit)}</div>
@@ -896,6 +913,12 @@ function renderDetail(o) {
   const commission = Math.round(subtotal * 0.06);
   const tax = Math.round((subtotal - commission) * 0.18);
   const payout = subtotal - commission - tax;
+  // Cancelled-lines transparency breakout (does NOT change subtotal/payout — original order commitment stays)
+  const cancelledLineTotal = o.items.reduce((s, it, i) => {
+    const f = fulfilmentMap[i];
+    return (f && f.status === 'cancelled') ? s + (it.qty * it.unit) : s;
+  }, 0);
+  const hasCancelledLine = cancelledLineTotal > 0;
 
   // Tracking card
   const trackingCard = (o.tracking) ? `
@@ -982,7 +1005,6 @@ function renderDetail(o) {
         <div class="dh-id-row">
           <span class="dh-id">${o.id}</span>
           <span class="chip-big chip-${o.status}"><i data-lucide="${STATUS_ICON[o.status]}" class="w-3.5 h-3.5"></i> ${STATUS_LABEL[o.status]}</span>
-          ${o.slaHoursLeft != null ? slaBig(o.slaHoursLeft) : ''}
         </div>
         <div class="dh-meta">
           <span style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="calendar" class="w-3.5 h-3.5" style="color:var(--text-subtle)"></i> Placed <strong>${fmtDate(o.createdAt)}</strong></span>
@@ -1064,11 +1086,13 @@ function renderDetail(o) {
           <div class="card-head"><h3><i data-lucide="calculator" class="w-4 h-4"></i> Order math</h3></div>
           <div class="card-body">
             <div class="math-line"><div class="lab">Subtotal</div><div class="val">${inINR(subtotal)}</div></div>
+            ${hasCancelledLine ? `<div class="math-line"><div class="lab">Cancelled lines</div><div class="val neg cancelled-amt">−${inINR(cancelledLineTotal)}</div></div>` : ''}
             <div class="math-line"><div class="lab">Platform commission <span style="color:var(--text-subtle);">(6%)</span></div><div class="val neg">−${inINR(commission)}</div></div>
             <div class="math-line"><div class="lab">GST on commission <span style="color:var(--text-subtle);">(18%)</span></div><div class="val neg">−${inINR(tax)}</div></div>
             <div class="math-divider"></div>
             <div class="payout-line"><div class="lab">Your payout</div><div class="val">${inINR(payout)}</div></div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Estimated. Paid within 7 days of delivery confirmation.</div>
+            ${hasCancelledLine ? `<div class="math-foot">Cancelled lines remain visible on the order for audit; final billing will exclude them.</div>` : ''}
           </div>
         </div>
 

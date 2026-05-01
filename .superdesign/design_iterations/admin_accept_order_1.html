@@ -240,6 +240,23 @@
     .step-item .cat-btn { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
     .step-item .cat-btn:hover { background: var(--brand); color: #fff; }
     .step-item .cat-added { margin-top: 10px; padding: 8px 12px; background: var(--brand-soft); color: var(--brand-hover); border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .step-item .row1 .decision-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border); border-radius: 999px; padding: 2px; background: var(--card-subtle); margin-right: 10px; }
+    .step-item .row1 .decision-toggle button { border: none; background: transparent; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: .15s; }
+    .step-item .row1 .decision-toggle button.active[data-decision="accepted"] { background: var(--brand); color: #fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
+    .step-item .row1 .decision-toggle button.active[data-decision="rejected"] { background: var(--danger); color: #fff; box-shadow: 0 2px 6px -2px rgba(239,68,68,.5); }
+    .step-item.is-rejected { opacity: .68; }
+    .step-item.is-rejected .line-total .val { text-decoration: line-through; color: var(--text-muted); }
+    .step-item.is-rejected .item-delivery,
+    .step-item.is-rejected .fulfilment-block { display: none !important; }
+    .step-item .reject-reason-block { margin-top: 14px; display: none; }
+    .step-item.is-rejected .reject-reason-block { display: block; }
+    .step-item .reject-reason-block label { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+    .step-item .reject-reason-block label .req { color: var(--danger); margin-left: 2px; }
+    .step-item .reject-reason-block textarea { width: 100%; min-height: 64px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 13px; resize: vertical; background: #fff; }
+    .step-item .reject-reason-block textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .step-item .reject-reason-block textarea.fl-err { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
+    .ao-foot .foot-status { margin-right: auto; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+    .ao-foot .foot-status .reject-num { color: var(--danger); font-weight: 700; }
     .subtotal-bar { margin-top: 8px; padding: 12px 14px; background: var(--brand-soft); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
     .subtotal-bar .lab { color: var(--brand-hover); font-weight: 600; }
     .subtotal-bar .val { color: var(--text); font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
@@ -340,14 +357,13 @@
 
     .vendor-details {
       max-height: 0; opacity: 0; overflow: hidden;
-      transition: max-height .24s ease, opacity .18s ease, margin-top .24s ease, padding .24s ease, border-color .24s ease;
-      background: #FAFBFC; border: 1px solid transparent; border-radius: 12px;
-      padding: 0 16px; margin-top: 0;
+      transition: max-height .24s ease, opacity .18s ease, margin-top .24s ease, padding .24s ease;
+      background: transparent; border: none; border-radius: 0;
+      padding: 0; margin-top: 0;
     }
     .vendor-details.is-open {
       max-height: 600px; opacity: 1;
-      padding: 14px 16px; margin-top: 10px;
-      border-color: var(--border);
+      padding: 4px 0 0 0; margin-top: 8px;
     }
     .vendor-grid {
       display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px 14px;
@@ -588,8 +604,10 @@ function computeDeliveryFor(days) {
 function maxItemDays() {
   return state.items.length ? Math.max(...state.items.map(it => it.days)) : 0;
 }
-function subtotal() { return state.items.reduce((t, it) => t + it.qty * it.unit, 0); }
+function subtotal() { return state.items.reduce((t, it) => it.decision === 'rejected' ? t : t + it.qty * it.unit, 0); }
 function finalTotal() { return subtotal(); }
+function acceptedCount() { return state.items.filter(it => it.decision !== 'rejected').length; }
+function rejectedCount() { return state.items.filter(it => it.decision === 'rejected').length; }
 
 /* ============================================================
    Header render
@@ -637,14 +655,24 @@ function renderItemsList() {
     const mode = f.mode === 'vendor' ? 'vendor' : 'inhouse';
     const v = f.vendor || { name:'', cost:'', ref:'', eta:'' };
     const vendorOpenCls = mode === 'vendor' ? ' is-open' : '';
-    return `<div class="step-item">
+    const decision = it.decision === 'rejected' ? 'rejected' : 'accepted';
+    const rejectedCls = decision === 'rejected' ? ' is-rejected' : '';
+    return `<div class="step-item${rejectedCls}" data-step-item-idx="${idx}">
       <div class="row1">
         <div class="thumb"><img src="${it.img}" alt="" loading="lazy"/></div>
         <div style="flex:1;min-width:0;">
           <div class="ttl">${escapeHtml(it.name)}</div>
           <div class="sub">SKU ${it.sku}</div>
         </div>
+        <div class="decision-toggle" role="group" aria-label="Accept or reject this line">
+          <button type="button" data-decision-action="accepted" data-item-idx="${idx}" data-decision="accepted" class="${decision==='accepted'?'active':''}">Accept</button>
+          <button type="button" data-decision-action="rejected" data-item-idx="${idx}" data-decision="rejected" class="${decision==='rejected'?'active':''}">Reject</button>
+        </div>
         <div class="line-total"><div class="lab">Line total</div><div class="val">${inINR(it.qty * it.unit)}</div></div>
+      </div>
+      <div class="reject-reason-block">
+        <label for="rejectReason-${idx}">Reason for rejection<span class="req">*</span></label>
+        <textarea id="rejectReason-${idx}" maxlength="200" placeholder="e.g., Out of stock, cannot meet timeline, item discontinued" data-reject-reason-for="${idx}">${escapeHtml(it.rejectReason || '')}</textarea>
       </div>
       <div class="inputs">
         <div class="field"><label>Quantity</label><input type="number" min="1" value="${it.qty}" data-item-idx="${idx}" data-field="qty"/></div>
@@ -706,7 +734,6 @@ function renderItemsList() {
                        value="${escapeHtml(v.cost)}"
                        data-item-idx="${idx}" data-fl-vfield="cost"/>
               </div>
-              <div class="vendor-helper">Recorded only — does not change order total</div>
             </div>
             <div class="vendor-field">
               <label>Reference</label>
@@ -716,10 +743,6 @@ function renderItemsList() {
                        data-item-idx="${idx}" data-fl-vfield="ref"/>
               </div>
             </div>
-          </div>
-          <div class="vendor-footnote">
-            <i data-lucide="info" class="w-3 h-3"></i>
-            Vendor ETA replaces the in-house delivery for this line.
           </div>
         </div>
       </div>
@@ -732,6 +755,27 @@ function renderVendorDatalist() {
     ? ZE.outsourceVendors.list() : [];
   const opts = (list || []).map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
   return `<datalist id="fl-vendors-shared">${opts}</datalist>`;
+}
+
+function renderFootStatus() {
+  const total = state.items.length;
+  const rej = rejectedCount();
+  const acc = total - rej;
+  if (total === 0) return '';
+  if (rej === 0) return '';
+  if (acc === 0) {
+    return `<div class="foot-status">Rejecting all <span class="reject-num">${rej}</span> line${rej===1?'':'s'}</div>`;
+  }
+  return `<div class="foot-status">Accepting ${acc} of ${total} lines · <span class="reject-num">Rejecting ${rej}</span></div>`;
+}
+
+function renderConfirmBtn() {
+  const total = state.items.length;
+  const rej = rejectedCount();
+  if (total > 0 && rej === total) {
+    return `<button class="cta-btn cta-primary" id="confirmAcceptBtn" onclick="confirmAccept()" style="background:var(--danger);border-color:var(--danger);box-shadow:0 4px 10px -3px rgba(239,68,68,.5);"><i data-lucide="x" class="w-4 h-4"></i> Reject Order</button>`;
+  }
+  return `<button class="cta-btn cta-primary" id="confirmAcceptBtn" onclick="confirmAccept()"><i data-lucide="check" class="w-4 h-4"></i> Confirm Order</button>`;
 }
 
 function renderAll() {
@@ -748,8 +792,9 @@ function renderAll() {
       </div>
 
       <div class="ao-foot">
+        ${renderFootStatus()}
         <button class="cta-btn cta-ghost" onclick="cancelFlow()">Cancel</button>
-        <button class="cta-btn cta-primary" id="confirmAcceptBtn" onclick="confirmAccept()"><i data-lucide="check" class="w-4 h-4"></i> Confirm Order</button>
+        ${renderConfirmBtn()}
       </div>
     </div>
   `;
@@ -868,6 +913,26 @@ function wireBody() {
       if (f === 'eta') clearVendorErr(i, 'eta');
     });
   });
+
+  // Per-line accept/reject decision toggle
+  document.querySelectorAll('button[data-decision-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = +btn.dataset.itemIdx;
+      const newDecision = btn.dataset.decisionAction === 'rejected' ? 'rejected' : 'accepted';
+      if (state.items[i].decision === newDecision) return;
+      state.items[i].decision = newDecision;
+      renderAll();
+    });
+  });
+
+  // Reject reason textareas
+  document.querySelectorAll('textarea[data-reject-reason-for]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const i = +e.target.dataset.rejectReasonFor;
+      state.items[i].rejectReason = e.target.value;
+      e.target.classList.remove('fl-err');
+    });
+  });
 }
 
 function clearVendorErr(i, field) {
@@ -905,10 +970,37 @@ function cancelFlow() {
 }
 
 function confirmAccept() {
-  // 1. Validate vendor lines
   let firstInvalidEl = null;
   let invalidCount = 0;
+
+  // 1. Validate rejection reasons for rejected lines
   state.items.forEach((it, i) => {
+    if (it.decision === 'rejected') {
+      const reason = String(it.rejectReason || '').trim();
+      if (!reason) {
+        const ta = document.querySelector(`textarea[data-reject-reason-for="${i}"]`);
+        if (ta) {
+          ta.classList.add('fl-err');
+          if (!firstInvalidEl) firstInvalidEl = ta;
+        }
+        invalidCount++;
+      }
+    }
+  });
+  if (invalidCount > 0) {
+    if (firstInvalidEl) {
+      try { firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+      try { firstInvalidEl.focus({ preventScroll: true }); } catch (e) {}
+    }
+    toast('Please add a reason for each rejected line', 'warn');
+    return;
+  }
+
+  // 2. Validate vendor lines (only for ACCEPTED + vendor)
+  firstInvalidEl = null;
+  invalidCount = 0;
+  state.items.forEach((it, i) => {
+    if (it.decision === 'rejected') return;
     if (it.fulfilment && it.fulfilment.mode === 'vendor') {
       const v = it.fulfilment.vendor || {};
       const nameOk = String(v.name || '').trim().length > 0;
@@ -940,9 +1032,10 @@ function confirmAccept() {
     return;
   }
 
-  // 2. Persist per-line fulfilment
+  // 3. Persist per-line fulfilment for ACCEPTED lines
   if (window.ZE && ZE.orders && ZE.orders.lineFulfilment) {
     state.items.forEach((it, i) => {
+      if (it.decision === 'rejected') return;
       const f = it.fulfilment || { mode: 'inhouse' };
       if (f.mode === 'vendor') {
         const v = f.vendor || {};
@@ -959,12 +1052,21 @@ function confirmAccept() {
         ZE.orders.lineFulfilment.set(currentOrder.id, i, { mode: 'inhouse' });
       }
     });
+
+    // 4. Cancel rejected lines
+    state.items.forEach((it, i) => {
+      if (it.decision === 'rejected') {
+        const reason = String(it.rejectReason || '').trim();
+        try { ZE.orders.lineFulfilment.cancel(currentOrder.id, i, reason); } catch (e) {}
+      }
+    });
   }
 
-  // 3. Remember vendor names for autocomplete
+  // 5. Remember vendor names for autocomplete (accepted only)
   if (window.ZE && ZE.outsourceVendors && ZE.outsourceVendors.add) {
     const seen = new Set();
     state.items.forEach(it => {
+      if (it.decision === 'rejected') return;
       if (it.fulfilment && it.fulfilment.mode === 'vendor') {
         const nm = String(it.fulfilment.vendor && it.fulfilment.vendor.name || '').trim();
         if (nm && !seen.has(nm.toLowerCase())) {
@@ -975,7 +1077,14 @@ function confirmAccept() {
     });
   }
 
-  toast('Order accepted · buyer notified', 'success');
+  const rej = rejectedCount();
+  const acc = state.items.length - rej;
+  let msg;
+  if (acc === 0) msg = 'Order rejected · buyer notified';
+  else if (rej === 0) msg = 'Order accepted · buyer notified';
+  else msg = `${acc} line${acc===1?'':'s'} accepted · ${rej} rejected`;
+  toast(msg, 'success');
+
   setTimeout(() => {
     if (!currentOrder) return;
     window.location.href = `admin_order_detail_1.html?id=${encodeURIComponent(currentOrder.id)}`;
@@ -1014,7 +1123,8 @@ function boot() {
     qty: it.qty, unit: it.unit,
     sku: it.p.sku, name: it.p.name, img: it.p.img,
     note: it.note, custom: CUSTOM_IDS.has(it.p.sku),
-    days: 14, bufferAdded: false
+    days: 14, bufferAdded: false,
+    decision: 'accepted', rejectReason: ''
   }));
   // Hydrate fulfilment from persistence so re-opening restores choices
   const persisted = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)

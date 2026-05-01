@@ -259,6 +259,12 @@
 
     .pill-stack { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
     .pill-stack .chip { font-size: 10px; padding: 3px 8px; }
+    /* Per-line divergence tags shown beneath the order status pill — surfaces line-level cancels/partials at a glance */
+    .row-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+    .row-tag { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; line-height: 1; padding: 2px 8px; border-radius: 999px; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .row-tag:hover { filter: brightness(0.96); }
+    .row-tag-cancel  { background: #FEE2E2; color: #B91C1C; }
+    .row-tag-partial { background: #FEF3C7; color: #A16207; }
 
     .total-cell { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; }
     .date-cell { font-size: 12px; color: var(--text-muted); white-space: nowrap; line-height: 1.4; }
@@ -706,7 +712,6 @@ const ORDERS = [
     chat:[
       {who:'them', t:'2d ago', body:'Delhi Zoo — snow leopard enclosure refresh. Need a multi-level viewing platform with cool-climate finish.'},
       {who:'them', t:'2d ago', body:'Our male hates cold metal so padding or wooden top surface preferred.'},
-      {sys:'warn', body:'SLA warning · 6h left to respond'}
     ],
     unread:2 },
   { id:'ORD-9079', status:'placed', priority:'Normal', species:'croc', buyer:13, createdAt:dateAgo(2,1), total:48300, slaHoursLeft:-8,
@@ -1453,12 +1458,39 @@ function siteCell(b){
   return `<div class="site-cell"><div class="nm">${escapeHtml(name)}</div>${city?`<div class="city">${escapeHtml(city)}</div>`:''}</div>`;
 }
 
+/* ========== Per-line tally tags ==========
+ * Reads ZE.orders.lineFulfilment.forOrder(o.id) and surfaces:
+ *  - any cancelled lines (red pill)
+ *  - any partials (shipped/delivered with 0 < shippedQty < line qty) (amber pill)
+ * Returns '' when nothing diverges from the order-level status. */
+function lineFulfilTags(o){
+  if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment || typeof ZE.orders.lineFulfilment.forOrder !== 'function') return '';
+  const map = ZE.orders.lineFulfilment.forOrder(o.id) || {};
+  let cancelled = 0, partial = 0;
+  Object.keys(map).forEach(k => {
+    const rec = map[k] || {};
+    const idx = parseInt(k, 10);
+    const line = (o.items && !isNaN(idx)) ? o.items[idx] : null;
+    if (rec.status === 'cancelled') { cancelled++; return; }
+    if ((rec.status === 'shipped' || rec.status === 'delivered') && line && rec.shippedQty != null) {
+      const shipped = Number(rec.shippedQty) || 0;
+      const totalQ = Number(line.qty) || 0;
+      if (shipped > 0 && shipped < totalQ) partial++;
+    }
+  });
+  if (!cancelled && !partial) return '';
+  const href = 'admin_order_detail_1.html?id=' + encodeURIComponent(o.id);
+  const parts = [];
+  if (cancelled) parts.push(`<a class="row-tag row-tag-cancel" href="${href}">${cancelled} cancelled</a>`);
+  if (partial)   parts.push(`<a class="row-tag row-tag-partial" href="${href}">${partial} partial</a>`);
+  return `<div class="row-tags">${parts.join('')}</div>`;
+}
+
 /* ========== Render a full order row (table) ========== */
 function renderCard(o){
   const b = BUYERS[o.buyer];
   const totalQty = o.items.reduce((s,it)=>s+it.qty,0);
   const skuCount = o.items.length;
-  const slaCls = o.slaHoursLeft != null ? (o.slaHoursLeft < 0 || o.slaHoursLeft <= 12 ? 'sla-urgent' : (o.slaHoursLeft <= 24 ? 'sla-warn' : '')) : '';
 
   const ctxHtml = contextRow(o);
 
@@ -1470,9 +1502,9 @@ function renderCard(o){
     ${skuCount>1?`<div class="sub">${skuCount} SKUs</div>`:''}
   </div>`;
 
-  const pillsHtml = `<div class="pill-stack">${chipStatus(o.status)}</div>`;
+  const pillsHtml = `<div class="pill-stack">${chipStatus(o.status)}${lineFulfilTags(o)}</div>`;
 
-  const mainRow = `<tr class="orow ${slaCls}" data-id="${o.id}" tabindex="0">
+  const mainRow = `<tr class="orow" data-id="${o.id}" tabindex="0">
     <td class="col-id">${o.id}</td>
     <td class="col-buyer">${buyerCell(b)}</td>
     <td class="col-site">${siteCell(b)}</td>
@@ -1798,6 +1830,17 @@ function closeAllFilterPops(){
 (function(){ const ov = document.getElementById('chatOverlay'); if (ov) ov.addEventListener('click', closeChatSheet); })();
 
 render();
+
+// Live-refresh row tags when line-fulfilment state changes elsewhere (e.g. admin_order_detail edits a line)
+(function(){
+  if (!window.ZE || typeof ZE.on !== 'function') return;
+  let pending = false;
+  ZE.on('orders:change', function(){
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function(){ pending = false; render(); });
+  });
+})();
 
 /* =========== Unified header: mobile drawer + avatar menu =========== */
 (function(){
