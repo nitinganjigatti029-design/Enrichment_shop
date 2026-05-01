@@ -930,6 +930,9 @@
     .avatar-wrap .avatar { margin-left: 0; }
     .avatar-dd { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); min-width: 220px; z-index: 60; padding: 8px; display: none; }
     .avatar-dd.open { display: block; animation: fadeUp .2s ease both; }
+    .avatar-dd .dd-header { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .avatar-dd .dd-header .nm { font-weight: 700; color: var(--text); font-size: 14px; }
+    .avatar-dd .dd-header .em { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
     /* Sign-in pill (shown when not signed in) */
     .signin-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 600; font-size: 13px; text-decoration: none; margin-left: 8px; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); transition: .15s; }
@@ -1489,6 +1492,10 @@
             <img class="avatar" id="avatarImg" style="margin-left:0; border:none;" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt="User" loading="eager"/>
           </span>
           <div class="avatar-dd" id="avatarDropdown">
+            <div class="dd-header">
+              <div class="nm" id="userName">—</div>
+              <div class="em" id="userEmail">—</div>
+            </div>
             <div class="dd-item" data-nav="profile_1.html">
               <span class="dd-avatar"><i data-lucide="user" class="w-4 h-4"></i></span>
               <span class="dd-label">Profile</span>
@@ -3341,6 +3348,9 @@
       dd.classList.toggle('open');
     });
     dd.addEventListener('click', (e) => e.stopPropagation());
+    document.addEventListener('click', (e) => {
+      if (!dd.contains(e.target) && !span.contains(e.target)) dd.classList.remove('open');
+    });
 
     // Navigation items
     dd.querySelectorAll('.dd-item[data-nav]').forEach(it => {

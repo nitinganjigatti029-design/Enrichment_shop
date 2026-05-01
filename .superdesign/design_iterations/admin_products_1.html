@@ -189,8 +189,6 @@
     .rating-cell.no-reviews { color: var(--text-subtle); font-size: 12px; font-style: italic; }
 
     .status-cell { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 170px; }
-    .status-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: var(--brand-soft); color: var(--brand-hover); }
-    .status-chip.draft { background: #F1F2F4; color: var(--text-muted); }
 
     .switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; user-select: none; }
     .switch input { position: absolute; opacity: 0; pointer-events: none; }
@@ -658,7 +656,7 @@
             '<td data-label="Rating">' + ratingHtml + '</td>' +
             '<td data-label="Status">' +
               '<div class="status-cell">' +
-                '<span class="status-chip ' + (active ? '' : 'draft') + '">' + (active ? 'Published' : 'Draft') + '</span>' +
+                '<span class="chip ' + (active ? 'chip-confirmed' : 'chip-pending') + '">' + (active ? 'Published' : 'Draft') + '</span>' +
                 '<label class="switch" title="Toggle active">' +
                   '<input type="checkbox" data-active-toggle="' + escapeHtml(p.id) + '" ' + (active ? 'checked' : '') + '/>' +
                   '<span class="slider"></span>' +

@@ -10,7 +10,7 @@
   <script src="data.js?v=20260430g"></script>
   <script src="app.js?v=20260430g"></script>
   <style>
-    .page-wrap { max-width: 1300px; margin: 0 auto; padding: 0 32px; }
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 700px) { .page-wrap { padding: 0 16px; } }
 
     .site-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 40; }
@@ -527,10 +527,10 @@
     }
 
     /* Add to cart — OUTLINED (white bg, green border/text) */
-    .cta-primary { width: 100%; height: 56px; font-size: 15px; font-weight: 700; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: var(--brand); border: 1.5px solid var(--brand); cursor: pointer; transition: .2s ease; }
-    .cta-primary:hover { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-hover); transform: translateY(-1px); }
-    .cta-primary:active { transform: scale(.99); }
-    .cta-primary.disabled { background: #fff; color: var(--border-strong); border-color: var(--border); cursor: not-allowed; box-shadow: none; pointer-events: none; }
+    .cta-secondary { width: 100%; height: 56px; font-size: 15px; font-weight: 700; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: var(--brand); border: 1.5px solid var(--brand); cursor: pointer; transition: .2s ease; }
+    .cta-secondary:hover { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-hover); transform: translateY(-1px); }
+    .cta-secondary:active { transform: scale(.99); }
+    .cta-secondary.disabled { background: #fff; color: var(--border-strong); border-color: var(--border); cursor: not-allowed; box-shadow: none; pointer-events: none; }
 
     /* Stepper (in-cart state) — filled brand green */
     .cta-stepper { width: 100%; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: space-between; background: var(--brand); color: #fff; padding: 6px 8px; box-shadow: 0 8px 20px -6px rgba(55,189,105,.5); }
@@ -734,7 +734,7 @@
       .price-val { font-size: 24px !important; }
       .vendor-card { grid-template-columns: 40px 1fr !important; gap: 10px; }
       .vendor-card .vendor-visit { grid-column: 1 / -1; justify-content: center; }
-      .cta-primary, .cta-stepper, .cta-buy-now { height: 52px !important; font-size: 14px; }
+      .cta-secondary, .cta-stepper, .cta-buy-now { height: 52px !important; font-size: 14px; }
       .write-card { padding: 16px !important; }
       .wc-submit { width: 100%; justify-content: center; }
       .wc-foot { flex-direction: column-reverse; align-items: stretch; }
@@ -862,9 +862,9 @@
           <kbd class="hidden sm:inline-flex text-[11px] text-[color:var(--text-subtle)] font-medium">⌘K</kbd>
         </label>
         <div class="header-actions">
-          <a href="customise_product_1.html" id="customiseBtn" style="background: var(--brand); color: #fff; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); text-decoration: none; margin-right: 4px;" aria-label="Customise product">
-            <i data-lucide="wand-sparkles" class="w-4 h-4"></i>Customise
-          </a>
+          <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+            <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+          </button>
           <a href="orders_1.html" class="link">Orders</a>
           <button class="icon-btn" id="savedHeaderBtn" aria-label="Saved" onclick="window.location.href='saved_1.html'">
             <i data-lucide="heart" class="w-4 h-4"></i>
@@ -1936,7 +1936,7 @@
 
       if (stock === 0) {
         slot.innerHTML = `
-          <button class="cta-primary disabled" disabled><i data-lucide="x" class="w-5 h-5"></i> Out of stock</button>
+          <button class="cta-secondary disabled" disabled><i data-lucide="x" class="w-5 h-5"></i> Out of stock</button>
         `;
         setBuyNowState(false);
         window.ZE && window.ZE.refreshIcons();
@@ -1948,7 +1948,7 @@
       // the user can pick a (possibly different) species on each add.
       const qty = (window.ZE.cart.countForProduct ? window.ZE.cart.countForProduct(p.id) : 0);
       if (!qty) {
-        slot.innerHTML = `<button class="cta-primary" id="addBtn" type="button"><i data-lucide="plus" class="w-5 h-5"></i> Add to cart</button>`;
+        slot.innerHTML = `<button class="cta-secondary" id="addBtn" type="button"><i data-lucide="plus" class="w-5 h-5"></i> Add to cart</button>`;
         qs('#addBtn').addEventListener('click', () => openCartModal());
       } else {
         slot.innerHTML = `

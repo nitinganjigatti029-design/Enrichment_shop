@@ -100,8 +100,6 @@
     .ret-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; cursor: pointer; transition: .15s; position: relative; }
     .ret-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-xs); }
     .ret-item.selected { border-color: var(--brand); background: var(--brand-soft); }
-    .ret-item.sla-urgent { border-left: 4px solid var(--danger); padding-left: 14px; }
-    .ret-item.sla-warn   { border-left: 4px solid #E4B819; padding-left: 14px; }
 
     .ri-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; }
     .ri-id { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--text-muted); font-weight: 600; }
@@ -122,8 +120,6 @@
     .ri-foot { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12px; }
     .ri-foot .amt { color: var(--text); font-weight: 800; }
     .ri-foot .sla { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-    .ri-foot .sla.urgent { color: var(--danger); }
-    .ri-foot .sla.warn { color: #A16207; }
     .ri-foot .sla.ok { color: var(--text-muted); }
 
     /* Detail pane */
@@ -421,7 +417,6 @@
             <span class="meta-chip"><i data-lucide="user" class="w-3 h-3"></i> Dr. Arindam Baruah</span>
             <span class="meta-chip"><i data-lucide="map-pin" class="w-3 h-3"></i> Kaziranga · 785609</span>
             <span class="meta-chip"><i data-lucide="paw-print" class="w-3 h-3"></i> Indian rhino</span>
-            <span class="meta-chip" style="background:#FFE5EA;color:var(--danger)"><i data-lucide="clock" class="w-3 h-3"></i> 18h SLA remaining</span>
           </div>
         </div>
         <div>

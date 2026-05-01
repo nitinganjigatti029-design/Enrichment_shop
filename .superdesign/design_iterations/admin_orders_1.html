@@ -141,8 +141,6 @@
     .orders-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 60px; }
     .oc { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-xs); transition: box-shadow .18s, border-color .15s; overflow: hidden; }
     .oc:hover { box-shadow: var(--shadow-sm); border-color: var(--border-strong); }
-    .oc.sla-urgent { border-left: 4px solid var(--danger); }
-    .oc.sla-warn   { border-left: 4px solid #E4B819; }
     .oc.expanded { border-color: var(--brand); box-shadow: 0 4px 14px -4px rgba(55,189,105,.18); }
 
     .oc-main { padding: 20px 22px; cursor: pointer; }
@@ -223,11 +221,6 @@
     .btn-chat:hover { background: var(--brand); color: #fff; }
     .btn-chat .unread-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--card); }
 
-    .sla-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-    .sla-badge.urgent { background: var(--danger-bg); color: var(--danger); }
-    .sla-badge.warn { background: #FFF8CC; color: #A16207; }
-    .sla-badge.ok { background: var(--brand-soft); color: var(--brand-hover); }
-
     /* ==================== ORDERS TABLE ==================== */
     .orders-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: clip; box-shadow: var(--shadow-xs); margin-bottom: 60px; }
     .orders-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
@@ -236,8 +229,6 @@
     .orders-table tbody tr.orow { cursor: pointer; transition: background-color .12s; border-left: 4px solid transparent; }
     .orders-table tbody tr.orow:hover { background: #FAFBFC; }
     .orders-table tbody tr.orow:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; background: var(--brand-soft); }
-    .orders-table tbody tr.orow.sla-urgent { box-shadow: inset 4px 0 0 0 var(--danger); }
-    .orders-table tbody tr.orow.sla-warn  { box-shadow: inset 4px 0 0 0 #E4B819; }
     .orders-table tbody tr.orow + tr.orow > td,
     .orders-table tbody tr.orow:not(:first-child) > td { border-top: 1px solid var(--border); }
     .orders-table tbody td { padding: 14px; vertical-align: middle; background: var(--card); }
@@ -268,7 +259,6 @@
 
     .total-cell { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; }
     .date-cell { font-size: 12px; color: var(--text-muted); white-space: nowrap; line-height: 1.4; }
-    .date-cell .sla-badge { margin-top: 4px; }
 
     .actions-cell { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
     .actions-cell .btn-sm { padding: 6px 10px; font-size: 12px; gap: 5px; }
@@ -628,7 +618,7 @@ function dateAhead(days) { const d=new Date(); d.setDate(d.getDate()+days); retu
 /* =========== 76 orders w/ per-order chat specs =========== */
 const ORDERS = [
   /* AWAITING (12) */
-  { id:'ORD-9101', status:'placed', priority:'Critical', species:'macaque', buyer:0, createdAt:dateAgo(0,2), total:148000, slaHoursLeft:10,
+  { id:'ORD-9101', status:'placed', priority:'Critical', species:'macaque', buyer:0, createdAt:dateAgo(0,2), total:148000,
     items:[{p:PROD.teakClimb,qty:1}], chatTag:'clarifying',
     dims:'3.2×2.1×2.4m', material:'Teak + stainless',
     chat:[
@@ -641,7 +631,7 @@ const ORDERS = [
       {sys:'accent', body:'Buyer shared full spec · ready for offer'}
     ],
     unread:2 },
-  { id:'ORD-9099', status:'placed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(0,5), total:234000, slaHoursLeft:19,
+  { id:'ORD-9099', status:'placed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(0,5), total:234000,
     items:[{p:PROD.lionTower,qty:1},{p:PROD.scentDiff,qty:2}], chatTag:'clarifying',
     dims:'2.8m tall', material:'Sal wood + stainless',
     chat:[
@@ -652,7 +642,7 @@ const ORDERS = [
       {who:'them', t:'08:45', body:'Two is fine — we rotate scents. One near the pool, one near the den.'}
     ],
     unread:1 },
-  { id:'ORD-9098', status:'placed', priority:'Normal', species:'otter', buyer:3, createdAt:dateAgo(0,6), total:24500, slaHoursLeft:18,
+  { id:'ORD-9098', status:'placed', priority:'Normal', species:'otter', buyer:3, createdAt:dateAgo(0,6), total:24500,
     items:[{p:PROD.puzzleFeed,qty:3},{p:PROD.findBall,qty:6}], chatTag:'new',
     dims:'Aquatic', material:'Food-grade HDPE',
     chat:[
@@ -661,7 +651,7 @@ const ORDERS = [
       {sys:'accent', body:'New buyer — TeakCraft first contact'}
     ],
     unread:2 },
-  { id:'ORD-9095', status:'placed', priority:'High', species:'hornbill', buyer:2, createdAt:dateAgo(0,9), total:18900, slaHoursLeft:15,
+  { id:'ORD-9095', status:'placed', priority:'High', species:'hornbill', buyer:2, createdAt:dateAgo(0,9), total:18900,
     items:[{p:PROD.canopy,qty:4}], chatTag:'new',
     dims:'3m × 2m panels', material:'Natural fibre',
     chat:[
@@ -669,7 +659,7 @@ const ORDERS = [
       {who:'them', t:'01:15', body:'Also — are the natural dyes bird-safe? We have a Great hornbill breeding pair.'}
     ],
     unread:2 },
-  { id:'ORD-9092', status:'placed', priority:'Normal', species:'elephant', buyer:11, createdAt:dateAgo(0,14), total:68400, slaHoursLeft:10,
+  { id:'ORD-9092', status:'placed', priority:'Normal', species:'elephant', buyer:11, createdAt:dateAgo(0,14), total:68400,
     items:[{p:PROD.bambooBrow,qty:40},{p:PROD.sugarFeed,qty:8}], chatTag:'new',
     dims:'Weekly supply', material:'Fresh bamboo + sugarcane',
     chat:[
@@ -678,16 +668,15 @@ const ORDERS = [
       {who:'them', t:'Yesterday 19:03', body:'Bamboo must be fresh, <48h from harvest.'}
     ],
     unread:1 },
-  { id:'ORD-9089', status:'placed', priority:'Normal', species:'lion', buyer:6, createdAt:dateAgo(1,2), total:156200, slaHoursLeft:-2,
+  { id:'ORD-9089', status:'placed', priority:'Normal', species:'lion', buyer:6, createdAt:dateAgo(1,2), total:156200,
     items:[{p:PROD.lionTower,qty:1}], chatTag:'new',
     dims:'3m tall tapered', material:'Sal + stainless',
     chat:[
       {who:'them', t:'Yesterday 15:30', body:'Need a scratch tower for our newly-acquired 180kg male Asiatic lion. Wants a tapered base for stability.'},
-      {who:'them', t:'Yesterday 15:31', body:'Previous unit toppled during play — we want something you guarantee wont move.'},
-      {sys:'warn', body:'SLA breached · 2h over response time'}
+      {who:'them', t:'Yesterday 15:31', body:'Previous unit toppled during play — we want something you guarantee wont move.'}
     ],
     unread:0 },
-  { id:'ORD-9087', status:'placed', priority:'Normal', species:'langur', buyer:7, createdAt:dateAgo(1,4), total:94600, slaHoursLeft:20,
+  { id:'ORD-9087', status:'placed', priority:'Normal', species:'langur', buyer:7, createdAt:dateAgo(1,4), total:94600,
     items:[{p:PROD.ropeBridge,qty:2},{p:PROD.climbNet,qty:1}], chatTag:'new',
     dims:'6m span each', material:'Marine rope',
     chat:[
@@ -696,7 +685,7 @@ const ORDERS = [
       {who:'them', t:'Yesterday 13:14', body:'Marine-grade rope preferred — it rains a lot here.'}
     ],
     unread:1 },
-  { id:'ORD-9085', status:'placed', priority:'Normal', species:'rhino', buyer:8, createdAt:dateAgo(1,10), total:94200, slaHoursLeft:14,
+  { id:'ORD-9085', status:'placed', priority:'Normal', species:'rhino', buyer:8, createdAt:dateAgo(1,10), total:94200,
     items:[{p:PROD.mudLiner,qty:1}], chatTag:'clarifying',
     dims:'3.6 × 2.4m', material:'HDPE 8mm',
     chat:[
@@ -706,7 +695,7 @@ const ORDERS = [
       {who:'them', t:'Yesterday 14:41', body:'Our enclosure has a slope — will the liner sit flush?'}
     ],
     unread:1 },
-  { id:'ORD-9082', status:'placed', priority:'Normal', species:'leopard', buyer:10, createdAt:dateAgo(1,18), total:67800, slaHoursLeft:6,
+  { id:'ORD-9082', status:'placed', priority:'Normal', species:'leopard', buyer:10, createdAt:dateAgo(1,18), total:67800,
     items:[{p:PROD.platformM,qty:1},{p:PROD.scentDiff,qty:1}], chatTag:'new',
     dims:'Multi-level 2.4m', material:'Pine + insulated panel',
     chat:[
@@ -714,16 +703,15 @@ const ORDERS = [
       {who:'them', t:'2d ago', body:'Our male hates cold metal so padding or wooden top surface preferred.'},
     ],
     unread:2 },
-  { id:'ORD-9079', status:'placed', priority:'Normal', species:'croc', buyer:13, createdAt:dateAgo(2,1), total:48300, slaHoursLeft:-8,
+  { id:'ORD-9079', status:'placed', priority:'Normal', species:'croc', buyer:13, createdAt:dateAgo(2,1), total:48300,
     items:[{p:PROD.crocLog,qty:3}], chatTag:'new',
     dims:'1.8m each', material:'Hardwood treated',
     chat:[
       {who:'them', t:'2d ago', body:'Katraj Snake Park — we added 3 Mugger crocs. Need basking logs, 1.8m each, waterproof.'},
-      {who:'them', t:'2d ago', body:'Can you deliver within 2 weeks?'},
-      {sys:'danger', body:'SLA breached 8 hours ago'}
+      {who:'them', t:'2d ago', body:'Can you deliver within 2 weeks?'}
     ],
     unread:1 },
-  { id:'ORD-9076', status:'placed', priority:'Normal', species:'macaque', buyer:12, createdAt:dateAgo(2,5), total:28400, slaHoursLeft:-14,
+  { id:'ORD-9076', status:'placed', priority:'Normal', species:'macaque', buyer:12, createdAt:dateAgo(2,5), total:28400,
     items:[{p:PROD.enrichBoard,qty:6},{p:PROD.shadowBox,qty:4}], chatTag:'new',
     dims:'Tactile boards 60×40cm', material:'Non-toxic rubber + wood',
     chat:[
@@ -731,7 +719,7 @@ const ORDERS = [
       {who:'them', t:'2d ago', body:'Any seasonal rotation plan? We want to swap textures monthly.'}
     ],
     unread:2 },
-  { id:'ORD-9073', status:'placed', priority:'High', species:'tiger', buyer:5, createdAt:dateAgo(2,9), total:78000, slaHoursLeft:-20,
+  { id:'ORD-9073', status:'placed', priority:'High', species:'tiger', buyer:5, createdAt:dateAgo(2,9), total:78000,
     items:[{p:PROD.swingLog,qty:2}], chatTag:'queued',
     dims:'2m logs', material:'Teak',
     chat:[
@@ -744,7 +732,7 @@ const ORDERS = [
     unread:1 },
 
   /* QUOTED (11) */
-  { id:'ORD-9068', status:'placed', priority:'Normal', species:'macaque', buyer:4, createdAt:dateAgo(0,3), total:32000, slaHoursLeft:30, chatTag:'clarifying',
+  { id:'ORD-9068', status:'placed', priority:'Normal', species:'macaque', buyer:4, createdAt:dateAgo(0,3), total:32000, chatTag:'clarifying',
     lastMsg:'Budget around ₹32k. Can you do it?',
     items:[{p:PROD.teakClimb,qty:1}],
     dims:'2.4×1.8m', material:'Teak',
@@ -756,7 +744,7 @@ const ORDERS = [
       {sys:'info', body:'Awaiting buyer decision'}
     ],
     unread:0 },
-  { id:'ORD-9065', status:'placed', priority:'High', species:'otter', buyer:1, createdAt:dateAgo(0,8), total:26800, slaHoursLeft:16, chatTag:'clarifying',
+  { id:'ORD-9065', status:'placed', priority:'High', species:'otter', buyer:1, createdAt:dateAgo(0,8), total:26800, chatTag:'clarifying',
     lastMsg:'Yes, same. But can we add 2 weighted anchors?',
     items:[{p:PROD.puzzleFeed,qty:3},{p:PROD.findBall,qty:6}],
     dims:'Aquatic set', material:'HDPE',
@@ -767,7 +755,7 @@ const ORDERS = [
       {offer:true, quote:26800, days:9, note:'Includes 2 weighted anchors at no extra cost (loyalty)'}
     ],
     unread:0 },
-  { id:'ORD-9061', status:'placed', priority:'Normal', species:'rhino', buyer:8, createdAt:dateAgo(1,4), total:101500, slaHoursLeft:8, chatTag:'clarifying',
+  { id:'ORD-9061', status:'placed', priority:'Normal', species:'rhino', buyer:8, createdAt:dateAgo(1,4), total:101500, chatTag:'clarifying',
     lastMsg:"That's close but can you do 21 days and include on-site fitting?",
     items:[{p:PROD.mudLiner,qty:1}],
     dims:'3.6×2.4m sloped', material:'HDPE 8mm',
@@ -780,7 +768,7 @@ const ORDERS = [
       {sys:'info', body:'Awaiting buyer decision · counter-offer accepted'}
     ],
     unread:0 },
-  { id:'ORD-9058', status:'placed', priority:'Normal', species:'tiger', buyer:6, createdAt:dateAgo(1,10), total:234000, slaHoursLeft:4, chatTag:'clarifying',
+  { id:'ORD-9058', status:'placed', priority:'Normal', species:'tiger', buyer:6, createdAt:dateAgo(1,10), total:234000, chatTag:'clarifying',
     lastMsg:'Final offer for the Gir lion tower?',
     items:[{p:PROD.lionTower,qty:1},{p:PROD.scentDiff,qty:2}],
     dims:'2.8m tower + 2 diffusers', material:'Sal + stainless',
@@ -790,7 +778,7 @@ const ORDERS = [
       {sys:'info', body:'Awaiting approval from Dr. Ramesh'}
     ],
     unread:0 },
-  { id:'ORD-9055', status:'placed', priority:'Normal', species:'hornbill', buyer:2, createdAt:dateAgo(2,2), total:18900, slaHoursLeft:-5, chatTag:'clarifying',
+  { id:'ORD-9055', status:'placed', priority:'Normal', species:'hornbill', buyer:2, createdAt:dateAgo(2,2), total:18900, chatTag:'clarifying',
     lastMsg:'Need UV-stable weave confirmed.',
     items:[{p:PROD.canopy,qty:4}],
     dims:'Outdoor UV-stable', material:'Natural fibre',
@@ -800,7 +788,7 @@ const ORDERS = [
       {offer:true, quote:21200, days:14, note:'4 canopies · UV-graded · bird-safe natural dyes'}
     ],
     unread:0 },
-  { id:'ORD-9052', status:'placed', priority:'Normal', species:'langur', buyer:7, createdAt:dateAgo(2,6), total:94600, slaHoursLeft:22, chatTag:'clarifying',
+  { id:'ORD-9052', status:'placed', priority:'Normal', species:'langur', buyer:7, createdAt:dateAgo(2,6), total:94600, chatTag:'clarifying',
     lastMsg:'Please share availability and timeline.',
     items:[{p:PROD.ropeBridge,qty:2},{p:PROD.climbNet,qty:1}],
     dims:'6m span, marine rope', material:'Marine PP rope',
@@ -808,7 +796,7 @@ const ORDERS = [
       {offer:true, quote:94600, days:16, note:'2 × 6m rope bridges + 4×3m net · marine-grade rope'}
     ],
     unread:0 },
-  { id:'ORD-9049', status:'placed', priority:'Normal', species:'elephant', buyer:11, createdAt:dateAgo(3,1), total:68400, slaHoursLeft:-2, chatTag:'clarifying',
+  { id:'ORD-9049', status:'placed', priority:'Normal', species:'elephant', buyer:11, createdAt:dateAgo(3,1), total:68400, chatTag:'clarifying',
     lastMsg:'Is a recurring subscription possible? Every Tuesday would be ideal.',
     items:[{p:PROD.bambooBrow,qty:40},{p:PROD.sugarFeed,qty:8}],
     dims:'Weekly delivery', material:'Fresh bamboo',
@@ -816,7 +804,7 @@ const ORDERS = [
       {offer:true, quote:68400, days:7, note:'Weekly recurring · Tuesday deliveries · <48h from harvest'}
     ],
     unread:0 },
-  { id:'ORD-9046', status:'placed', priority:'Normal', species:'leopard', buyer:10, createdAt:dateAgo(3,5), total:67800, slaHoursLeft:40, chatTag:'clarifying',
+  { id:'ORD-9046', status:'placed', priority:'Normal', species:'leopard', buyer:10, createdAt:dateAgo(3,5), total:67800, chatTag:'clarifying',
     lastMsg:'Please share availability and timeline.',
     items:[{p:PROD.platformM,qty:1},{p:PROD.scentDiff,qty:1}],
     dims:'2.4m 3-level', material:'Pine + insulated',
@@ -824,7 +812,7 @@ const ORDERS = [
       {offer:true, quote:71400, days:14, note:'Insulated platform tops · padded edges · 1 scent diffuser'}
     ],
     unread:0 },
-  { id:'ORD-9043', status:'placed', priority:'Normal', species:'croc', buyer:13, createdAt:dateAgo(4,3), total:48300, slaHoursLeft:12, chatTag:'clarifying',
+  { id:'ORD-9043', status:'placed', priority:'Normal', species:'croc', buyer:13, createdAt:dateAgo(4,3), total:48300, chatTag:'clarifying',
     lastMsg:'Please share availability and timeline.',
     items:[{p:PROD.crocLog,qty:3}],
     dims:'1.8m logs', material:'Treated hardwood',
@@ -832,7 +820,7 @@ const ORDERS = [
       {offer:true, quote:52000, days:12, note:'3 × 1.8m basking logs · marine-grade waterproof treatment'}
     ],
     unread:0 },
-  { id:'ORD-9040', status:'placed', priority:'Normal', species:'otter', buyer:9, createdAt:dateAgo(4,9), total:31200, slaHoursLeft:48, chatTag:'clarifying',
+  { id:'ORD-9040', status:'placed', priority:'Normal', species:'otter', buyer:9, createdAt:dateAgo(4,9), total:31200, chatTag:'clarifying',
     lastMsg:'Please share availability and timeline.',
     items:[{p:PROD.soakPool,qty:1}],
     dims:'2m diameter', material:'Food-grade HDPE',
@@ -840,7 +828,7 @@ const ORDERS = [
       {offer:true, quote:31200, days:10, note:'Pool insert · 2m dia · integrated drain'}
     ],
     unread:0 },
-  { id:'ORD-9037', status:'placed', priority:'Normal', species:'macaque', buyer:0, createdAt:dateAgo(5,2), total:29800, slaHoursLeft:-3, chatTag:'clarifying',
+  { id:'ORD-9037', status:'placed', priority:'Normal', species:'macaque', buyer:0, createdAt:dateAgo(5,2), total:29800, chatTag:'clarifying',
     lastMsg:'Please share availability and timeline.',
     items:[{p:PROD.enrichBoard,qty:6}],
     dims:'60×40cm boards', material:'Non-toxic rubber + wood',
@@ -1305,7 +1293,6 @@ const escapeHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 function relTime(iso){ const t=new Date(iso).getTime(); const d=Date.now()-t; const m=Math.floor(d/60000); if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; const dd=Math.floor(h/24); if(dd===1) return 'yesterday'; if(dd<7) return dd+'d ago'; if(dd<30) return Math.floor(dd/7)+'wk ago'; return Math.floor(dd/30)+'mo ago'; }
 function chipStatus(st){ return `<span class="chip chip-${st}"><i data-lucide="${STATUS_ICON[st]}" class="w-3 h-3"></i> ${STATUS[st]}</span>`; }
 function buyerChip(b){ return `<div class="buyer-chip"><img class="buyer-av" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true" alt=""/><div><div class="buyer-nm">${b.nm}</div><div class="buyer-zoo">${b.zoo}</div></div></div>`; }
-function slaBadge(h){ if (h==null) return ''; if (h<0) return `<span class="sla-badge urgent"><i data-lucide="alert-circle" class="w-3 h-3"></i> ${Math.abs(h)}h over SLA</span>`; if (h<=12) return `<span class="sla-badge urgent"><i data-lucide="timer" class="w-3 h-3"></i> ${h}h left</span>`; if (h<=24) return `<span class="sla-badge warn"><i data-lucide="timer" class="w-3 h-3"></i> ${h}h left</span>`; return `<span class="sla-badge ok"><i data-lucide="clock" class="w-3 h-3"></i> ${h}h left</span>`; }
 
 function contextRow(o){
   // Only keep the live-tracking strip for shipped / out-for-delivery — carries AWB + location

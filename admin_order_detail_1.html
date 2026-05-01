@@ -91,11 +91,6 @@
     .chip-cancelled        { background: var(--danger);     color: #fff; }
     .chip-returned         { background: #FDE68A;           color: #92400E; }
 
-    .sla-big { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; padding: 6px 14px; border-radius: 999px; }
-    .sla-big.urgent { background: var(--danger-bg); color: var(--danger); }
-    .sla-big.warn { background: #FFF8CC; color: #A16207; }
-    .sla-big.ok { background: var(--brand-soft); color: var(--brand-hover); }
-
     .dh-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); margin-top: 4px; align-items: center; }
     .dh-meta .sep { color: var(--text-subtle); }
     .dh-meta strong { color: var(--text); font-weight: 600; }
@@ -591,7 +586,7 @@ function dateAhead(days) { const d=new Date(); d.setDate(d.getDate()+days); retu
 
 /* Mirror orders with richer per-item data (dimensions/notes per line) */
 const ORDERS = [
-  { id:'ORD-9101', status:'placed', priority:'Critical', species:'macaque', buyer:0, createdAt:dateAgo(0,2), total:148000, slaHoursLeft:10,
+  { id:'ORD-9101', status:'placed', priority:'Critical', species:'macaque', buyer:0, createdAt:dateAgo(0,2), total:148000,
     items:[{p:PROD.teakClimb, qty:1, unit:148000, note:'3.2 × 2.1 × 2.4 m · two tiers · two 6 m rope bridges · silicone corner reinforcement · untreated teak · non-toxic finish only.'}],
     chat:[
       {who:'them', t:'09:52', body:'Hi! We need a custom climbing structure for our macaque enclosure. Group of 8 adults.'},
@@ -666,7 +661,7 @@ const ORDERS = [
       {who:'them', t:'5d ago', body:'Liner arrived 12 cm short in both directions.'}
     ]
   },
-  { id:'ORD-9099', status:'placed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(0,5), total:234000, slaHoursLeft:19,
+  { id:'ORD-9099', status:'placed', priority:'High', species:'tiger', buyer:6, createdAt:dateAgo(0,5), total:234000,
     items:[
       {p:PROD.lionTower, qty:1, unit:198000, note:'2.8 m tall · Sal + stainless · rated 250 kg+ · monsoon-ready.'},
       {p:PROD.scentDiff, qty:2, unit:18000, note:'Stainless refillable · one near pool, one near den.'}
@@ -709,7 +704,6 @@ function daysFromToday(d) {
   return 'in ' + diff + ' days';
 }
 function getParam(name){ const m = new URLSearchParams(window.location.search); return m.get(name); }
-function slaBig(h){ if (h==null) return ''; if (h<0) return `<span class="sla-big urgent"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> ${Math.abs(h)}h over SLA</span>`; if (h<=12) return `<span class="sla-big urgent"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; if (h<=24) return `<span class="sla-big warn"><i data-lucide="timer" class="w-3.5 h-3.5"></i> ${h}h left to accept</span>`; return `<span class="sla-big ok"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${h}h left</span>`; }
 
 /* ============ Step timeline ============ */
 function timelineSteps(o) {

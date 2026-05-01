@@ -1,0 +1,25 @@
+<!doctype html>
+<html><body><script src="/data.js?v=20260430f"></script><script src="/app.js?v=20260430f"></script>
+<script>
+// Mix of partial + full + cancelled across both ORD-9020 (admin view) and ORD-J103 (buyer view)
+const seed = {
+  'ORD-9020': {
+    '0': { mode:'inhouse', status:'shipped', shippedQty:1, eta:'2026-06-02', history:[
+      {status:'pending',at:'2026-04-28T10:00:00Z'},
+      {status:'in_progress',at:'2026-04-29T09:00:00Z'},
+      {status:'ready',at:'2026-04-30T08:00:00Z'},
+      {status:'shipped',at:'2026-04-30T14:00:00Z'}] },
+    '1': { mode:'vendor', vendor:{name:'Acme Carpentry',cost:18000,ref:'PO #4521',eta:'2026-06-12'}, status:'shipped', shippedQty:1, eta:'2026-06-12',
+           history:[{status:'pending',at:'2026-04-28T10:00:00Z'},{status:'shipped',at:'2026-04-30T15:00:00Z'}] }
+  },
+  'ORD-J103': {
+    '0': { mode:'inhouse', status:'shipped', shippedQty:2, eta:'2026-06-12',
+           history:[{status:'shipped',at:'2026-04-30T10:00:00Z'}] },
+    '1': { mode:'inhouse', status:'cancelled', shippedQty:0, cancelReason:'Out of stock — discontinued', history:[] }
+  }
+};
+localStorage.setItem('ze_line_fulfilment_v1', JSON.stringify(seed));
+localStorage.setItem('ze_user_v1', JSON.stringify({ id:'ven_acme', role:'admin' }));
+localStorage.setItem('ze_active_site_v1', 'site_hyd');
+document.body.innerHTML = '<h2>Seeded partial-ship demo ✓</h2><p>Opening admin detail in 0.6s…</p><script>setTimeout(()=>window.location.href="/admin_order_detail_1.html?id=ORD-9020",600)<\/script>';
+</script></body></html>

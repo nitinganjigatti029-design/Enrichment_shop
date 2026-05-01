@@ -620,6 +620,24 @@
     try { if (typeof DB !== 'undefined' && DB && Array.isArray(DB.DEMO_ORDERS)) demo = DB.DEMO_ORDERS; } catch (e) {}
     return user.concat(demo).filter(o => o && o.siteId === siteId);
   }
+  function _cancelledLineValueForOrder(o) {
+    if (!o || !Array.isArray(o.items) || !o.items.length) return 0;
+    let lines = null;
+    try { lines = JSON.parse(localStorage.getItem(LINE_FULFILMENT_KEY) || '{}') || {}; } catch (e) { lines = {}; }
+    const rec = lines && lines[o.id];
+    if (!rec) return 0;
+    let refunded = 0;
+    for (let i = 0; i < o.items.length; i++) {
+      const r = rec[String(i)];
+      if (!r || r.status !== 'cancelled') continue;
+      const it = o.items[i] || {};
+      const p = _productById(it.productId);
+      if (!p || !p.price) continue;
+      const unit = (Number(p.price.material) || 0) + (Number(p.price.labor) || 0);
+      refunded += unit * (Number(it.qty) || 0);
+    }
+    return refunded;
+  }
   function walletForSite(siteId) {
     const empty = { siteId: siteId || null, allotted: 0, locked: 0, spent: 0, available: 0, fy: null, fyStart: null, fyEnd: null, topupApproved: 0 };
     if (!siteId) return empty;
@@ -634,7 +652,7 @@
     });
     let locked = 0, spent = 0;
     orders.forEach(o => {
-      const total = Number(o && o.total) || 0;
+      const total = Math.max(0, (Number(o && o.total) || 0) - _cancelledLineValueForOrder(o));
       if (LOCKED_STATUSES.indexOf(o.status) !== -1) locked += total;
       else if (SPENT_STATUSES.indexOf(o.status) !== -1) spent += total;
       // cancelled → ignored (refunded)
@@ -654,7 +672,9 @@
     const orders = _allOrdersForSite(siteId);
     const txns = [];
     orders.forEach(o => {
-      const total = Number(o && o.total) || 0;
+      const gross = Number(o && o.total) || 0;
+      const refunded = _cancelledLineValueForOrder(o);
+      const total = Math.max(0, gross - refunded);
       const when = o && o.createdAt;
       if (LOCKED_STATUSES.indexOf(o.status) !== -1) {
         txns.push({ kind:'locked',   amount: -total, orderId: o.id, status: o.status, at: when, label: 'Order placed · funds locked' });
@@ -662,6 +682,9 @@
         txns.push({ kind:'spent',    amount: -total, orderId: o.id, status: o.status, at: when, label: 'Order delivered · paid to admin' });
       } else if (o.status === 'cancelled') {
         txns.push({ kind:'refunded', amount: 0,      orderId: o.id, status: o.status, at: when, label: 'Order cancelled · refunded' });
+      }
+      if (refunded > 0 && o.status !== 'cancelled') {
+        txns.push({ kind:'refunded', amount: refunded, orderId: o.id, status: o.status, at: when, label: 'Line cancelled · refunded' });
       }
     });
     // Top-up history
@@ -1744,6 +1767,14 @@
             var row = _zeBuildPersonaRow(mode, menu);
             // Insert before the sign-out item if present, else at end
             var signout = menu.querySelector('#signOutItem, #signOutBtn, [data-sign-out]');
+            if (!signout) {
+              // Fallback: walk children and find LAST element whose text content is exactly "Sign out"
+              var kids = menu.children;
+              for (var i = kids.length - 1; i >= 0; i--) {
+                var txt = (kids[i].textContent || '').trim().toLowerCase();
+                if (txt === 'sign out') { signout = kids[i]; break; }
+              }
+            }
             if (signout) menu.insertBefore(row, signout);
             else menu.appendChild(row);
           });
