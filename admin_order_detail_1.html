@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -82,6 +82,7 @@
     .dh-id { font-family: ui-monospace, Menlo, monospace; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
     .chip-big { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
     .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-pending          { background: #F1F2F4;           color: #6B7280; }
     .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
     .chip-in_production    { background: #FEF3C7;           color: #A16207; }
     .chip-packed           { background: #D1FAE5;           color: #065F46; }
@@ -161,6 +162,26 @@
     .item.item-cancelled .price-line .left,
     .item.item-cancelled .price-line .right { text-decoration: line-through; text-decoration-color: var(--text-muted); text-decoration-thickness: 1px; }
     .item-void-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #B91C1C; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; cursor: help; }
+    /* Inline per-line action row — ETA chip + admin shortcuts */
+    .line-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .eta-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #1E40AF; background: #DBEAFE; padding: 4px 9px 4px 9px; border-radius: 999px; line-height: 1.1; }
+    .eta-chip i { width: 12px; height: 12px; opacity: .8; }
+    .eta-edit-btn { background: none; border: 1px solid var(--border); border-radius: 999px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: .15s; padding: 0; }
+    .eta-edit-btn:hover { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+    .eta-edit-btn i { width: 12px; height: 12px; }
+    .eta-edit-row { display: inline-flex; align-items: center; gap: 6px; }
+    .eta-edit-row input[type="date"] { padding: 5px 8px; border: 1.5px solid var(--brand); border-radius: 8px; font-size: 12px; color: var(--text); outline: none; font-family: inherit; background: var(--card); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .eta-edit-row .eta-save, .eta-edit-row .eta-cancel { padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 1px solid transparent; font-family: inherit; }
+    .eta-edit-row .eta-save { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .eta-edit-row .eta-save:hover { background: var(--brand-hover); }
+    .eta-edit-row .eta-cancel { background: #fff; color: var(--text-muted); border-color: var(--border); }
+    .eta-edit-row .eta-cancel:hover { border-color: var(--border-strong); }
+    .line-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: .15s; line-height: 1.1; }
+    .line-action-btn i { width: 13px; height: 13px; }
+    .line-action-btn.lab-ship { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand-soft); }
+    .line-action-btn.lab-ship:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .line-action-btn.lab-deliver { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 2px 6px -2px rgba(55,189,105,.45); }
+    .line-action-btn.lab-deliver:hover { background: var(--brand-hover); }
     /* Math card — cancelled-lines breakout row */
     .math-line .val.neg.cancelled-amt { color: var(--danger); }
     .math-foot { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px; line-height: 1.4; }
@@ -278,19 +299,24 @@
     .tr-event .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
     /* Right column cards */
-    .buyer-card-big { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 22px 20px 18px; }
-    .buyer-card-big .ba { width: 74px; height: 74px; border-radius: 999px; object-fit: cover; border: 3px solid var(--card); box-shadow: var(--shadow-sm); margin-bottom: 12px; }
-    .buyer-card-big .nm { font-size: 16px; font-weight: 700; color: var(--text); }
+    .buyer-card-big { padding: 14px 16px 14px; }
+    .buyer-card-big .top { display: flex; align-items: flex-start; gap: 12px; }
+    .buyer-card-big .ba { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
+    .buyer-card-big .meta { min-width: 0; flex: 1; }
+    .buyer-card-big .nm { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; }
     .buyer-card-big .role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .buyer-card-big .zoo { font-size: 12.5px; color: var(--text); margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
-    .buyer-card-big .stats { display: flex; gap: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); width: 100%; justify-content: center; font-size: 12px; color: var(--text-muted); }
-    .buyer-card-big .stats strong { color: var(--text); font-weight: 700; }
-    .buyer-card-big .stats .star { color: #E4B819; }
-    .buyer-card-big .contact { display: flex; gap: 8px; margin-top: 14px; width: 100%; }
-    .buyer-card-big .contact button { flex: 1; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: .15s; }
-    .buyer-card-big .contact button:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
-    .buyer-card-big .contact button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
-    .buyer-card-big .contact button.primary:hover { background: var(--brand-hover); }
+    .buyer-card-big .zoo { display: none; }
+    .buyer-card-big .info { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+    .buyer-card-big .info-row { display: inline-flex; align-items: center; gap: 6px; line-height: 1.4; }
+    .buyer-card-big .info-row i,
+    .buyer-card-big .info-row svg { width: 13px !important; height: 13px !important; color: var(--text-muted); flex-shrink: 0; stroke-width: 2; }
+    .buyer-card-big .info-row .star { color: #E4B819; font-size: 13px; line-height: 1; width: 13px; text-align: center; }
+    .buyer-card-big .info-row strong { color: var(--text); font-weight: 700; }
+    .buyer-card-big .info-row .dot { width: 3px; height: 3px; border-radius: 999px; background: var(--text-muted); opacity: 0.5; margin: 0 2px; }
+    .card-head .head-chat { background: transparent; color: var(--brand); border: 0; padding: 0; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: .15s; }
+    .card-head .head-chat:hover { color: var(--brand-hover); }
+    .card-head .head-chat i { width: 14px; height: 14px; color: var(--brand); }
+    .card-head .head-chat:hover i { color: var(--brand-hover); }
 
     /* Chat preview */
     .chat-prev { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -831,6 +857,35 @@ function renderItemCard(it, idx, orderStatus, fulfilment) {
     ? `<span class="item-void-tag"${lineCancelReason ? ` title="Reason: ${escapeHtml(lineCancelReason)}"` : ''}><i data-lucide="ban" class="w-3 h-3"></i> Voided · won't be charged</span>`
     : '';
 
+  // Inline line-action row: ETA chip + Edit ETA button + Mark shipped/delivered shortcuts.
+  // (Popover continues to handle full edits — cancel, ship N/M, etc.)
+  const currentOrderId = (typeof currentOrder !== 'undefined' && currentOrder) ? currentOrder.id : null;
+  let lineActionsHtml = '';
+  if (!lineCancelled && currentOrderId) {
+    const etaCopy = (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function')
+      ? ZE.orders.deriveLineEtaCopy(currentOrderId, idx) : '';
+    const etaIso = (fulfilment && fulfilment.eta) ? String(fulfilment.eta).slice(0,10) : '';
+    const parts = [];
+    if (etaCopy) {
+      parts.push(`<span class="eta-chip" data-line-eta-display="${idx}"><i data-lucide="calendar"></i> ${escapeHtml(etaCopy)}</span>`);
+    }
+    // Edit ETA icon button — applicable for any non-terminal line (not delivered/cancelled)
+    if (status !== 'delivered') {
+      parts.push(`<button type="button" class="eta-edit-btn" data-line-edit-eta="${idx}" data-eta-current="${escapeHtml(etaIso)}" title="Edit ETA" aria-label="Edit ETA"><i data-lucide="pencil"></i></button>`);
+    }
+    // Mark shipped — when status is in production-side states
+    if (status === 'pending' || status === 'confirmed' || status === 'in_progress' || status === 'ready') {
+      parts.push(`<button type="button" class="line-action-btn lab-ship" data-line-mark-shipped="${idx}"><i data-lucide="truck"></i> Mark shipped</button>`);
+    }
+    // Mark delivered — when shipped (full or partial)
+    if (status === 'shipped') {
+      parts.push(`<button type="button" class="line-action-btn lab-deliver" data-line-mark-delivered="${idx}"><i data-lucide="check-check"></i> Mark delivered</button>`);
+    }
+    if (parts.length) {
+      lineActionsHtml = `<div class="line-actions" data-line-actions="${idx}">${parts.join('')}</div>`;
+    }
+  }
+
   return `<div class="${itemClass}" data-line-idx="${idx}">
     <div class="thumb"><img src="${it.p.img}" alt=""/></div>
     <div class="meta">
@@ -847,6 +902,7 @@ function renderItemCard(it, idx, orderStatus, fulfilment) {
         <div class="right">${inINR(it.qty * it.unit)}</div>
       </div>
       ${fulfilmentHtml}
+      ${lineActionsHtml}
     </div>
   </div>`;
 }
@@ -998,7 +1054,15 @@ function renderDetail(o) {
       <div class="dh-left">
         <div class="dh-id-row">
           <span class="dh-id">${o.id}</span>
-          <span class="chip-big chip-${o.status}"><i data-lucide="${STATUS_ICON[o.status]}" class="w-3.5 h-3.5"></i> ${STATUS_LABEL[o.status]}</span>
+          ${(() => {
+            if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+              try {
+                const d = ZE.orders.deriveStatus(o) || {};
+                return `<span class="chip-big ${d.chipClass || 'chip-pending'}">${escapeHtml(d.label || '—')}</span>`;
+              } catch (e) {}
+            }
+            return `<span class="chip-big chip-${o.status}"><i data-lucide="${STATUS_ICON[o.status]}" class="w-3.5 h-3.5"></i> ${STATUS_LABEL[o.status]}</span>`;
+          })()}
         </div>
         <div class="dh-meta">
           <span style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="calendar" class="w-3.5 h-3.5" style="color:var(--text-subtle)"></i> Placed <strong>${fmtDate(o.createdAt)}</strong></span>
@@ -1048,20 +1112,22 @@ function renderDetail(o) {
       <div>
         <!-- Buyer -->
         <div class="card">
-          <div class="card-head"><h3><i data-lucide="user" class="w-4 h-4"></i> Buyer</h3></div>
+          <div class="card-head">
+            <h3><i data-lucide="user" class="w-4 h-4"></i> Buyer</h3>
+            <button class="head-chat" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square"></i> Chat</button>
+          </div>
           <div class="buyer-card-big">
-            <img class="ba" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=160&height=160&seed=${b.seed}&nologo=true" alt=""/>
-            <div class="nm">${escapeHtml(b.nm)}</div>
-            <div class="role">${escapeHtml(b.role)}</div>
-            <div class="zoo"><i data-lucide="landmark" class="w-3 h-3"></i> ${escapeHtml(b.zoo.split(' · ')[0])}</div>
-            <div class="stats">
-              <div><span class="star">★</span> <strong>4.8</strong> rating</div>
-              <div><strong>${b.pastOrders}</strong> past orders</div>
-            </div>
-            <div class="contact">
-              <button class="primary" onclick="openChatSheet('${o.id}')"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</button>
-              <button onclick="toast('Email draft opened','success')"><i data-lucide="mail" class="w-4 h-4"></i> Email</button>
-              <button onclick="toast('Calling ${escapeHtml(b.nm.split(' ')[0])}…','success')"><i data-lucide="phone" class="w-4 h-4"></i> Call</button>
+            <div class="top">
+              <img class="ba" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=160&height=160&seed=${b.seed}&nologo=true" alt=""/>
+              <div class="meta">
+                <div class="nm">${escapeHtml(b.nm)}</div>
+                <div class="role">${escapeHtml(b.role)} · ${escapeHtml(b.zoo.split(' · ')[0])}</div>
+                <div class="info">
+                  <div class="info-row"><i data-lucide="mail"></i> ${escapeHtml(b.nm.toLowerCase().replace(/^(dr|mr|mrs|ms)\.\s*/, '').replace(/\s+/g, '.'))}@zooenrich.in</div>
+                  <div class="info-row"><i data-lucide="phone"></i> ${escapeHtml(b.addr.phone)}</div>
+                  <div class="info-row"><span class="star">★</span> <strong>4.8</strong> rating <span class="dot"></span> <strong>${b.pastOrders}</strong> past orders</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
@@ -59,6 +59,7 @@
     .chip .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
 
     .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-pending          { background: #F1F2F4;           color: #6B7280; }
     .chip-pending_approval { background: #FFF9DB;           color: #A16207; }
     .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
     .chip-packed           { background: #FEF3C7;           color: #A16207; }
@@ -66,6 +67,71 @@
     .chip-out_for_delivery { background: #A7F3D0;           color: #065F46; }
     .chip-delivered        { background: var(--brand);      color: #fff;    }
     .chip-cancelled        { background: var(--danger);     color: #fff;    }
+
+    /* Acceptance-decision banner (partial / all-cancelled) */
+    .acceptance-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      margin: 0 0 16px;
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xs);
+      animation: ze-fade-in .25s ease-out;
+    }
+    .acceptance-banner.danger { background: #FEE2E2; border-color: #FECACA; }
+    .acceptance-banner .ab-ico {
+      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 999px;
+      background: #FCD34D; color: #6D4B00;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .acceptance-banner.danger .ab-ico { background: #FECACA; color: #991B1B; }
+    .acceptance-banner .ab-body { flex: 1; min-width: 0; }
+    .acceptance-banner .ab-title { font-size: 14px; font-weight: 700; color: #6D4B00; margin-bottom: 2px; }
+    .acceptance-banner.danger .ab-title { color: #991B1B; }
+    .acceptance-banner .ab-text { font-size: 13px; color: #8A6D00; line-height: 1.5; }
+    .acceptance-banner.danger .ab-text { color: #B91C1C; }
+    @keyframes ze-fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    /* Per-line action links (Track / Return) */
+    .bls-action {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+      background: #F1F2F4; color: var(--text);
+      text-decoration: none; transition: .15s;
+      border: 1px solid var(--border);
+    }
+    .bls-action:hover { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand); }
+    .bls-action.bls-action-return { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+    .bls-action.bls-action-return:hover { background: #047857; color: #fff; border-color: #047857; }
+    .bls-eta-copy {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 500; line-height: 1.4;
+      background: #FFF9DB; color: #6D4B00; white-space: nowrap;
+    }
+    .bls-eta-copy i { width: 12px; height: 12px; }
+
+    /* Per-line timeline rows */
+    .tl-step.line .tl-badge { background: #fff; border-color: var(--border); color: var(--text-muted); }
+    .tl-step.line.done .tl-badge { background: #CFFAFE; border-color: #67E8F9; color: #0891B2; }
+    .tl-step.line.delivered .tl-badge { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .tl-step.line.upcoming .tl-badge { background: #FFF9DB; border-color: #FCD34D; color: #6D4B00; }
+    .tl-step.line .tl-name { font-size: 14px; }
+    .tl-step.line .tl-line-tag {
+      display: inline-block; padding: 1px 7px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      background: #F1F2F4; color: var(--text-muted); margin-right: 6px;
+    }
+
+    /* Totals block (extends summary card) */
+    .sum-row.sum-locked .lbl, .sum-row.sum-locked .val { color: var(--brand-hover); font-weight: 700; }
+    .sum-row.sum-tobepaid .lbl, .sum-row.sum-tobepaid .val { color: var(--text-muted); font-style: italic; }
+    .sum-row.sum-tobepaid.is-paid .lbl, .sum-row.sum-tobepaid.is-paid .val { color: #047857; font-style: normal; font-weight: 700; }
 
     /* Approval-related chip colour in details card */
     .ap-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -96,7 +162,7 @@
       box-shadow: var(--shadow-xs);
     }
     .d-card + .d-card { margin-top: 20px; }
-    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .card-head h3 { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .card-head h3 i { color: var(--brand); }
     .card-head .edit-ico { width: 30px; height: 30px; border-radius: 8px; background: transparent; color: var(--text-subtle); border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: .15s; }
@@ -279,6 +345,8 @@
     .tl-meta .dot { display: inline-block; margin: 0 6px; color: var(--text-subtle); }
     .tl-note { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
     .tl-pending { font-size: 12px; color: var(--text-subtle); margin-top: 4px; font-style: italic; }
+    .tl-current-copy { font-size: 13px; color: var(--brand-hover); font-weight: 600; margin-top: 4px; }
+    .tl-step.future .tl-name { color: var(--text-subtle); font-weight: 500; }
 
     .tl-cancelled-banner {
       margin-top: 8px;
@@ -314,7 +382,7 @@
     .addr-phone i { color: var(--text-muted); }
 
     /* =========== Items card =========== */
-    .item-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: .15s; border-radius: 10px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+    .item-row { display: flex; align-items: center; gap: 14px; padding: 12px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: .15s; }
     .item-row:last-child { border-bottom: none; }
     .item-row:hover { background: #F9FAFB; }
     .item-thumb { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--card-subtle); }
@@ -660,9 +728,36 @@
   }
 
   /* ---------- Chips ---------- */
-  function statusChip(status) {
-    const meta = STATUS_META[status] || STATUS_META.placed;
-    const cls = 'chip-' + status;
+  // Header status pill — driven entirely by ZE.orders.deriveStatus() so per-line
+  // accept/reject/ship/deliver flips the pill (e.g. "Confirmed · 1 cancelled",
+  // "Partially shipped", "Partially delivered"). Falls back to the legacy chain
+  // labels when deriveStatus returns 'unknown' (no items / non-canonical state).
+  function _iconForCode(code) {
+    switch (code) {
+      case 'pending-acceptance': return 'hourglass';
+      case 'cancelled':          return 'x-circle';
+      case 'confirmed':
+      case 'confirmed-partial':  return 'check';
+      case 'shipped':
+      case 'partially-shipped':  return 'truck';
+      case 'partially-delivered':return 'package';
+      case 'delivered':
+      case 'delivered-partial':  return 'package-check';
+      default:                   return 'file-text';
+    }
+  }
+  function statusChipDerived(order) {
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+      const d = ZE.orders.deriveStatus(order);
+      if (d && d.code !== 'unknown') {
+        const ico = _iconForCode(d.code);
+        const cls = d.chipClass || 'chip-pending';
+        return `<span class="chip ${cls}" title="${escapeHtml(d.summary || '')}"><i data-lucide="${ico}" class="w-3.5 h-3.5"></i> ${escapeHtml((d.label || '').toUpperCase())}</span>`;
+      }
+    }
+    // Legacy fallback (pending_approval, placed, packed, etc.)
+    const meta = STATUS_META[order.status] || STATUS_META.placed;
+    const cls = 'chip-' + order.status;
     return `<span class="chip ${cls}"><i data-lucide="${meta.ico}" class="w-3.5 h-3.5"></i> ${meta.label.toUpperCase()}</span>`;
   }
   function priorityChip(p) {
@@ -686,6 +781,61 @@
         </a>
       </div>`;
     ZE.refreshIcons();
+  }
+
+  /* ---------- Render: Acceptance-decision banner ----------
+     Surfaces partial-acceptance and all-cancelled states on the buyer side.
+     Shows on: confirmed-partial, partially-shipped, partially-delivered,
+     delivered-partial, OR any state with at least one cancelled line.
+     Hides on: fully-delivered (no cancellations) and pure pending. */
+  function renderAcceptanceBanner(order) {
+    if (!window.ZE || !ZE.orders || typeof ZE.orders.deriveStatus !== 'function') return '';
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (!items.length) return '';
+    const lfMap = (ZE.orders.lineFulfilment) ? ZE.orders.lineFulfilment.forOrder(order.id) : {};
+
+    let cancelledCount = 0;
+    let cancelledSum = 0;
+    const cancelledNames = [];
+    items.forEach((it, i) => {
+      const rec = lfMap[i];
+      if (!rec || rec.status !== 'cancelled') return;
+      cancelledCount++;
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { name: it.p.name, price: it.p.price || { material:0, labor:0 } } : null);
+      const unit = (p && p.price) ? (Number(p.price.material) || 0) + (Number(p.price.labor) || 0) : (it.unit != null ? it.unit : 0);
+      cancelledSum += unit * (it.qty || 0);
+      if (p && p.name) cancelledNames.push(p.name);
+    });
+    if (!cancelledCount) return '';
+
+    const d = ZE.orders.deriveStatus(order);
+    const code = d && d.code;
+    // Hide once everything is delivered with no transparency need
+    if (code === 'delivered' && cancelledCount === 0) return '';
+    // All cancelled → red
+    if (code === 'cancelled') {
+      return `
+        <div class="acceptance-banner danger anim-in" role="status">
+          <span class="ab-ico"><i data-lucide="alert-triangle" class="w-4 h-4"></i></span>
+          <div class="ab-body">
+            <div class="ab-title">Order cancelled</div>
+            <div class="ab-text">None of the requested items could be fulfilled. Full refund of <strong>${escapeHtml(DB.fmtINR(cancelledSum))}</strong> has been credited to your wallet.</div>
+          </div>
+        </div>`;
+    }
+    // Otherwise partial
+    const otherCount = items.length - cancelledCount;
+    const firstName = cancelledNames[0] || 'Some items';
+    const moreSuffix = cancelledNames.length > 1 ? ` and ${cancelledNames.length - 1} other` : '';
+    const otherCopy = otherCount === 1 ? '1 other item is confirmed' : (otherCount + ' other items are confirmed');
+    return `
+      <div class="acceptance-banner anim-in" role="status">
+        <span class="ab-ico"><i data-lucide="info" class="w-4 h-4"></i></span>
+        <div class="ab-body">
+          <div class="ab-title">Order accepted with changes</div>
+          <div class="ab-text"><strong>${escapeHtml(firstName)}</strong>${escapeHtml(moreSuffix)} could not be fulfilled — refund of <strong>${escapeHtml(DB.fmtINR(cancelledSum))}</strong> has been credited to your wallet. ${escapeHtml(otherCopy)}.</div>
+        </div>
+      </div>`;
   }
 
   /* ---------- Render: Vendor commitment ---------- */
@@ -844,15 +994,36 @@
     const vendorEventsByStatus = {};
     events.forEach(e => { if (CHAIN.indexOf(e.status) !== -1) vendorEventsByStatus[e.status] = e; });
 
-    // Current vendor-chain index: if order.status is in chain use it, else -1
-    const curIdx = CHAIN.indexOf(order.status);
-
-    // Furthest reached vendor-chain step
-    let reached = -1;
+    // Derive the current chain stage from per-line fulfilment (source of truth) PLUS
+    // the legacy `order.status` field as a fallback for old seed data.
+    // Rule: an order in DB exists → 'placed' is always reached.
+    const lfMapForChain = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? (ZE.orders.lineFulfilment.forOrder(order.id) || {}) : {};
+    const lineStatuses = (order.items || []).map((_, i) => (lfMapForChain[i] && lfMapForChain[i].status) || 'pending');
+    const activeLines = lineStatuses.filter(s => s !== 'cancelled');
+    let derivedStage = 'placed';
+    if (activeLines.length > 0) {
+      if (activeLines.every(s => s === 'delivered')) derivedStage = 'delivered';
+      else if (activeLines.some(s => s === 'delivered') || activeLines.some(s => s === 'shipped')) {
+        derivedStage = activeLines.some(s => s === 'delivered') ? 'out_for_delivery' : 'shipped';
+      }
+      else if (activeLines.some(s => s === 'ready')) derivedStage = 'packed';
+      else if (activeLines.some(s => s === 'in_progress')) derivedStage = 'confirmed';
+    }
+    // Legacy fallback: if seed data put a higher chain status on the order, respect it.
+    const legacyChainIdx = CHAIN.indexOf(order.status);
+    const derivedIdx = CHAIN.indexOf(derivedStage);
+    let reached = Math.max(derivedIdx, legacyChainIdx);
+    // Also pull events as a third source (e.g. seed orders with explicit shipped event).
     events.forEach(e => {
       const i = CHAIN.indexOf(e.status);
       if (i > reached) reached = i;
     });
+    // Floor: if any non-cancelled line is past 'pending', or order is not in pending-approval limbo,
+    // the order has been placed — reached must be at least 0.
+    if (reached < 0 && !isPendingApproval && !isRejected) reached = 0;
+    // Current step is one beyond reached (unless we've hit delivered/cancelled)
+    const curIdx = (reached < CHAIN.length - 1 && !isCancelled && !isRejected) ? reached + 1 : reached;
 
     // Build approval steps (prepended)
     let approvalRows = '';
@@ -906,16 +1077,17 @@
     }
 
     // Build vendor chain rows
+    // Rules:
+    //  - 'done' → solid green badge, tick icon, real timestamp
+    //  - 'current' → soft-green pulsing badge, status icon (truck / box / etc.), "In progress" copy
+    //  - 'future' → grey badge, status icon, NO "Pending" copy (the visual grey conveys it)
     const rows = CHAIN.map((s, i) => {
       let cls;
       if (isRejected) {
         cls = 'future';
       } else if (isCancelled) {
         cls = (i <= reached) ? 'done' : 'future';
-      } else if (isPendingApproval) {
-        // Approval not yet complete — no vendor step is traversed
-        cls = 'future';
-      } else if (i < curIdx) {
+      } else if (i <= reached) {
         cls = 'done';
       } else if (i === curIdx) {
         cls = 'current';
@@ -927,15 +1099,32 @@
       const ev = vendorEventsByStatus[s];
       const ico = (cls === 'done') ? 'check' : meta.ico;
 
-      let bodyDetails;
-      if (ev) {
-        const loc = ev.location ? `<span class="dot">·</span>${escapeHtml(ev.location)}` : '';
-        bodyDetails = `
-          <div class="tl-meta">${escapeHtml(fmtDateTime(ev.at))}${loc}</div>
-          ${ev.note ? `<div class="tl-note">${escapeHtml(ev.note)}</div>` : ''}`;
-      } else {
-        bodyDetails = `<div class="tl-pending">Pending</div>`;
+      // Best-effort timestamp for done steps that have no explicit event.
+      // 'placed' falls back to order.createdAt; later steps stay quiet if no event recorded.
+      let bodyDetails = '';
+      if (cls === 'done') {
+        if (ev) {
+          const loc = ev.location ? `<span class="dot">·</span>${escapeHtml(ev.location)}` : '';
+          bodyDetails = `
+            <div class="tl-meta">${escapeHtml(fmtDateTime(ev.at))}${loc}</div>
+            ${ev.note ? `<div class="tl-note">${escapeHtml(ev.note)}</div>` : ''}`;
+        } else if (s === 'placed' && order.createdAt) {
+          bodyDetails = `<div class="tl-meta">${escapeHtml(fmtDateTime(order.createdAt))}</div>`;
+        } else {
+          bodyDetails = `<div class="tl-meta">Completed</div>`;
+        }
+      } else if (cls === 'current') {
+        const inProgressCopy = {
+          placed: 'Order received',
+          confirmed: 'Awaiting admin acceptance',
+          packed: 'Items being packed',
+          shipped: 'In transit',
+          out_for_delivery: 'Arriving soon',
+          delivered: ''
+        }[s] || 'In progress';
+        bodyDetails = `<div class="tl-note tl-current-copy">${escapeHtml(inProgressCopy)}</div>`;
       }
+      // future: no body content — grey badge alone communicates the state
 
       return `
         <div class="tl-step ${cls}">
@@ -965,12 +1154,80 @@
         <span>This order was cancelled. Any later tracking steps were not completed.</span>
       </div>` : '';
 
+    // ----- Per-line augmentation -----
+    // For each item, emit one or more line-tagged rows reflecting line.status:
+    //   shipped   → "done"      "Line <X> shipped"
+    //   delivered → "delivered"  "Line <X> delivered — ₹Y charged"
+    //   confirmed/in-flight/pending-with-eta → "upcoming" with deriveLineEtaCopy
+    // Cancelled lines are intentionally skipped here — the "Order accepted with
+    // changes" banner already communicates the per-product cancellation.
+    const lfMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id) : {};
+    const items = Array.isArray(order.items) ? order.items : [];
+    const lineLetter = (i) => String.fromCharCode(65 + (i % 26));
+    const lineRows = items.map((it, i) => {
+      const rec = lfMap[i];
+      if (!rec || !rec.status) return '';
+      if (rec.status === 'cancelled' || rec.status === 'pending') return '';
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { name: it.p.name, price: it.p.price || { material:0, labor:0 } } : null);
+      const lineName = (p && p.name) ? p.name : ('Line ' + lineLetter(i));
+      const tag = `Line ${lineLetter(i)}`;
+      if (rec.status === 'delivered') {
+        const dAt = deliveredAt(rec);
+        const unit = (p && p.price) ? (Number(p.price.material) || 0) + (Number(p.price.labor) || 0) : (it.unit != null ? it.unit : 0);
+        const charged = unit * (it.qty || 0);
+        return `
+          <div class="tl-step line delivered">
+            <span class="tl-badge"><i data-lucide="package-check" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)} delivered</div>
+              ${dAt ? `<div class="tl-meta">${escapeHtml(fmtDateTime(dAt))}</div>` : ''}
+              <div class="tl-note">${escapeHtml(DB.fmtINR(charged))} charged on delivery</div>
+            </div>
+          </div>`;
+      }
+      if (rec.status === 'shipped') {
+        // most recent shipped event timestamp from history
+        let shippedAt = null;
+        if (Array.isArray(rec.history)) {
+          for (let h = rec.history.length - 1; h >= 0; h--) {
+            if (rec.history[h] && rec.history[h].status === 'shipped') { shippedAt = rec.history[h].at; break; }
+          }
+        }
+        const trackNum = (order.tracking && order.tracking.number) || ('AWB-' + order.id + '-' + (i + 1));
+        return `
+          <div class="tl-step line done">
+            <span class="tl-badge"><i data-lucide="truck" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)} shipped</div>
+              ${shippedAt ? `<div class="tl-meta">${escapeHtml(fmtDateTime(shippedAt))}</div>` : ''}
+              <div class="tl-note">Track #${escapeHtml(trackNum)}</div>
+            </div>
+          </div>`;
+      }
+      // confirmed / in_progress / ready → upcoming if we have an ETA
+      const etaCopy = (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function')
+        ? ZE.orders.deriveLineEtaCopy(order.id, i) : '';
+      if (etaCopy) {
+        return `
+          <div class="tl-step line upcoming">
+            <span class="tl-badge"><i data-lucide="calendar-clock" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)}</div>
+              <div class="tl-note">${escapeHtml(etaCopy)}</div>
+              <div class="tl-pending">Expected (not yet shipped)</div>
+            </div>
+          </div>`;
+      }
+      return '';
+    }).filter(Boolean).join('');
+
     return `
       <div class="d-card">
         <div class="card-head">
           <h3><i data-lucide="route" class="w-4 h-4"></i> Tracking</h3>
         </div>
-        <div class="tl">${approvalRows}${rows}</div>
+        <div class="tl">${approvalRows}${rows}${lineRows}</div>
         ${rejectedBanner}
         ${cancelledBanner}
       </div>`;
@@ -1015,7 +1272,13 @@
   /* ---------- Render: Address ---------- */
   function renderAddress(order) {
     const a = order.shippingAddress || {};
-    const site = order.siteId ? DB.byId(DB.SITES, order.siteId) : null;
+    // Fallback to the signed-in user's site/identity when the order doesn't carry them
+    // (mock seed orders on orders_1_2.html omit siteId/createdBy).
+    const meUser = (window.ZE && ZE.user && typeof ZE.user.resolve === 'function') ? (ZE.user.resolve() || null) : null;
+    const siteIdEffective = order.siteId || (meUser && meUser.siteId) || null;
+    const createdByEffective = order.createdBy || (meUser && meUser.id) || null;
+    const site = siteIdEffective ? DB.byId(DB.SITES, siteIdEffective) : null;
+    const placedBy = createdByEffective ? DB.byId(DB.USERS, createdByEffective) : null;
 
     // Site-based address half
     const siteName = site ? site.name : (a.site || '—');
@@ -1024,6 +1287,9 @@
     const city    = site ? site.city : (a.city || '');
     const stateNm = site ? site.state : (a.state || '');
     const pincode = site ? site.pincode : (a.pincode || '');
+    const recipientName  = (placedBy && placedBy.name) || a.name || '';
+    const recipientPhone = (placedBy && placedBy.phone) || a.phone || '';
+    const recipientEmail = (placedBy && placedBy.email) || '';
 
     return `
       <div class="d-card">
@@ -1038,7 +1304,7 @@
             ${line2 ? escapeHtml(line2) + '<br/>' : ''}
             ${escapeHtml(city)}${city && stateNm ? ', ' : ''}${escapeHtml(stateNm)}${pincode ? ' – ' + escapeHtml(pincode) : ''}
           </div>
-          ${a.name ? `<div class="addr-phone" style="margin-top:12px;"><i data-lucide="user" class="w-3.5 h-3.5"></i> Recipient: ${escapeHtml(a.name)}${a.phone ? ' · ' + escapeHtml(a.phone) : ''}</div>` : ''}
+          ${recipientName ? `<div class="addr-phone" style="margin-top:12px;"><i data-lucide="user" class="w-3.5 h-3.5"></i> Placed by: ${escapeHtml(recipientName)}${recipientPhone ? ' · ' + escapeHtml(recipientPhone) : ''}${recipientEmail ? ' · ' + escapeHtml(recipientEmail) : ''}</div>` : ''}
         </div>
       </div>`;
   }
@@ -1070,21 +1336,37 @@
     }
     return null;
   }
-  function renderLineStatus(rec, totalQty) {
+  function renderLineStatus(rec, totalQty, orderId, lineIdx) {
     if (!rec || !rec.status) return '';
     const status = rec.status;
     // Partial-shipment detection. shippedQty defaults to 0; treat 0 on a
     // shipped/delivered line as "no per-unit split tracked" (i.e. full).
     const tot = (typeof totalQty === 'number' && totalQty > 0) ? totalQty : 0;
     const shipped = (typeof rec.shippedQty === 'number' && rec.shippedQty >= 0) ? rec.shippedQty : 0;
-    const isPartialShipped  = (status === 'shipped')   && tot > 0 && shipped > 0 && shipped < tot;
+    const isPartialShipped   = (status === 'shipped')   && tot > 0 && shipped > 0 && shipped < tot;
     const isPartialDelivered = (status === 'delivered') && tot > 0 && shipped > 0 && shipped < tot;
     const isPartial = isPartialShipped || isPartialDelivered;
 
-    let label = BLS_LABELS[status] || status;
+    // Status pill — sourced from derive APIs so labels stay consistent across surfaces.
+    const hasEta = !!rec.eta;
+    let label;
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveLineLabel === 'function') {
+      label = ZE.orders.deriveLineLabel(status, { hasEta });
+    } else {
+      label = BLS_LABELS[status] || status;
+    }
     if (isPartialShipped) label = 'Partially shipped';
     else if (isPartialDelivered) label = 'Delivered (partial)';
     const pill = `<span class="bls-pill bls-pill-${status}">${escapeHtml(label)}</span>`;
+
+    // Pre-shipped ETA copy — driven by deriveLineEtaCopy when available
+    let etaCopyHtml = '';
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function' && orderId != null && lineIdx != null) {
+      const etaCopy = ZE.orders.deriveLineEtaCopy(orderId, lineIdx);
+      if (etaCopy) {
+        etaCopyHtml = `<span class="bls-eta-copy"><i data-lucide="calendar-clock"></i> ${escapeHtml(etaCopy)}</span>`;
+      }
+    }
 
     let etaChip = '';
     if (status === 'delivered') {
@@ -1094,8 +1376,8 @@
       }
     } else if (status === 'cancelled') {
       // no ETA chip for cancelled
-    } else if (rec.eta && (status === 'in_progress' || status === 'ready' || status === 'shipped' || status === 'pending')) {
-      // pending only shows ETA if one exists; otherwise omit
+    } else if (!etaCopyHtml && rec.eta && (status === 'in_progress' || status === 'ready' || status === 'shipped' || status === 'pending')) {
+      // Fall back to legacy "Delivers by …" only when derive copy isn't available
       if (status === 'pending' && !rec.eta) {
         etaChip = '';
       } else {
@@ -1110,6 +1392,15 @@
       ? `<span class="bls-qty">${shipped} of ${tot} units</span>`
       : '';
 
+    // Per-line action: Track shipment (shipped) or Return / report issue (delivered)
+    let actionHtml = '';
+    if (status === 'shipped' && orderId != null && lineIdx != null) {
+      actionHtml = `<a href="#" class="bls-action" data-track-line="${lineIdx}" onclick="event.preventDefault();return false;"><i data-lucide="truck" class="w-3 h-3"></i> Track shipment</a>`;
+    } else if (status === 'delivered' && orderId != null && lineIdx != null) {
+      const href = 'returns_buyer_1.html?id=' + encodeURIComponent(orderId) + '&line=' + lineIdx;
+      actionHtml = `<a href="${href}" class="bls-action bls-action-return"><i data-lucide="undo-2" class="w-3 h-3"></i> Return / report issue</a>`;
+    }
+
     let subStatus = '';
     if (isPartialShipped) {
       const back = tot - shipped;
@@ -1120,7 +1411,7 @@
       ? `<div class="bls-reason">Reason: ${escapeHtml(rec.cancelReason)}</div>`
       : '';
 
-    return `<div class="bls-row">${pill}${etaChip}${qtyChip}</div>${subStatus}${reasonHtml}`;
+    return `<div class="bls-row">${pill}${etaCopyHtml}${etaChip}${qtyChip}${actionHtml}</div>${subStatus}${reasonHtml}`;
   }
   function lineFulfilmentSummary(map, order) {
     const counts = { pending:0, in_progress:0, ready:0, shipped:0, delivered:0, cancelled:0 };
@@ -1185,7 +1476,7 @@
         : '';
       const noteHtml = it.note ? `<div class="item-note">${escapeHtml(it.note)}</div>` : '';
       const lineRec = lineFulfilmentMap[i] || null;
-      const lineStatusHtml = renderLineStatus(lineRec, it.qty);
+      const lineStatusHtml = renderLineStatus(lineRec, it.qty, order.id, i);
       const isLineCancelled = !!(lineRec && lineRec.status === 'cancelled');
       const rowClass = isLineCancelled ? 'item-row bls-cancelled bls-line-cancelled' : 'item-row';
       const noChargeInline = isLineCancelled ? `<span class="bls-no-charge">No charge</span>` : '';
@@ -1231,19 +1522,35 @@
       ? ZE.orders.lineFulfilment.forOrder(order.id)
       : {};
     let cancelledSum = 0;
+    let allDelivered = true;
+    let anyLine = false;
     (order.items || []).forEach((it, i) => {
       const rec = lfMap[i];
-      if (!rec || rec.status !== 'cancelled') return;
       const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { price: it.p.price || { material:0, labor:0 } } : null);
       const unit = (p && p.price) ? (p.price.material + p.price.labor) : (it.unit != null ? it.unit : 0);
-      cancelledSum += unit * (it.qty || 0);
+      if (rec && rec.status === 'cancelled') {
+        cancelledSum += unit * (it.qty || 0);
+        return;
+      }
+      anyLine = true;
+      if (!rec || rec.status !== 'delivered') allDelivered = false;
     });
+    if (!anyLine) allDelivered = false;
     const cancelledRow = cancelledSum > 0
       ? `<div class="sum-row sum-cancelled" title="Transparency note — these items will not be charged.">
-           <span class="lbl">Cancelled items</span>
+           <span class="lbl">Cancelled lines</span>
            <span class="val">−${DB.fmtINR(cancelledSum)}</span>
          </div>`
       : '';
+    const lockedAmt = Math.max(0, total - cancelledSum);
+    const lockedRow = `
+      <div class="sum-row sum-locked">
+        <span class="lbl">Currently locked</span>
+        <span class="val">${DB.fmtINR(lockedAmt)}</span>
+      </div>`;
+    const tobepaidRow = allDelivered
+      ? `<div class="sum-row sum-tobepaid is-paid"><span class="lbl">Paid</span><span class="val">${DB.fmtINR(lockedAmt)}</span></div>`
+      : `<div class="sum-row sum-tobepaid"><span class="lbl">Will be paid on delivery</span><span class="val">${DB.fmtINR(lockedAmt)}</span></div>`;
     return `
       <div class="d-card">
         <div class="card-head">
@@ -1258,7 +1565,9 @@
           </div>
           <div class="sum-divider"></div>
           <div class="sum-row sum-total"><span>Total</span><span>${DB.fmtINR(total)}</span></div>
-          <div class="sum-muted">Paid via: (not yet captured)</div>
+          ${lockedRow}
+          ${tobepaidRow}
+          <div class="sum-muted">Funds locked from site wallet · settled on delivery</div>
         </div>
       </div>`;
   }
@@ -1324,10 +1633,12 @@
           ${lfSummary}
         </div>
         <div class="top-row-right">
-          ${statusChip(order.status)}
+          ${statusChipDerived(order)}
           ${priorityChip(order.priority)}
         </div>
       </div>
+
+      ${renderAcceptanceBanner(order)}
 
       <div class="detail-grid">
         <!-- LEFT -->
@@ -1565,11 +1876,14 @@
       render(order);
     }
 
-    // Re-render when line fulfilment / order status changes (admin advances a line)
-    ZE.on('orders:change', () => {
+    // Re-render when line fulfilment / order status / wallet changes
+    // (admin advances a line, wallet refunds for a cancelled line, etc.)
+    const _rerender = () => {
       const fresh = lookupOrder(getOrderId());
       if (fresh) render(fresh);
-    });
+    };
+    ZE.on('orders:change', _rerender);
+    ZE.on('wallet:change', _rerender);
 
     ZE.init();
   });

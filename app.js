@@ -722,6 +722,10 @@
   // Status enum + ordered progression for the per-line happy path.
   // `cancelled` is terminal off-path. `delivered` is terminal on-path.
   const LINE_STATUSES = ['pending', 'in_progress', 'ready', 'shipped', 'delivered'];
+  // Full status set (happy path + cancelled). Exposed as STATUSES for callers that
+  // need the complete enum (chips, derive helpers). Internal advance() still uses
+  // LINE_STATUSES so we can't accidentally "advance" into cancelled.
+  const LINE_STATUSES_ALL = ['pending', 'in_progress', 'ready', 'shipped', 'delivered', 'cancelled'];
   function _normalizeLineStatus(s) {
     if (s === 'cancelled') return 'cancelled';
     return LINE_STATUSES.includes(s) ? s : 'pending';
@@ -799,6 +803,10 @@
     }
     _writeLineFulfilmentMap(all);
     emit('orders:change', { kind: 'lineFulfilment', orderId, lineIdx });
+    // Cross-emit so wallet pages re-render: wallet totals depend on line cancellation
+    // state via _cancelledLineValueForOrder, and "spent" depends on per-line delivered
+    // → order rollup. Same payload shape as orders:change for symmetry.
+    emit('wallet:change', { kind: 'lineFulfilment', orderId, lineIdx });
     // After per-line status changes, see if the parent order should auto-roll-up to 'delivered'.
     if (decision && decision.status === 'delivered') _maybeRollupOrderDelivered(orderId);
     return all[orderId] ? all[orderId][String(lineIdx)] : null;
@@ -860,6 +868,187 @@
         ordersSetStatus(orderId, 'delivered');
       }
     } catch (e) {}
+  }
+
+  /* ---------- Derived order/line status (SOURCE OF TRUTH) ----------
+     `order.status` is legacy — it doesn't update when admin rejects 1 of 3 lines.
+     Pages should read ZE.orders.deriveStatus(...) instead. _maybeRollupOrderDelivered
+     above is left in place as a fallback for legacy reads.
+     Returns: { code, label, chipClass, summary } */
+  function _resolveOrderObj(orderIdOrOrderObj) {
+    if (!orderIdOrOrderObj) return null;
+    if (typeof orderIdOrOrderObj === 'string') {
+      try { return ordersById(orderIdOrOrderObj) || null; }
+      catch (e) { return null; }
+    }
+    return orderIdOrOrderObj;
+  }
+  function deriveOrderStatus(orderIdOrOrderObj) {
+    const order = _resolveOrderObj(orderIdOrOrderObj);
+    if (!order || !Array.isArray(order.items) || !order.items.length) {
+      return { code: 'unknown', label: '—', chipClass: 'chip-pending', summary: '' };
+    }
+    const lines = order.items.map((it, idx) => {
+      const lf = lineFulfilmentGet(order.id, idx);
+      if (lf && lf.status) return lf.status;
+      return order.status === 'cancelled' ? 'cancelled' : 'pending';
+    });
+    const total = lines.length;
+    let cancelled = 0, delivered = 0, shipped = 0, pending = 0;
+    lines.forEach(s => {
+      if (s === 'cancelled') cancelled++;
+      else if (s === 'delivered') delivered++;
+      else if (s === 'shipped') shipped++;
+      else if (s === 'pending') pending++;
+    });
+    const active = total - cancelled;
+    if (total === 0) return { code: 'unknown', label: '—', chipClass: 'chip-pending', summary: '' };
+    if (active === 0) {
+      return { code: 'cancelled', label: 'Cancelled', chipClass: 'chip-cancelled', summary: total + ' cancelled' };
+    }
+    if (delivered === active) {
+      if (cancelled === 0) return { code: 'delivered', label: 'Delivered', chipClass: 'chip-delivered', summary: '' };
+      return {
+        code: 'delivered-partial',
+        label: 'Delivered · ' + cancelled + ' cancelled',
+        chipClass: 'chip-delivered',
+        summary: delivered + ' of ' + active + ' delivered, ' + cancelled + ' cancelled'
+      };
+    }
+    if (delivered > 0 && delivered < active) {
+      return {
+        code: 'partially-delivered',
+        label: 'Partially delivered',
+        chipClass: 'chip-shipped',
+        summary: delivered + ' of ' + active + ' delivered' + (cancelled ? ', ' + cancelled + ' cancelled' : '')
+      };
+    }
+    if (shipped > 0) {
+      if (shipped === active) return { code: 'shipped', label: 'In transit', chipClass: 'chip-shipped', summary: '' };
+      return {
+        code: 'partially-shipped',
+        label: 'Partially shipped',
+        chipClass: 'chip-shipped',
+        summary: shipped + ' of ' + active + ' in transit' + (cancelled ? ', ' + cancelled + ' cancelled' : '')
+      };
+    }
+    if (pending === active) {
+      return { code: 'pending-acceptance', label: 'Awaiting acceptance', chipClass: 'chip-pending', summary: '' };
+    }
+    // All non-cancelled lines are in {confirmed, in_progress, ready}
+    if (cancelled > 0) {
+      return {
+        code: 'confirmed-partial',
+        label: 'Confirmed · ' + cancelled + ' cancelled',
+        chipClass: 'chip-confirmed',
+        summary: active + ' confirmed, ' + cancelled + ' cancelled'
+      };
+    }
+    return { code: 'confirmed', label: 'Confirmed', chipClass: 'chip-confirmed', summary: '' };
+  }
+
+  function deriveLineLabel(lineStatus, opts) {
+    const hasEta = opts && opts.hasEta;
+    switch (lineStatus) {
+      case 'cancelled':   return 'Cancelled';
+      case 'delivered':   return 'Delivered';
+      case 'shipped':     return 'In transit';
+      case 'ready':       return 'Ready to ship';
+      case 'in_progress': return 'In production';
+      case 'confirmed':   return 'Confirmed';
+      case 'pending':
+      default:
+        // If a line was accepted (ETA set) but no other status yet, treat as Confirmed.
+        return hasEta ? 'Confirmed' : 'Pending';
+    }
+  }
+  function deriveLineChipClass(lineStatus) {
+    switch (lineStatus) {
+      case 'cancelled':   return 'chip-cancelled';
+      case 'delivered':   return 'chip-delivered';
+      case 'shipped':     return 'chip-shipped';
+      case 'ready':
+      case 'in_progress':
+      case 'confirmed':   return 'chip-confirmed';
+      case 'pending':
+      default:            return 'chip-pending';
+    }
+  }
+  // ETA copy: "Ships in 3 days · ETA Thu 7 May" / "Ships today · ETA Mon 5 May" /
+  // "Ships tomorrow · ETA Tue 6 May". Returns '' when status is not in the
+  // pre-shipped set, when no ETA is set, or when the ETA is malformed.
+  const _MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _DOW_SHORT    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function _startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function deriveLineEtaCopy(orderId, idx) {
+    const lf = lineFulfilmentGet(orderId, idx);
+    if (!lf || !lf.eta) return '';
+    const status = lf.status || 'pending';
+    if (status !== 'pending' && status !== 'in_progress' && status !== 'ready' && status !== 'confirmed') return '';
+    const eta = new Date(lf.eta);
+    if (isNaN(eta.getTime())) return '';
+    const today = _startOfDay(new Date());
+    const etaDay = _startOfDay(eta);
+    const days = Math.round((etaDay.getTime() - today.getTime()) / 86400000);
+    let when;
+    if (days <= 0) when = 'Ships today';
+    else if (days === 1) when = 'Ships tomorrow';
+    else when = 'Ships in ' + days + ' days';
+    const etaStr = _DOW_SHORT[etaDay.getDay()] + ' ' + etaDay.getDate() + ' ' + _MONTHS_SHORT[etaDay.getMonth()];
+    return when + ' · ETA ' + etaStr;
+  }
+
+  /* ---------- Notification helpers ----------
+     Toast: transient; auto-dismisses after 4s. Falls back to body-injected element
+     when no #toast already exists on the page. Safe to call from any page.
+     Record: append-only log capped at 100 entries in localStorage. Pages that need
+     to render a notifications inbox can read ze_notifications_v1 directly. */
+  const NOTIFICATIONS_KEY = 'ze_notifications_v1';
+  function notifyToast(msg, opts) {
+    if (!msg) return;
+    opts = opts || {};
+    const ttl = Number(opts.ttl) || 4000;
+    if (typeof document === 'undefined') return;
+    let host = document.getElementById('toast');
+    let owned = false;
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'toast';
+      host.className = 'toast';
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;max-width:80vw;';
+      document.body.appendChild(host);
+      owned = true;
+    }
+    host.textContent = String(msg);
+    // Toggle .show for pages that style it via CSS; also force opacity for owned host.
+    host.classList.add('show');
+    if (owned) host.style.opacity = '1';
+    clearTimeout(host.__zeToastT);
+    host.__zeToastT = setTimeout(function(){
+      host.classList.remove('show');
+      if (owned) host.style.opacity = '0';
+    }, ttl);
+  }
+  function notifyRecord(entry) {
+    if (!entry || !entry.kind) return null;
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]') || []; }
+    catch (e) { arr = []; }
+    if (!Array.isArray(arr)) arr = [];
+    const rec = {
+      id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      kind: String(entry.kind),
+      orderId: entry.orderId || null,
+      lineIdx: (entry.lineIdx != null ? Number(entry.lineIdx) : null),
+      body: entry.body != null ? String(entry.body) : '',
+      createdAt: entry.createdAt || new Date().toISOString(),
+      read: false
+    };
+    arr.unshift(rec);
+    if (arr.length > 100) arr = arr.slice(0, 100);
+    try { localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(arr)); } catch (e) {}
+    emit('notifications:change', rec);
+    return rec;
   }
 
   /* ---------- Outsource vendor name autocomplete ----------
@@ -1466,8 +1655,15 @@
         cancel: lineFulfilmentCancel,
         setEta: lineFulfilmentSetEta,
         setShipped: lineFulfilmentSetShipped,
-        STATUSES: LINE_STATUSES
-      }
+        STATUSES: LINE_STATUSES_ALL
+      },
+      // Derived status (SOURCE OF TRUTH). Pages should prefer these over reading
+      // order.status directly — order.status is legacy and doesn't reflect per-line
+      // rejections / partial ships.
+      deriveStatus: deriveOrderStatus,
+      deriveLineLabel: deriveLineLabel,
+      deriveLineChipClass: deriveLineChipClass,
+      deriveLineEtaCopy: deriveLineEtaCopy
     },
     outsourceVendors: {
       list: outsourceVendorsList,
@@ -1524,6 +1720,10 @@
       submit: topupSubmit,
       decide: topupDecide,
       addDirect: topupAddDirect
+    },
+    notify: {
+      toast: notifyToast,
+      record: notifyRecord
     },
     on, emit,
     init() {
@@ -2252,3 +2452,408 @@
     }
   }
 
+  /* ============================================================================
+     Reusable Super-Admin header component
+     ----------------------------------------------------------------------------
+     Mounts a single, canonical chrome on every super-admin page so dashboard,
+     wallet (top-up approvals) and profile share identical markup/CSS/wiring.
+
+     Usage on a page:
+       <div data-super-admin-header data-active="dashboard"></div>
+       <!-- optionally mark the existing buyer/admin header so it hides on super_admin: -->
+       <header class="app-header" data-role-hide-on="super_admin"> ... </header>
+
+       data-active values: dashboard | topups | sites | profile
+
+     Public API:
+       ZE.headers.renderSuperAdmin()  — re-render every host on the page
+
+     Behaviour:
+       • If user.role !== 'super_admin' → hides the marker host (display:none)
+         and any [data-role-hide-on*="super_admin"] elements stay visible. So
+         buyer / admin chrome on the same page renders normally.
+       • If user.role === 'super_admin' → injects canonical chrome and hides
+         any [data-role-hide-on*="super_admin"] elements (legacy chrome).
+     ============================================================================ */
+  if (typeof document !== 'undefined') (function _zeSuperAdminHeader(){
+
+    function ensureZE(cb) {
+      // Defensive: if window.ZE isn't ready yet, retry on next tick.
+      if (window.ZE) { cb(); return; }
+      var tries = 0;
+      var iv = setInterval(function(){
+        tries++;
+        if (window.ZE) { clearInterval(iv); cb(); }
+        else if (tries > 40) { clearInterval(iv); /* give up after ~4s */ }
+      }, 100);
+    }
+
+    var CSS_ID = 'ze-super-admin-header-css';
+    var CSS_TEXT = ''
+      + 'body.ze-role-super-admin [data-role-hide-on~="super_admin"], body.ze-role-super-admin [data-role-hide-on*="super_admin"] { display: none !important; }'
+      + '[data-super-admin-header].ze-sah { display: block; }'
+      + '[data-super-admin-header] .ze-sah-bar { background: var(--card, #fff); border-bottom: 1px solid var(--border, #E5E7EB); position: sticky; top: 0; z-index: 50; }'
+      + '[data-super-admin-header] .ze-sah-row { display: flex; align-items: center; gap: 20px; height: 68px; max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }'
+      + '@media (max-width: 768px) { [data-super-admin-header] .ze-sah-row { padding: 0 16px; height: 60px; gap: 10px; } }'
+      + '[data-super-admin-header] .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text, #111827); text-decoration: none; }'
+      + '[data-super-admin-header] .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand, #00A651); color: #fff; display: inline-flex; align-items: center; justify-content: center; }'
+      + '[data-super-admin-header] .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }'
+      + '[data-super-admin-header] .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text, #111827); }'
+      + '[data-super-admin-header] .search-pill .search-kbd { font-size: 11px; color: var(--text-muted, #6B7280); background: #fff; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border, #E5E7EB); font-family: ui-monospace, monospace; }'
+      + '@media (max-width: 768px) { [data-super-admin-header] .search-pill { display: none; } }'
+      + '[data-super-admin-header] .header-actions { display: flex; align-items: center; gap: 6px; }'
+      + '[data-super-admin-header] .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted, #6B7280); cursor: pointer; background: transparent; border: none; position: relative; min-width: 60px; transition: background .15s ease, color .15s ease; text-decoration: none; }'
+      + '[data-super-admin-header] .header-btn:hover { background: #F1F2F4; color: var(--text, #111827); }'
+      + '[data-super-admin-header] .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }'
+      + '[data-super-admin-header] .header-btn.is-active { background: var(--brand-soft, #E6F6EC); color: var(--brand-hover, #006D35); }'
+      + '[data-super-admin-header] .header-btn.is-active:hover { background: var(--brand-soft, #E6F6EC); color: var(--brand-hover, #006D35); }'
+      + '@media (max-width: 768px) { [data-super-admin-header] .header-btn span { display: none; } [data-super-admin-header] .header-btn { min-width: 44px; padding: 8px; } }'
+      + '[data-super-admin-header] .hb-badge { position: absolute; top: 4px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger, #DC2626); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid #fff; line-height: 1; }'
+      + '[data-super-admin-header] .hb-badge.on { display: inline-flex; }'
+      + '[data-super-admin-header] .avatar-wrap { position: relative; margin-left: 8px; }'
+      + '[data-super-admin-header] .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border, #E5E7EB); cursor: pointer; }'
+      + '[data-super-admin-header] .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background: #fff; border: 1px solid var(--border, #E5E7EB); border-radius: 14px; box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,.08)); padding: 8px; display: none; z-index: 60; }'
+      + '[data-super-admin-header] .dd-menu.open { display: block; animation: zeSahDdIn .18s ease-out; }'
+      + '@keyframes zeSahDdIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }'
+      + '[data-super-admin-header] .dd-head { padding: 10px 12px; border-bottom: 1px solid var(--border, #E5E7EB); margin-bottom: 6px; }'
+      + '[data-super-admin-header] .dd-head .nm { font-weight: 700; color: var(--text, #111827); font-size: 14px; }'
+      + '[data-super-admin-header] .dd-head .em { font-size: 12px; color: var(--text-muted, #6B7280); margin-top: 2px; }'
+      + '[data-super-admin-header] .dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--text, #111827); cursor: pointer; text-decoration: none; }'
+      + '[data-super-admin-header] .dd-item:hover { background: #F4F5F7; }'
+      + '[data-super-admin-header] .dd-item .dd-avatar { width: 28px; height: 28px; border-radius: 999px; background: #F1F2F4; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }'
+      + '[data-super-admin-header] .dd-item .dd-avatar img { width: 100%; height: 100%; object-fit: cover; }'
+      + '[data-super-admin-header] .dd-divider { height: 1px; background: var(--border, #E5E7EB); margin: 6px 4px; }';
+
+    function injectCSS() {
+      if (document.getElementById(CSS_ID)) return;
+      var s = document.createElement('style');
+      s.id = CSS_ID;
+      s.textContent = CSS_TEXT;
+      (document.head || document.documentElement).appendChild(s);
+    }
+
+    function readUser() {
+      try {
+        var raw = localStorage.getItem('ze_user_v1');
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function defaultAvatarUrl() {
+      // Fallback when _zeAvatarUrlFor isn't available — keep seed=909 (super-admin demo seed)
+      return 'https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20person%20smile?width=80&height=80&seed=909&nologo=true';
+    }
+
+    function avatarUrlFor(seed) {
+      try {
+        if (typeof window._zeAvatarUrlFor === 'function') return window._zeAvatarUrlFor(seed);
+      } catch (e) {}
+      // _zeAvatarUrlFor is closure-scoped in the persona block; rebuild equivalent URL here.
+      var s = parseInt(seed, 10);
+      if (!s) return defaultAvatarUrl();
+      return 'https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20person%20smile?width=80&height=80&seed=' + s + '&nologo=true';
+    }
+
+    function buildMarkup(active) {
+      var a = (active || 'dashboard').toLowerCase();
+      function cls(key) { return 'header-btn' + (a === key ? ' is-active' : ''); }
+      return ''
+        + '<header class="ze-sah-bar">'
+          + '<div class="ze-sah-row">'
+            + '<a href="super_admin_dashboard_1.html" class="brand-mark">'
+              + '<span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>'
+              + '<span>ZooEnrich</span>'
+            + '</a>'
+            + '<label class="search-pill">'
+              + '<i data-lucide="search" class="w-4 h-4"></i>'
+              + '<input type="text" placeholder="Search sites, clusters…" aria-label="Search sites and clusters"/>'
+              + '<span class="search-kbd">⌘K</span>'
+            + '</label>'
+            + '<div class="header-actions">'
+              + '<a href="super_admin_dashboard_1.html" class="' + cls('dashboard') + '" data-sah-nav="dashboard" title="Dashboard">'
+                + '<i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>'
+              + '</a>'
+              + '<a href="wallet_1.html?tab=topup" class="' + cls('topups') + '" data-sah-nav="topups" title="Top-up Approvals">'
+                + '<i data-lucide="wallet" class="w-5 h-5"></i><span>Top-ups</span>'
+                + '<span class="hb-badge" data-sah-topup-badge>0</span>'
+              + '</a>'
+              + '<a href="super_admin_dashboard_1.html#sites-card" class="' + cls('sites') + '" data-sah-nav="sites" title="Sites">'
+                + '<i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>'
+              + '</a>'
+              + '<a href="profile_1.html" class="' + cls('profile') + '" data-sah-nav="profile" title="Profile">'
+                + '<i data-lucide="user" class="w-5 h-5"></i><span>Profile</span>'
+              + '</a>'
+              + '<div class="avatar-wrap">'
+                + '<img class="avatar" id="userAvatar" data-sah-avatar src="' + defaultAvatarUrl() + '" alt="" onerror="this.onerror=null;this.src=\'https://placehold.co/80x80/E5E7EB/6B7280.png?text=A\';"/>'
+                + '<div class="dd-menu" data-sah-menu role="menu">'
+                  + '<div class="dd-head">'
+                    + '<div class="nm" id="userName">—</div>'
+                    + '<div class="em" id="userEmail">—</div>'
+                  + '</div>'
+                  + '<a class="dd-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>'
+                  + '<div class="dd-divider"></div>'
+                  + '<a class="dd-item" href="admin_dashboard_1.html" data-mode-switch="to-admin" onclick="window.location.href=\'admin_dashboard_1.html\';return false;"><i data-lucide="briefcase" class="w-4 h-4"></i> Switch to Admin view</a>'
+                  + '<div class="dd-divider"></div>'
+                  + '<a class="dd-item" id="signOutItem" href="javascript:void(0)"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</a>'
+                + '</div>'
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        + '</header>';
+    }
+
+    function syncIdentity(host) {
+      try {
+        var resolved = (window.ZE && ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve() : null;
+        var nm = host.querySelector('#userName');
+        var em = host.querySelector('#userEmail');
+        var av = host.querySelector('[data-sah-avatar]');
+        if (resolved) {
+          if (nm && resolved.name)  nm.textContent = resolved.name;
+          if (em && resolved.email) em.textContent = resolved.email;
+          if (av) {
+            var url = avatarUrlFor(resolved.seed != null ? resolved.seed : 909);
+            if (av.getAttribute('src') !== url) av.setAttribute('src', url);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function refreshTopupBadge(host) {
+      try {
+        var badge = host.querySelector('[data-sah-topup-badge]');
+        if (!badge) return;
+        var count = 0;
+        if (window.ZE && ZE.topup && typeof ZE.topup.list === 'function') {
+          var list = ZE.topup.list() || [];
+          count = list.filter(function(t){ return t && t.status === 'pending'; }).length;
+        }
+        badge.textContent = String(count);
+        if (count > 0) badge.classList.add('on');
+        else badge.classList.remove('on');
+      } catch (e) {}
+    }
+
+    function wireHost(host) {
+      // Avatar dropdown toggle
+      var avatar = host.querySelector('[data-sah-avatar]');
+      var menu   = host.querySelector('[data-sah-menu]');
+      if (avatar && menu && !avatar._zeSahWired) {
+        avatar._zeSahWired = true;
+        avatar.addEventListener('click', function(e){
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+      }
+      if (menu && !menu._zeSahStop) {
+        menu._zeSahStop = true;
+        menu.addEventListener('click', function(e){ e.stopPropagation(); });
+      }
+
+      // Sign out
+      var signOut = host.querySelector('#signOutItem');
+      if (signOut && !signOut._zeSahWired) {
+        signOut._zeSahWired = true;
+        signOut.addEventListener('click', function(e){
+          e.preventDefault();
+          try {
+            if (window.ZE && ZE.user && typeof ZE.user.signOut === 'function') {
+              ZE.user.signOut();
+            } else {
+              localStorage.removeItem('ze_user_v1');
+            }
+          } catch (err) { try { localStorage.removeItem('ze_user_v1'); } catch (_e) {} }
+          window.location.href = 'login_1.html';
+        });
+      }
+
+      syncIdentity(host);
+      refreshTopupBadge(host);
+    }
+
+    // Single global doc-level handler for outside-click + Escape (idempotent).
+    function ensureGlobalHandlers() {
+      if (document._zeSahGlobal) return;
+      document._zeSahGlobal = true;
+      document.addEventListener('click', function(){
+        document.querySelectorAll('[data-super-admin-header] [data-sah-menu].open').forEach(function(m){
+          m.classList.remove('open');
+        });
+      });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' || e.keyCode === 27) {
+          document.querySelectorAll('[data-super-admin-header] [data-sah-menu].open').forEach(function(m){
+            m.classList.remove('open');
+          });
+        }
+      });
+    }
+
+    function applyHideOn(role) {
+      // Hide any element marked as hidden-on-this-role (e.g. legacy buyer/admin headers
+      // on a super-admin page). This lets a page keep its existing chrome for non
+      // super-admin users while letting our component take over for super_admin.
+      // Uses !important + a body class so per-page CSS can't accidentally re-show the
+      // hidden chrome when role-based body classes (like body.is-super-admin) toggle.
+      try {
+        // Body class for CSS-rule-based hiding (belt + braces alongside inline !important)
+        document.body.classList.toggle('ze-role-super-admin', role === 'super_admin');
+        document.querySelectorAll('[data-role-hide-on]').forEach(function(el){
+          var spec = (el.getAttribute('data-role-hide-on') || '').toLowerCase();
+          var hide = spec.indexOf(role) !== -1;
+          if (hide) {
+            if (!el._zeSahPrevDisplay && el.style.display !== 'none') {
+              el._zeSahPrevDisplay = el.style.display || '';
+            }
+            el.style.setProperty('display', 'none', 'important');
+          } else if (el._zeSahPrevDisplay !== undefined) {
+            el.style.removeProperty('display');
+            if (el._zeSahPrevDisplay) el.style.display = el._zeSahPrevDisplay;
+          }
+        });
+      } catch (e) {}
+    }
+
+    function renderSuperAdmin(opts) {
+      injectCSS();
+      var hosts = document.querySelectorAll('[data-super-admin-header]');
+      if (!hosts.length) return;
+      var u = readUser();
+      var role = (u && u.role) || '';
+
+      if (role !== 'super_admin') {
+        // Not super admin → hide the marker so buyer/admin chrome on the same page
+        // renders normally. Do NOT touch [data-role-hide-on] elements.
+        hosts.forEach(function(host){ host.style.display = 'none'; });
+        return;
+      }
+
+      // Super admin → render canonical chrome and hide any role-hide-on='super_admin' chrome.
+      applyHideOn('super_admin');
+
+      hosts.forEach(function(host){
+        host.classList.add('ze-sah');
+        host.style.display = '';
+        var active = (host.getAttribute('data-active') || 'dashboard').toLowerCase();
+        // Re-render markup each time — cheap, and keeps active state, badge, identity in sync.
+        host.innerHTML = buildMarkup(active);
+        wireHost(host);
+      });
+
+      ensureGlobalHandlers();
+
+      // Persona switch rows (Junior / Senior / Admin / Super-Admin) are auto-injected by
+      // _zeUpdatePersonaUI which detects [data-mode-switch] / #signOutItem siblings.
+      try {
+        if (typeof window._zeUpdatePersonaUI === 'function') window._zeUpdatePersonaUI();
+      } catch (e) {}
+
+      // Lucide icons
+      try { if (window.lucide && window.lucide.createIcons) window.lucide.createIcons(); } catch (e) {}
+    }
+
+    function init() {
+      // Expose on ZE namespace.
+      window.ZE.headers = window.ZE.headers || {};
+      window.ZE.headers.renderSuperAdmin = renderSuperAdmin;
+
+      // First render
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ renderSuperAdmin(); });
+      } else {
+        renderSuperAdmin();
+      }
+
+      // Re-render on user change
+      try {
+        if (typeof window.ZE.on === 'function') {
+          window.ZE.on('user:change', function(){ renderSuperAdmin(); });
+          window.ZE.on('topup:change', function(){
+            document.querySelectorAll('[data-super-admin-header]').forEach(function(host){
+              if (host.style.display === 'none') return;
+              refreshTopupBadge(host);
+            });
+          });
+          window.ZE.on('wallet:change', function(){
+            document.querySelectorAll('[data-super-admin-header]').forEach(function(host){
+              if (host.style.display === 'none') return;
+              refreshTopupBadge(host);
+            });
+          });
+        }
+      } catch (e) {}
+
+      // Cross-tab: user record changed
+      window.addEventListener('storage', function(e){
+        if (!e) return;
+        if (e.key === 'ze_user_v1') renderSuperAdmin();
+        else if (e.key === 'ze_topups_v1' || e.key === 'ze_wallet_v1' || e.key === 'ze_site_budgets_v1') {
+          document.querySelectorAll('[data-super-admin-header]').forEach(function(host){
+            if (host.style.display === 'none') return;
+            refreshTopupBadge(host);
+          });
+        }
+      });
+
+      // Catch late-mounting hosts (rare — but cheap insurance, mirrors existing patterns)
+      setTimeout(renderSuperAdmin, 250);
+      setTimeout(renderSuperAdmin, 1000);
+    }
+
+    ensureZE(init);
+  })();
+
+/* ---------- Dev test harness (gated) ----------
+   Add `?zev-test=1` to any page to run deriveStatus self-tests in the console.
+   Backs up & restores ze_line_fulfilment_v1 around the run. Does not touch other keys. */
+if (typeof window !== 'undefined' && window.location && String(window.location.search || '').indexOf('zev-test=1') !== -1) {
+  (function(){
+    function run(){
+      var ZE = window.ZE;
+      if (!ZE || !ZE.orders || !ZE.orders.deriveStatus) {
+        console.warn('[zev-test] ZE.orders.deriveStatus not available; aborting');
+        return;
+      }
+      var KEY = 'ze_line_fulfilment_v1';
+      var backup = null;
+      try { backup = localStorage.getItem(KEY); } catch(e) {}
+      var TEST_ID = '__zev_test_order__';
+      // Synthetic order with 3 items — passed directly so we don't pollute the orders store.
+      function makeOrder(){ return { id: TEST_ID, status: 'placed', items: [{ qty: 1 }, { qty: 1 }, { qty: 1 }] }; }
+      function setStatuses(arr){
+        var map = {}; map[TEST_ID] = {};
+        arr.forEach(function(s, i){ map[TEST_ID][String(i)] = { status: s, mode: 'inhouse', shippedQty: 0, history: [] }; });
+        try { localStorage.setItem(KEY, JSON.stringify(map)); } catch(e) {}
+      }
+      var cases = [
+        { line: ['cancelled','cancelled','cancelled'],            code: 'cancelled',            label: 'Cancelled' },
+        { line: ['delivered','delivered','delivered'],            code: 'delivered',            label: 'Delivered' },
+        { line: ['delivered','delivered','cancelled'],            code: 'delivered-partial',    label: 'Delivered · 1 cancelled' },
+        { line: ['delivered','shipped','cancelled'],              code: 'partially-delivered',  label: 'Partially delivered' },
+        { line: ['shipped','shipped','shipped'],                  code: 'shipped',              label: 'In transit' },
+        { line: ['shipped','cancelled','in_progress'],            code: 'partially-shipped',    label: 'Partially shipped' },
+        { line: ['in_progress','in_progress','cancelled'],        code: 'confirmed-partial',    label: 'Confirmed · 1 cancelled' },
+        { line: ['in_progress','in_progress','in_progress'],      code: 'confirmed',            label: 'Confirmed' },
+        { line: ['pending','pending','pending'],                  code: 'pending-acceptance',   label: 'Awaiting acceptance' }
+      ];
+      var pass = 0, fail = 0;
+      console.group('[zev-test] ZE.orders.deriveStatus');
+      cases.forEach(function(tc){
+        setStatuses(tc.line);
+        var got = ZE.orders.deriveStatus(makeOrder());
+        var ok = got && got.code === tc.code && got.label === tc.label;
+        if (ok) { pass++; console.log('PASS', tc.line.join(','), '→', got.code, '/', got.label); }
+        else    { fail++; console.error('FAIL', tc.line.join(','), 'expected', tc.code, '/', tc.label, 'got', got && got.code, '/', got && got.label, got); }
+      });
+      console.log('[zev-test] passed', pass, '/ failed', fail);
+      console.groupEnd();
+      // Restore
+      try {
+        if (backup == null) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, backup);
+      } catch(e) {}
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else setTimeout(run, 0);
+  })();
+}

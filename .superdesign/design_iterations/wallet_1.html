@@ -4,11 +4,28 @@
   <meta charset="utf-8"/>
   <title>ZooEnrich · Wallet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <!-- Fail-safe: synchronously hide buyer chrome for super admin BEFORE any paint, independent of app.js cache -->
+  <script>
+    (function(){
+      try {
+        var u = JSON.parse(localStorage.getItem('ze_user_v1') || '{}');
+        if (u && u.role === 'super_admin') {
+          document.documentElement.classList.add('ze-role-super-admin-pre');
+          var s = document.createElement('style');
+          s.textContent = 'html.ze-role-super-admin-pre [data-role-hide-on~="super_admin"], html.ze-role-super-admin-pre [data-role-hide-on*="super_admin"] { display: none !important; }';
+          document.head.appendChild(s);
+        }
+      } catch(e){}
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     html, body { background: var(--card-subtle) !important; }
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
@@ -160,6 +177,7 @@
     .led-tbl .t-desc { color: var(--text); font-weight: 500; }
     .led-tbl .t-desc .order-link { font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 600; color: var(--brand-hover); text-decoration: none; padding: 1px 7px; border-radius: 6px; background: var(--brand-soft); margin-left: 8px; }
     .led-tbl .t-desc .order-link:hover { text-decoration: underline; }
+    .led-tbl .t-desc .t-sub { color: var(--text-muted); font-weight: 400; font-size: 12px; margin-top: 3px; line-height: 1.35; }
     .led-tbl .t-rsn { white-space: nowrap; }
     .led-tbl .t-rsn-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .03em; }
     .led-tbl .t-rsn-pill.k-locked { background: #FEF3C7; color: #A16207; }
@@ -338,7 +356,8 @@
 <body>
 
 <!-- =============== HEADER =============== -->
-<header class="app-header">
+<header data-super-admin-header data-active="topups"></header>
+<header class="app-header" data-role-hide-on="super_admin">
   <div class="page-wrap row">
     <a href="index_1.html" class="brand-mark">
       <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
@@ -366,17 +385,7 @@
         <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
         <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
       </a>
-      <!-- Super Admin nav (visible only when body.is-super-admin) -->
-      <a href="super_admin_dashboard_1.html" class="header-btn" title="Dashboard" data-sa-only id="saHeaderDashboard">
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
-      </a>
-      <a href="javascript:void(0)" class="header-btn" title="Top-up Approvals" data-sa-only id="saHeaderTopups" style="position:relative;">
-        <i data-lucide="wallet" class="w-5 h-5"></i><span>Top-ups</span>
-        <span id="saTopupBadge" class="badge-dot" style="display:none">0</span>
-      </a>
-      <a href="super_admin_dashboard_1.html#sites-card" class="header-btn" title="Sites" data-sa-only id="saHeaderSites">
-        <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
-      </a>
+      <!-- Super Admin nav handled entirely by ZE.headers.renderSuperAdmin() — buyer header just shows buyer chrome -->
       <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
       <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
         <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
@@ -546,10 +555,10 @@
 
   var TXN_FILTERS = [
     { id: 'all',      lab: 'All',      kinds: null },
-    { id: 'topup',    lab: 'Top-ups',  kinds: ['topup_approved','topup_pending','topup_rejected'] },
-    { id: 'locked',   lab: 'Locked',   kinds: ['locked'] },
-    { id: 'spent',    lab: 'Spent',    kinds: ['spent'] },
-    { id: 'refunded', lab: 'Refund',   kinds: ['refunded'] }
+    { id: 'topup',    lab: 'Top-ups',  kinds: ['topup_approved','topup_pending','topup_rejected'], tip: 'Manual top-up requests and finance decisions on them.' },
+    { id: 'locked',   lab: 'Locked',   kinds: ['locked'],   tip: 'Funds reserved for active orders — released as items ship and deliver, or refunded if a line is cancelled.' },
+    { id: 'spent',    lab: 'Spent',    kinds: ['spent'],    tip: 'Paid on delivery. Each line is charged when it arrives at your zoo.' },
+    { id: 'refunded', lab: 'Refund',   kinds: ['refunded'], tip: 'Funds returned for cancelled lines or full order cancellations.' }
   ];
 
   function renderTxnsTable(txns){
@@ -559,7 +568,8 @@
 
     var chipsHtml = '<div class="led-filter"><span class="lab">Reason</span>' +
       TXN_FILTERS.map(function(x){
-        return '<button type="button" class="led-chip' + (x.id === ledger.filter ? ' active' : '') + '" data-led-filter="' + x.id + '">' + x.lab + '</button>';
+        var tipAttr = x.tip ? ' title="' + x.tip.replace(/"/g, '&quot;') + '"' : '';
+        return '<button type="button" class="led-chip' + (x.id === ledger.filter ? ' active' : '') + '" data-led-filter="' + x.id + '"' + tipAttr + '>' + x.lab + '</button>';
       }).join('') +
     '</div>';
 
@@ -571,9 +581,10 @@
       var sign = txnAmtSign(t.kind);
       var amtTxt = sign ? (sign + fmtCompactINR(Math.abs(t.amount || 0))) : fmtCompactINR(Math.abs(t.amount || 0));
       var orderLink = t.orderId ? '<a class="order-link" href="order_detail_1.html?id=' + encodeURIComponent(t.orderId) + '" onclick="event.stopPropagation()">' + t.orderId + '</a>' : '';
+      var subHtml = t.sublabel ? '<div class="t-sub">' + escapeHtml(t.sublabel) + '</div>' : '';
       return '<tr data-tx-kind="txn" data-tx-idx="' + i + '">' +
         '<td class="t-date">' + fmtDateTime(t.at) + '</td>' +
-        '<td class="t-desc">' + txnLabel(t) + (orderLink ? ' ' + orderLink : '') + '</td>' +
+        '<td class="t-desc">' + txnLabel(t) + (orderLink ? ' ' + orderLink : '') + subHtml + '</td>' +
         '<td class="t-rsn"><span class="t-rsn-pill k-' + reasonPillKind(t.kind) + '">' + reasonShort(t.kind) + '</span></td>' +
         '<td class="t-amt ' + txnAmtClass(t.kind) + '">' + amtTxt + '</td>' +
       '</tr>';
@@ -655,8 +666,8 @@
           '<div class="val">' + fmtCompactINR(w.available) + '</div>' +
         '</div>' +
         '<div class="w-mini allotted"><div class="lab"><span class="dot"></span> Allotted</div><div class="val">' + fmtCompactINR(w.allotted) + '</div></div>' +
-        '<div class="w-mini locked"><div class="lab"><span class="dot"></span> Locked</div><div class="val">' + fmtCompactINR(w.locked) + '</div></div>' +
-        '<div class="w-mini spent"><div class="lab"><span class="dot"></span> Spent</div><div class="val">' + fmtCompactINR(w.spent) + '</div></div>' +
+        '<div class="w-mini locked" title="Funds reserved for active orders — released as items ship and deliver, or refunded if a line is cancelled."><div class="lab"><span class="dot"></span> Locked</div><div class="val">' + fmtCompactINR(w.locked) + '</div></div>' +
+        '<div class="w-mini spent" title="Paid on delivery. Each line is charged when it arrives at your zoo."><div class="lab"><span class="dot"></span> Spent</div><div class="val">' + fmtCompactINR(w.spent) + '</div></div>' +
       '</div>' +
       '<div class="w-bar">' +
         '<div class="seg seg-spent" style="width:' + spentPct + '%"></div>' +
@@ -665,8 +676,137 @@
     '</div>';
   }
 
+  /* Expand wallet txns into per-line rows so refund/spent entries name the
+     specific cancelled or delivered product. Locked entries stay as one-per-order.
+     - Refunded entries on a non-cancelled order are split into one entry per
+       cancelled line, each with `<Product> — <reason or 'no reason given'>`.
+     - Spent entries on partial-delivery orders (any line cancelled OR not all
+       delivered yet) are split into one entry per delivered line.
+     - Fully-delivered, no-cancellations orders keep their single combined entry.
+     - Fully-cancelled orders keep their single combined refund entry. */
+  function _walletProductNameForLine(order, idx){
+    var it = order && order.items && order.items[idx];
+    if (!it) return 'Item';
+    var prod = null;
+    try { if (window.DB && DB.byId) prod = DB.byId(DB.PRODUCTS, it.productId); } catch(e) {}
+    return (prod && prod.name) || it.name || it.productId || 'Item';
+  }
+  function _walletLineUnitPrice(order, idx){
+    var it = order && order.items && order.items[idx];
+    if (!it) return 0;
+    if (it.unitPrice != null) return Number(it.unitPrice) || 0;
+    if (it.unit != null) return Number(it.unit) || 0;
+    try {
+      if (window.DB && DB.byId) {
+        var p = DB.byId(DB.PRODUCTS, it.productId);
+        if (p && p.price) return (Number(p.price.material)||0) + (Number(p.price.labor)||0);
+      }
+    } catch(e) {}
+    return 0;
+  }
+  function expandWalletTxns(rawTxns){
+    var out = [];
+    (rawTxns || []).forEach(function(t){
+      if (!t) return;
+      // Locked entries: keep ONE per order, but rewrite label to include item count.
+      if (t.kind === 'locked' && t.orderId) {
+        var ord = findOrder(t.orderId);
+        var n = (ord && Array.isArray(ord.items)) ? ord.items.length : 0;
+        var origTotal = (ord && Number(ord.total)) ? Number(ord.total) : Math.abs(Number(t.amount) || 0);
+        var lockedClone = {};
+        for (var k in t) if (Object.prototype.hasOwnProperty.call(t, k)) lockedClone[k] = t[k];
+        // Use original gross total (before any line cancellations) so the wording matches "locked across N items"
+        lockedClone.amount = -Math.abs(origTotal);
+        lockedClone.label = 'Order placed · ' + fmtCompactINR(origTotal) + ' locked across ' + n + ' item' + (n === 1 ? '' : 's');
+        out.push(lockedClone);
+        return;
+      }
+      // Only expand spent / refunded entries that are tied to an order
+      if (!t.orderId || (t.kind !== 'spent' && t.kind !== 'refunded')) {
+        out.push(t);
+        return;
+      }
+      var order = findOrder(t.orderId);
+      var lines = (window.ZE && ZE.orders && ZE.orders.lineFulfilment && ZE.orders.lineFulfilment.forOrder)
+        ? (ZE.orders.lineFulfilment.forOrder(t.orderId) || {}) : {};
+
+      // ---- REFUND expansion: only for line-level refund (parent order not cancelled)
+      if (t.kind === 'refunded' && order && t.status !== 'cancelled' && Array.isArray(order.items)) {
+        var anyAdded = false;
+        order.items.forEach(function(it, idx){
+          var rec = lines[String(idx)];
+          if (!rec || rec.status !== 'cancelled') return;
+          var unit = _walletLineUnitPrice(order, idx);
+          var qty = Number(it.qty) || 0;
+          var amt = unit * qty;
+          var nm = _walletProductNameForLine(order, idx);
+          var reason = (rec.cancelReason && String(rec.cancelReason).trim()) || 'no reason given';
+          out.push({
+            kind: 'refunded',
+            amount: amt,
+            orderId: t.orderId,
+            status: t.status,
+            at: t.at,
+            label: 'Line cancelled · refunded',
+            sublabel: nm + ' — ' + reason,
+            _lineIdx: idx
+          });
+          anyAdded = true;
+        });
+        if (!anyAdded) out.push(t);
+        return;
+      }
+
+      // ---- SPENT expansion: per-line attribution when partial delivery / mixed cancel
+      if (t.kind === 'spent' && order && Array.isArray(order.items)) {
+        var hasLineRecords = lines && Object.keys(lines).length > 0;
+        var hasCancelled = false, deliveredCount = 0;
+        if (hasLineRecords) {
+          order.items.forEach(function(it, idx){
+            var rec = lines[String(idx)];
+            var st = rec && rec.status;
+            if (st === 'cancelled') hasCancelled = true;
+            else if (st === 'delivered') deliveredCount++;
+          });
+        }
+        // Split per-line if the order has any cancelled lines OR not every active line is delivered.
+        var totalLines = order.items.length;
+        var shouldSplit = hasLineRecords && (hasCancelled || deliveredCount < totalLines);
+        if (shouldSplit) {
+          order.items.forEach(function(it, idx){
+            var rec = lines[String(idx)];
+            if (!rec || rec.status !== 'delivered') return;
+            var unit = _walletLineUnitPrice(order, idx);
+            var qty = Number(it.qty) || 0;
+            var amt = unit * qty;
+            var nm = _walletProductNameForLine(order, idx);
+            out.push({
+              kind: 'spent',
+              amount: -amt,
+              orderId: t.orderId,
+              status: t.status,
+              at: t.at,
+              label: 'Line delivered · paid',
+              sublabel: nm + ' × ' + qty,
+              _lineIdx: idx
+            });
+          });
+          return;
+        }
+        // Otherwise — keep the combined "Order delivered · paid" entry as-is.
+      }
+
+      out.push(t);
+    });
+    // Re-sort by date desc — entries we created share parent.at, so stable order
+    // within the same timestamp is preserved by Array#sort being stable in modern engines.
+    out.sort(function(a, b){ return Date.parse(b.at || 0) - Date.parse(a.at || 0); });
+    return out;
+  }
+
   function renderLedger(siteId){
-    var txns = (typeof ZE !== 'undefined' && ZE.wallet && ZE.wallet.txnsForSite) ? (ZE.wallet.txnsForSite(siteId) || []) : [];
+    var rawTxns = (typeof ZE !== 'undefined' && ZE.wallet && ZE.wallet.txnsForSite) ? (ZE.wallet.txnsForSite(siteId) || []) : [];
+    var txns = expandWalletTxns(rawTxns);
     var topups = (typeof ZE !== 'undefined' && ZE.topup && ZE.topup.list) ? (ZE.topup.list(siteId) || []) : [];
     var tabs = '<div class="led-tabs">' +
       '<button type="button" class="led-tab' + (ledger.tab === 'txns' ? ' active' : '') + '" data-led-tab="txns">Transactions <span class="count">' + txns.length + '</span></button>' +
@@ -772,9 +912,9 @@
 
   function txnExplain(t){
     var map = {
-      locked:           'Funds are reserved for this order while it\'s in production. They\'ll be released as Spent when the order is delivered, or refunded if cancelled.',
-      spent:            'These funds were paid to the in-house vendor on delivery confirmation. The amount has left your wallet.',
-      refunded:         'The order was cancelled, so the previously locked funds were returned to your available balance.',
+      locked:           'Funds reserved for active orders — released as items ship and deliver, or refunded if a line is cancelled.',
+      spent:            'Paid on delivery. Each line is charged when it arrives at your zoo.',
+      refunded:         'Funds returned for cancelled lines or full order cancellations.',
       topup_approved:   'A finance-approved top-up was credited to your allotted budget. It\'s now part of your available balance.',
       topup_pending:    'A top-up has been requested and is awaiting finance approval. It does NOT yet count towards your available balance.',
       topup_rejected:   'This top-up request was rejected by finance. No change to your wallet balance — see the rejection note for context.'
@@ -828,6 +968,7 @@
 
     var heroHtml = '<div class="tx-sh-hero">' +
       '<div class="label">' + escapeHtml(txnLabel(t)) + ' <span class="t-rsn-pill k-' + pillKind + '">' + pillLbl + '</span></div>' +
+      (t.sublabel ? '<div class="sub" style="font-size:13px;color:var(--text-muted);margin-top:4px">' + escapeHtml(t.sublabel) + '</div>' : '') +
       '<div class="amt ' + amtCls + '">' + amtTxt + '</div>' +
       '<div class="when">' + fmtDateTime(t.at) + '</div>' +
     '</div>';
@@ -841,6 +982,7 @@
     if (t.orderId) kv.push({ k: 'Order', v: '<span class="mono">' + escapeHtml(t.orderId) + '</span>' });
     kv.push({ k: 'Date', v: escapeHtml(fmtDateTime(t.at)) });
     kv.push({ k: 'Reason', v: escapeHtml(txnLabel(t)) });
+    if (t.sublabel) kv.push({ k: 'Line', v: escapeHtml(t.sublabel) });
     if (t.amount != null) kv.push({ k: 'Amount', v: '<span class="mono">' + amtTxt + '</span>' });
     if (order) {
       if (order.buyerId) {
@@ -1021,6 +1163,7 @@
     if (typeof ZE !== 'undefined' && ZE.on) {
       ZE.on('activeSite:change', render);
       ZE.on('orders:change', render);
+      ZE.on('wallet:change', render);
       ZE.on('topup:change', render);
       ZE.on('topup:change', syncSuperAdminTopupBadge);
       ZE.on('user:change', render);

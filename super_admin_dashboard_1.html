@@ -7,41 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     html, body { background: var(--card-subtle) !important; }
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
 
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
-
-    /* ========== HEADER (mirrors wallet_1.html) ========== */
-    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
-    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); text-decoration: none; }
-    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
-    .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
-    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
-    .search-pill .kbd { font-size: 11px; color: var(--text-muted); background: #fff; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); font-family: ui-monospace, monospace; }
-    .header-actions { display: flex; align-items: center; gap: 6px; }
-    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 64px; transition: .15s; text-decoration: none; }
-    .header-btn:hover { background: #F1F2F4; color: var(--text); }
-    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
-    .header-btn.is-active { background: var(--brand-soft); color: var(--brand-hover); }
-    .header-btn.is-active:hover { background: var(--brand-soft); color: var(--brand-hover); }
-    .header-btn .hb-badge { position: absolute; top: 4px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid #fff; line-height: 1; }
-    .header-btn .hb-badge.on { display: inline-flex; }
-    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
-    .user-wrap { position: relative; margin-left: 8px; }
-    .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 60; }
-    .dd-menu.open { display: block; animation: ddIn .18s ease-out; }
-    @keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-    .dd-head { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-    .dd-head .nm { font-weight: 700; color: var(--text); font-size: 14px; }
-    .dd-head .em { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .dd-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--text); cursor: pointer; text-decoration: none; }
-    .dd-item:hover { background: #F1F2F4; }
 
     /* Crumbs */
     .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -56,6 +29,13 @@
     .page-head .sub { font-size: 13px; color: var(--text-muted); }
     .fy-pill { font-size: 11px; font-weight: 700; color: var(--brand-hover); background: var(--brand-soft); padding: 5px 12px; border-radius: 999px; letter-spacing: .02em; }
     .page-head .hd-r { display: inline-flex; align-items: center; gap: 10px; }
+    .pending-topup-banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 12px; margin-bottom: 18px; cursor: pointer; transition: background .15s ease; }
+    .pending-topup-banner:hover { background: #FDE68A; }
+    .pending-topup-banner .ptb-icon { width: 32px; height: 32px; border-radius: 999px; background: #F59E0B; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pending-topup-banner .ptb-body { flex: 1; }
+    .pending-topup-banner .ptb-title { font-size: 14px; font-weight: 700; color: #78350F; }
+    .pending-topup-banner .ptb-sub { font-size: 12px; color: #92400E; margin-top: 2px; }
+    .pending-topup-banner .ptb-cta { font-size: 13px; font-weight: 600; color: #78350F; display: inline-flex; align-items: center; gap: 4px; }
     .btn-topup { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; background: var(--brand); color: #fff; border: 0; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s ease, transform .1s ease; box-shadow: var(--shadow-xs); }
     .btn-topup:hover { background: var(--brand-hover); }
     .btn-topup:active { transform: translateY(1px); }
@@ -250,11 +230,6 @@
     .guard a:hover { background: var(--brand-hover); }
 
     @media (max-width: 767px) {
-      .app-header .row { height: 60px; gap: 10px; }
-      .search-pill { display: none; }
-      .header-btn span { display: none; }
-      .header-btn { min-width: 44px; padding: 8px; }
-      .avatar { width: 36px; height: 36px; }
       .ov-chart { gap: 8px; height: 160px; }
       .card { padding: 16px; }
     }
@@ -263,59 +238,7 @@
 <body>
 
 <!-- =============== HEADER =============== -->
-<header class="app-header">
-  <div class="page-wrap row">
-    <a href="index_1.html" class="brand-mark">
-      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
-      <span>ZooEnrich</span>
-    </a>
-    <label class="search-pill">
-      <i data-lucide="search" class="w-4 h-4"></i>
-      <input type="text" placeholder="Search sites, clusters…"/>
-      <span class="kbd">⌘K</span>
-    </label>
-    <div class="header-actions">
-      <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header title="Approvals" style="display:none !important; position:relative;">
-        <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
-        <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
-      </a>
-      <a href="super_admin_dashboard_1.html" class="header-btn is-active" id="saNavDashboard" aria-current="page" title="Dashboard">
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span>
-      </a>
-      <a href="wallet_1.html?tab=topup" class="header-btn" id="saNavTopups" title="Top-up Approvals" style="position:relative;">
-        <i data-lucide="wallet" class="w-5 h-5"></i><span>Top-ups</span>
-        <span id="saTopupBadge" class="hb-badge">0</span>
-      </a>
-      <a href="#sites-card" class="header-btn" id="saNavSites" title="Sites">
-        <i data-lucide="building-2" class="w-5 h-5"></i><span>Sites</span>
-      </a>
-      <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
-      <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
-        <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
-          <span class="ze-wp-site-name" data-wallet-site-name>—</span>
-          <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
-        </span>
-        <span class="ze-wp-amt" data-wallet-amount>—</span>
-        <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
-      </button>
-      <div class="user-wrap" id="userWrap">
-        <img class="avatar" id="userAvatar" src="https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20finance%20director?width=80&height=80&seed=909&nologo=true" alt="Account"/>
-        <div class="dd-menu" id="userMenu" role="menu">
-          <div class="dd-head">
-            <div class="nm" id="userName">—</div>
-            <div class="em" id="userEmail">—</div>
-          </div>
-          <a class="dd-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
-          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
-          <a class="dd-item" href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Switch to Buyer view</a>
-          <a class="dd-item" href="admin_dashboard_1.html" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="briefcase" class="w-4 h-4"></i> Switch to Admin view</a>
-          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
-          <a class="dd-item" id="signOutItem" href="javascript:void(0)"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
+<header data-super-admin-header data-active="dashboard"></header>
 
 <!-- =============== MAIN =============== -->
 <main class="page-wrap" id="dashMain">
@@ -329,105 +252,6 @@
 
   <div id="dashContent"><!-- rendered by JS --></div>
 </main>
-
-<!-- Sign-out support + dropdown + SA nav wiring -->
-<script>
-(function(){
-  function init(){
-    // ===== Avatar dropdown =====
-    var av = document.getElementById('userAvatar');
-    var menu = document.getElementById('userMenu');
-    var wrap = document.getElementById('userWrap');
-    if (av && menu) {
-      av.setAttribute('tabindex', '0');
-      av.setAttribute('role', 'button');
-      av.setAttribute('aria-haspopup', 'menu');
-      av.setAttribute('aria-expanded', 'false');
-      av.addEventListener('click', function(e){
-        e.stopPropagation();
-        var isOpen = menu.classList.toggle('open');
-        av.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      });
-      av.addEventListener('keydown', function(e){
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          var isOpen = menu.classList.toggle('open');
-          av.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-      });
-      document.addEventListener('click', function(e){
-        if (!menu.contains(e.target) && e.target !== av) {
-          menu.classList.remove('open');
-          av.setAttribute('aria-expanded', 'false');
-        }
-      });
-      document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape' && menu.classList.contains('open')) {
-          menu.classList.remove('open');
-          av.setAttribute('aria-expanded', 'false');
-          av.focus();
-        }
-      });
-    }
-
-    // ===== Populate user identity =====
-    try {
-      var u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
-      if (u) {
-        var nm = document.getElementById('userName');
-        var em = document.getElementById('userEmail');
-        if (nm && u.name)  nm.textContent = u.name;
-        if (em && u.email) em.textContent = u.email;
-        if (av && u.seed) {
-          av.src = 'https://image.pollinations.ai/prompt/professional%20portrait%20headshot?width=80&height=80&seed=' + encodeURIComponent(u.seed) + '&nologo=true';
-        }
-      }
-    } catch(e) {}
-
-    // ===== Sign out =====
-    var so = document.getElementById('signOutItem');
-    if (so) so.addEventListener('click', function(){
-      try { ZE.user.signOut(); } catch(e) {
-        try { localStorage.removeItem('ze_user_v1'); } catch(_){}
-      }
-      window.location.href = 'login_1.html';
-    });
-
-    // ===== Hide buyer-style approvals link defensively =====
-    var legacyApr = document.getElementById('headerApprovalsLink');
-    if (legacyApr) legacyApr.style.display = 'none';
-
-    // ===== Top-up Approvals badge (live) =====
-    var topupBadge = document.getElementById('saTopupBadge');
-    function refreshTopupBadge(){
-      if (!topupBadge) return;
-      var n = 0;
-      try {
-        var list = (window.ZE && ZE.topup && ZE.topup.list) ? (ZE.topup.list() || []) : [];
-        n = list.filter(function(t){ return t && t.status === 'pending'; }).length;
-      } catch(e) { n = 0; }
-      if (n > 0) {
-        topupBadge.textContent = n > 99 ? '99+' : String(n);
-        topupBadge.classList.add('on');
-      } else {
-        topupBadge.classList.remove('on');
-      }
-    }
-    refreshTopupBadge();
-    try {
-      if (window.ZE && ZE.on) {
-        ZE.on('topup:change', refreshTopupBadge);
-        ZE.on('wallet:change', refreshTopupBadge);
-      }
-    } catch(e) {}
-    window.addEventListener('storage', function(ev){
-      if (ev && (ev.key === 'ze_topups_v1' || ev.key === 'ze_wallet_v1')) refreshTopupBadge();
-    });
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-})();
-</script>
 
 <!-- =============== SUPER ADMIN DASHBOARD LOGIC =============== -->
 <script>
@@ -784,8 +608,25 @@
       renderOv();
     });
 
+    // ----- Pending top-up banner (shown only when count > 0) -----
+    var pendingTopups = 0;
+    try {
+      var allTopups = (window.ZE && ZE.topup && ZE.topup.list) ? (ZE.topup.list() || []) : [];
+      pendingTopups = allTopups.filter(function(t){ return t && t.status === 'pending'; }).length;
+    } catch(e) { pendingTopups = 0; }
+    var pendingBanner = pendingTopups > 0
+      ? '<div class="pending-topup-banner" onclick="window.location.href=\'wallet_1.html?tab=topup\'">' +
+          '<span class="ptb-icon"><i data-lucide="alert-circle" class="w-4 h-4"></i></span>' +
+          '<div class="ptb-body">' +
+            '<div class="ptb-title">' + pendingTopups + ' top-up request' + (pendingTopups === 1 ? '' : 's') + ' awaiting your approval</div>' +
+            '<div class="ptb-sub">Review and decide before sites can use the funds</div>' +
+          '</div>' +
+          '<span class="ptb-cta">Review <i data-lucide="arrow-right" class="w-4 h-4"></i></span>' +
+        '</div>'
+      : '';
+
     // ----- Header chrome: heading -----
-    var head =
+    var head = pendingBanner +
       '<div class="page-head">' +
         '<div class="hd-l">' +
           '<span class="role-eyebrow"><i data-lucide="shield-check" class="w-3 h-3"></i> Super Admin</span>' +

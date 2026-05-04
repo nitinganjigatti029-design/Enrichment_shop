@@ -4,11 +4,28 @@
   <meta charset="utf-8"/>
   <title>ZooEnrich · Profile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <!-- Fail-safe: synchronously hide buyer chrome for super admin BEFORE any paint, independent of app.js cache -->
+  <script>
+    (function(){
+      try {
+        var u = JSON.parse(localStorage.getItem('ze_user_v1') || '{}');
+        if (u && u.role === 'super_admin') {
+          document.documentElement.classList.add('ze-role-super-admin-pre');
+          var s = document.createElement('style');
+          s.textContent = 'html.ze-role-super-admin-pre [data-role-hide-on~="super_admin"], html.ze-role-super-admin-pre [data-role-hide-on*="super_admin"] { display: none !important; }';
+          document.head.appendChild(s);
+        }
+      } catch(e){}
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -318,7 +335,8 @@
 <div class="device-shell"><div class="device-inner">
 
   <!-- =============== HEADER =============== -->
-  <header class="app-header">
+  <header data-super-admin-header data-active="profile"></header>
+  <header class="app-header" data-role-hide-on="super_admin">
     <div class="page-wrap row">
       <a href="index_1.html" class="brand-mark">
         <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
@@ -752,9 +770,7 @@
   const ZE = window.ZE;
   const ADDR_KEY = 'ze_addresses_v1';
 
-  /* ---------- Guard: buyer only ---------- */
-  if (!ZE.user.requireRole('buyer')) return;
-
+  /* ---------- Guard: any signed-in user can view their own profile ---------- */
   const user = ZE.user.resolve();
   if (!user) {
     window.location.assign('login_1.html');

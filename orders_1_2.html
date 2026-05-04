@@ -10,8 +10,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     :root{
       --st-amber-fg:#A16207; --st-amber-bg:#FEF3C7;
@@ -149,7 +149,7 @@
 
     /* Status cell chip */
     .st-chip { display:inline-flex; align-items:center; gap:6px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
-    .st-chip .dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink:0; }
+    .st-chip .dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink:0; background: currentColor; }
     .st-awaiting { background: var(--st-amber-bg); color: var(--st-amber-fg); }
     .st-awaiting .dot { background: var(--st-amber-fg); }
     .st-transit  { background: var(--st-blue-bg); color: var(--st-blue-fg); }
@@ -160,6 +160,19 @@
     .st-cancel .dot { background: var(--st-red-fg); }
     .st-return   { background: var(--st-ret-bg); color: var(--st-ret-fg); }
     .st-return .dot { background: var(--st-ret-fg); }
+    /* Derived-status chip classes (from tokens.css). Add explicit local rules
+       so the .st-chip wrapper still gets a dot color when paired with the
+       chip-* classes coming from ZE.orders.deriveStatus. */
+    .st-chip.chip-confirmed { background: var(--st-blue-bg); color: var(--st-blue-fg); }
+    .st-chip.chip-confirmed .dot { background: var(--st-blue-fg); }
+    .st-chip.chip-shipped   { background: #CFFAFE; color: #0891B2; }
+    .st-chip.chip-shipped .dot { background: #0891B2; }
+    .st-chip.chip-delivered { background: var(--brand-soft); color: #006D35; }
+    .st-chip.chip-delivered .dot { background: var(--brand); }
+    .st-chip.chip-cancelled { background: var(--st-red-bg); color: var(--st-red-fg); }
+    .st-chip.chip-cancelled .dot { background: var(--st-red-fg); }
+    .st-chip.chip-pending   { background: var(--st-amber-bg); color: var(--st-amber-fg); }
+    .st-chip.chip-pending .dot { background: var(--st-amber-fg); }
 
     /* Line-level tally tags (rendered inside status cell, after the main chip) */
     .row-line-tag { display: inline-flex; align-items: center; padding: 2px 8px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1.4; white-space: nowrap; cursor: pointer; text-decoration: none; vertical-align: middle; }
@@ -167,6 +180,17 @@
     .row-tag-cancel  { background: #FEE2E2; color: #B91C1C; }
     .row-tag-partial { background: #FEF3C7; color: #A16207; }
     .row-line-tag:hover { filter: brightness(.96); }
+
+    /* Derived-status row decorations (sub summary + refund + next event). */
+    .row-summary-sub { display:block; font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-refund-chip { display: inline-flex; align-items: center; padding: 1px 7px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #FEE2E2; color: #B91C1C; vertical-align: middle; white-space: nowrap; }
+    .row-next-event { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .row-next-event strong { color: var(--text); font-weight: 600; }
+    /* Mobile-card variants */
+    .o-card .oc-summary-sub { font-size: 11.5px; color: var(--text-muted); margin: 4px 0 6px; padding-left: 28px; }
+    .o-card .oc-next-event  { font-size: 11.5px; color: var(--text-muted); margin: 0 0 6px; padding-left: 28px; }
+    .o-card .oc-next-event strong { color: var(--text); font-weight: 600; }
+    .o-card .oc-refund-chip { display: inline-flex; align-items: center; padding: 1px 7px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #FEE2E2; color: #B91C1C; vertical-align: middle; }
 
     /* Download icon button */
     .icon-dl { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-hover); border: none; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; transition: .15s; }
@@ -716,6 +740,7 @@ function _zeRefreshOrders(){
 
 if (window.ZE && typeof ZE.on === 'function') {
   ZE.on('orders:change', _zeRefreshOrders);
+  ZE.on('wallet:change', _zeRefreshOrders);
   ZE.on('user:change',   _zeRefreshOrders);
 }
 window.addEventListener('storage', function(e){
@@ -754,20 +779,103 @@ function fmtDateFull(iso){ const d = new Date(iso); return d.toLocaleDateString(
 function statusClass(s){
   return ({ awaiting:'st-awaiting', transit:'st-transit', delivered:'st-delivered', cancelled: /Return/.test(s) ? 'st-return':'st-cancel' })[s] || 'st-transit';
 }
-function statusLabel(o){
+function _legacyStatusLabel(o){
   if (o.status === 'awaiting')  return 'Awaiting';
   if (o.status === 'transit')   return 'In transit';
   if (o.status === 'delivered') return 'Delivered';
   if (o.status === 'cancelled') return /Return/.test(o.subStatus) ? 'Return' : 'Cancelled';
   return 'Order';
 }
-function statusChipClass(o){
+function _legacyChipClass(o){
   if (o.status === 'awaiting')  return 'st-awaiting';
   if (o.status === 'transit')   return 'st-transit';
   if (o.status === 'delivered') return 'st-delivered';
   if (o.status === 'cancelled') return /Return/.test(o.subStatus) ? 'st-return':'st-cancel';
   return 'st-transit';
 }
+// Derived status — prefers ZE.orders.deriveStatus when the order is real,
+// falls back to legacy mock-status mapping for the seed/_MOCK_ORDERS rows.
+function derivedFor(o){
+  try {
+    if (o && o._real && window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+      const d = ZE.orders.deriveStatus(o.id);
+      if (d && d.label) return d;
+    }
+  } catch(_){}
+  return { code: 'legacy', label: _legacyStatusLabel(o), chipClass: _legacyChipClass(o), summary: '' };
+}
+function statusLabel(o){ return derivedFor(o).label; }
+function statusChipClass(o){ return derivedFor(o).chipClass; }
+
+// Refund value = sum of (qty * unitPrice) for cancelled lines.
+// Returns 0 when no lineFulfilment data, or no cancelled lines.
+function cancelledRefund(o){
+  if (!o || !o.id || !Array.isArray(o.items)) return 0;
+  if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment) return 0;
+  let lines;
+  try { lines = ZE.orders.lineFulfilment.forOrder(o.id); } catch(_){ return 0; }
+  if (!lines) return 0;
+  let sum = 0;
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf || lf.status !== 'cancelled') return;
+    let unit = 0;
+    try {
+      const pid = (it && it.p && it.p.id) || it.productId;
+      const p = pid && window.DB && DB.byId ? DB.byId(DB.PRODUCTS, pid) : null;
+      if (p && p.price) unit = (Number(p.price.material)||0) + (Number(p.price.labor)||0);
+      else if (it.unit != null) unit = Number(it.unit) || 0;
+    } catch(_){}
+    sum += unit * (Number(it.qty)||0);
+  });
+  return Math.max(0, Math.round(sum));
+}
+
+// Next event subline text — earliest non-shipped/non-delivered ETA across in-flight lines.
+// Returns '' when nothing useful to show.
+function nextEventSubline(o, code){
+  if (!o || !o.id || !Array.isArray(o.items)) return '';
+  if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment) return '';
+  if (!['confirmed','confirmed-partial','partially-shipped','partially-delivered'].includes(code)) return '';
+  let lines;
+  try { lines = ZE.orders.lineFulfilment.forOrder(o.id); } catch(_){ return ''; }
+  if (!lines) return '';
+  // Phase 1: not-yet-shipped (pending/confirmed/in_progress/ready) lines with ETA.
+  const preShip = ['pending','confirmed','in_progress','ready'];
+  let best = null; // { etaTime, idx, kind }
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf || !lf.eta) return;
+    if (lf.status === 'cancelled') return;
+    const t = new Date(lf.eta).getTime();
+    if (isNaN(t)) return;
+    if (preShip.includes(lf.status || 'pending')) {
+      if (!best || t < best.etaTime) best = { etaTime: t, idx, kind: 'ships' };
+    }
+  });
+  // Phase 2: if none pre-shipped have ETA, look at shipped lines arriving (use eta as arrival).
+  if (!best) {
+    o.items.forEach((it, idx) => {
+      const lf = lines[idx];
+      if (!lf || !lf.eta) return;
+      if (lf.status !== 'shipped') return;
+      const t = new Date(lf.eta).getTime();
+      if (isNaN(t)) return;
+      if (!best || t < best.etaTime) best = { etaTime: t, idx, kind: 'arriving' };
+    });
+  }
+  if (!best) return '';
+  const it = o.items[best.idx];
+  const name = (it && it.p && it.p.name) || 'item';
+  // Render ETA short e.g. "Thu 7 May"
+  const _DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const _MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date(best.etaTime);
+  const etaStr = _DOW[d.getDay()] + ' ' + d.getDate() + ' ' + _MON[d.getMonth()];
+  const verb = best.kind === 'ships' ? 'ships' : 'arriving';
+  return { name, verb, etaStr };
+}
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ================================================================
  *  FILTER + SORT
@@ -863,18 +971,35 @@ function renderTableRows(list){
   if (!list.length) { tb.innerHTML = ''; return; }
   tb.innerHTML = list.map(o => {
     const sel = state.selectedIds.has(o.id);
+    const d = derivedFor(o);
+    const refund = cancelledRefund(o);
+    const headlineTotal = Math.max(0, (Number(o.total)||0) - refund);
+    const refundChip = refund > 0
+      ? `<span class="row-refund-chip" title="${refund.toLocaleString('en-IN')} refunded for cancelled lines">−${fmtINR(refund)} refunded</span>`
+      : '';
+    const summarySub = d.summary
+      ? `<span class="row-summary-sub" title="${escapeHtml(d.summary)}">${escapeHtml(d.summary)}</span>`
+      : '';
+    const ne = nextEventSubline(o, d.code);
+    const nextLine = ne
+      ? `<div class="row-next-event" title="Next: ${escapeHtml(ne.name)} ${ne.verb} ${ne.etaStr}">Next: <strong>${escapeHtml(ne.name)}</strong> · ${ne.verb} ${ne.etaStr}</div>`
+      : '';
     return `
       <tr data-id="${o.id}" class="${sel?'selected':''}">
         <td class="col-check">
           <input type="checkbox" class="cb row-cb" data-id="${o.id}" ${sel?'checked':''} aria-label="Select ${o.id}"/>
         </td>
-        <td class="col-id"><span class="id-main">${o.id}</span></td>
+        <td class="col-id">
+          <span class="id-main">${o.id}</span>
+          ${summarySub}
+          ${nextLine}
+        </td>
         <td class="col-date">${fmtDate(o.createdAt)} ${new Date(o.createdAt).getFullYear()}</td>
         <td class="col-items">${itemsCell(o)}</td>
-        <td class="col-total"><span class="cell-total">${fmtINR(o.total)}</span></td>
+        <td class="col-total"><span class="cell-total">${fmtINR(headlineTotal)}</span>${refundChip}</td>
         <td class="col-status">
-          <span class="st-chip ${statusChipClass(o)}">
-            <span class="dot"></span>${statusLabel(o)}
+          <span class="st-chip ${d.chipClass}">
+            <span class="dot"></span>${escapeHtml(d.label)}
           </span>${lineTagsHTML(o)}
         </td>
         <td class="col-act">
@@ -900,6 +1025,19 @@ function renderCards(list){
     const thumbs = shown.map(it => `<div class="thumb"><img src="${it.p.img}" loading="lazy" alt=""/></div>`).join('');
     const moreT = remaining > 0 ? `<div class="more-thumb">+${remaining}</div>` : '';
     const sel = state.selectedIds.has(o.id);
+    const d = derivedFor(o);
+    const refund = cancelledRefund(o);
+    const headlineTotal = Math.max(0, (Number(o.total)||0) - refund);
+    const refundChip = refund > 0
+      ? `<span class="oc-refund-chip" title="${refund.toLocaleString('en-IN')} refunded for cancelled lines">−${fmtINR(refund)} refunded</span>`
+      : '';
+    const summarySub = d.summary
+      ? `<div class="oc-summary-sub">${escapeHtml(d.summary)}</div>`
+      : '';
+    const ne = nextEventSubline(o, d.code);
+    const nextLine = ne
+      ? `<div class="oc-next-event">Next: <strong>${escapeHtml(ne.name)}</strong> · ${ne.verb} ${ne.etaStr}</div>`
+      : '';
     return `
       <article class="o-card ${sel?'selected':''}" data-id="${o.id}">
         <div class="oc-top">
@@ -909,14 +1047,16 @@ function renderCards(list){
           <button class="icon-dl" data-dl="${o.id}" aria-label="Download PDF"><i data-lucide="download" class="w-4 h-4"></i></button>
         </div>
         <div class="sub-line">${fmtDateFull(o.createdAt)} · ${totalQty} ${totalQty===1?'item':'items'}</div>
+        ${summarySub}
+        ${nextLine}
         <div class="thumbs-row">${thumbs}${moreT}</div>
         <div class="vendor-line">
           <img src="${v?.logo}" alt=""/>
           <span class="v-name"><strong>${v?.name||''}</strong></span>
         </div>
         <div class="foot">
-          <span class="total-line">${fmtINR(o.total)}</span>
-          <span class="st-chip ${statusChipClass(o)}"><span class="dot"></span>${statusLabel(o)}</span>${lineTagsHTML(o)}
+          <span class="total-line">${fmtINR(headlineTotal)}${refundChip}</span>
+          <span class="st-chip ${d.chipClass}"><span class="dot"></span>${escapeHtml(d.label)}</span>${lineTagsHTML(o)}
         </div>
       </article>`;
   }).join('');

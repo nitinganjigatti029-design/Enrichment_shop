@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -28,8 +28,8 @@
     .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
     .header-btn .badge-dot { position: absolute; top: 4px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger,#EF4444); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-top: 0; }
     .avatar-wrap { position: relative; margin-left: 8px; }
-    .avatar-wrap .avatar { width: 36px; height: 36px; border-radius: 999px; overflow: hidden; cursor: pointer; border: 2px solid var(--border,#E5E7EB); margin-left: 0; }
-    .avatar-wrap .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .avatar-wrap > .avatar { display: inline-block; width: 36px; height: 36px; border-radius: 999px; overflow: hidden; cursor: pointer; border: 2px solid var(--border,#E5E7EB); margin-left: 0; padding: 0; }
+    .avatar-wrap > .avatar > img { width: 100%; height: 100%; object-fit: cover; display: block; border: none; border-radius: 0; }
     .avatar-dd { position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,.10), 0 8px 10px -6px rgba(0,0,0,.05); min-width: 220px; z-index: 60; padding: 8px; display: none; }
     .avatar-dd.open { display: block; }
     .avatar-dd .dd-header { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
@@ -126,6 +126,21 @@
     .it-qty { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
     .it-qty button { width: 24px; height: 24px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; font-weight: 700; color: var(--text); font-size: 13px; }
     .it-qty input { width: 32px; text-align: center; border: none; background: transparent; font-weight: 700; font-size: 13px; color: var(--text); outline: none; }
+    /* Group B — not-yet-available (greyed, non-selectable) */
+    .group-heading { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin: 22px 0 10px; display: flex; align-items: center; gap: 6px; }
+    .item-row.locked { cursor: not-allowed; background: var(--card-subtle); border-style: dashed; }
+    .item-row.locked:hover { border-color: var(--border); background: var(--card-subtle); }
+    .item-row.locked .it-thumb, .item-row.locked .it-name, .item-row.locked .it-meta { opacity: .6; }
+    .item-row.locked .lock-note { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
+    .item-row.locked .lock-note i { color: var(--text-subtle); }
+    .item-row.locked .lock-badge { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; background: #F1F2F4; padding: 4px 8px; border-radius: 999px; }
+    /* Empty state for "no delivered" / "all cancelled" */
+    .returns-empty { border: 1.5px dashed var(--border); border-radius: 14px; padding: 28px 24px; text-align: center; background: var(--card-subtle); }
+    .returns-empty .ico { width: 56px; height: 56px; border-radius: 999px; background: #fff; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: var(--shadow-xs); }
+    .returns-empty h4 { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .returns-empty p { font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 460px; margin: 0 auto 14px; }
+    .returns-empty .next-line { font-size: 12px; color: var(--text); background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; margin: 0 auto 16px; }
+    .returns-empty .next-line strong { font-weight: 700; }
 
     /* Reason radio cards */
     .reason-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -316,8 +331,8 @@
           <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
         </button>
         <div class="avatar-wrap" id="avatarWrap">
-          <span class="avatar img-frame img-frame-sm" id="avatarSpan" style="display:inline-block; padding:0;">
-            <img class="avatar" id="avatarImg" style="margin-left:0; border:none;" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt="User" loading="eager"/>
+          <span class="avatar" id="avatarSpan">
+            <img id="avatarImg" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt="User" loading="eager"/>
           </span>
           <div class="avatar-dd" id="avatarDropdown">
             <div class="dd-header">
@@ -348,6 +363,46 @@
     </div>
   </div>
 </header>
+
+<script>
+(function initUserMenu(){
+  function init(){
+    const wrap = document.getElementById('avatarWrap');
+    if (!wrap) return;
+    const dd   = document.getElementById('avatarDropdown');
+    const span = document.getElementById('avatarSpan');
+    if (!dd || !span) return;
+
+    span.addEventListener('click', function(e){
+      e.stopPropagation();
+      dd.classList.toggle('open');
+    });
+    dd.addEventListener('click', function(e){ e.stopPropagation(); });
+    document.addEventListener('click', function(e){
+      if (!dd.contains(e.target) && !span.contains(e.target)) dd.classList.remove('open');
+    });
+
+    dd.querySelectorAll('.dd-item[data-nav]').forEach(function(it){
+      it.addEventListener('click', function(e){
+        e.stopPropagation();
+        window.location.href = it.dataset.nav;
+      });
+    });
+
+    const signOut = document.getElementById('signOutItem');
+    if (signOut) {
+      signOut.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (window.ZE && ZE.user && typeof ZE.user.signOut === 'function') ZE.user.signOut();
+        else localStorage.removeItem('ze_user_v1');
+        window.location.href = 'login_1.html';
+      });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 
 <main class="page-wrap">
 
@@ -399,21 +454,13 @@
       <section class="step-panel show" data-panel="1">
         <div class="card">
           <h3><i data-lucide="list-checks" class="w-4 h-4" style="color:var(--brand)"></i> Which items need attention?</h3>
-          <p class="sub">You can return some or all items on this order. For partial returns, specify quantity.</p>
+          <p class="sub" id="itemPickerSub">You can return some or all items on this order. For partial returns, specify quantity.</p>
 
-          <div class="item-row selected">
-            <input type="checkbox" checked/>
-            <div class="it-thumb img-frame"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20rhino%20zoo%20heavy?width=140&height=140&seed=109&nologo=true" alt=""/></div>
-            <div>
-              <div class="it-name">Mud-Wallow Liner Heavy-Gauge</div>
-              <div class="it-meta">Qty ordered: 1 · ₹94,200 · SKU: ENR-LNR-HG-12</div>
-            </div>
-            <div class="it-qty">
-              <button>−</button><input value="1"/><button>+</button>
-            </div>
-          </div>
+          <div id="itemPicker"></div>
+          <div id="emptyState" style="display:none;"></div>
 
-          <h3 style="margin-top:28px;"><i data-lucide="help-circle" class="w-4 h-4" style="color:var(--brand)"></i> Why are you returning it?</h3>
+          <div id="step1Continuation">
+          <h3 style="margin-top:28px;" id="reasonHeading"><i data-lucide="help-circle" class="w-4 h-4" style="color:var(--brand)"></i> Why are you returning it?</h3>
           <p class="sub">Custom products are not returnable for change-of-mind. Pick the reason that fits best.</p>
 
           <div class="reason-grid">
@@ -470,6 +517,7 @@
             <a href="orders_1_1.html" class="btn btn-ghost">Cancel</a>
             <button class="btn btn-primary" data-next="2">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
           </div>
+          </div><!-- /#step1Continuation -->
         </div>
       </section>
 
@@ -717,6 +765,274 @@
     document.querySelectorAll('.pickup-card').forEach(x => x.classList.remove('selected'));
     c.classList.add('selected');
   }));
+</script>
+<script>
+/* =========== Returns item-picker — gates lines by per-line delivery state ===========
+   Reads ?id= (default ORD-8815) and ?line=N to pre-select.
+   Splits items into:
+     A) Available to return  — status === 'delivered' (selectable)
+     B) Not yet available    — pending/in_progress/ready/shipped (greyed, disabled)
+     C) Cancelled            — hidden entirely
+   Empty states: no delivered (still on the way) | all cancelled.
+   Subscribes to ZE.on('orders:change', rerender). =========== */
+(function(){
+  // --- Per-order item config (page-level since these mock screens are not
+  //     hooked to the live order store yet). idx must align with the per-line
+  //     keys that the seeder writes into ze_line_fulfilment_v1.
+  const ITEMS_BY_ORDER = {
+    'ORD-8815': [
+      { name:'Mud-Wallow Liner Heavy-Gauge', sku:'ENR-LNR-HG-12', price:94200, qty:1,
+        img:'https://image.pollinations.ai/prompt/mud%20wallow%20liner%20rhino%20zoo%20heavy?width=140&height=140&seed=109&nologo=true' }
+    ],
+    'ORD-9999': [
+      // idx 0 — always cancelled across all 4 test states (hidden in Group C)
+      { name:'Browse Holder (vine)', sku:'ENR-BRW-VN-01', price:4800, qty:2,
+        img:'https://image.pollinations.ai/prompt/browse%20holder%20vine%20enclosure%20enrichment?width=140&height=140&seed=901&nologo=true' },
+      // idx 1 — Browse Holder, varies (delivered / shipped / cancelled by test)
+      { name:'Browse Holder (rope-mount)', sku:'ENR-BRW-RP-02', price:5200, qty:1,
+        img:'https://image.pollinations.ai/prompt/rope%20mounted%20browse%20holder%20zoo%20enrichment?width=140&height=140&seed=902&nologo=true' },
+      // idx 2 — Climbing Frame, varies (in_progress / delivered / cancelled by test)
+      { name:'Climbing Frame (oak)', sku:'ENR-CLM-OK-03', price:18400, qty:1,
+        img:'https://image.pollinations.ai/prompt/oak%20climbing%20frame%20primate%20enrichment?width=140&height=140&seed=903&nologo=true' }
+    ]
+  };
+
+  function fmtINR(n){
+    n = Math.round(Number(n)||0);
+    return '₹' + n.toLocaleString('en-IN');
+  }
+  function getQuery(){
+    try { return new URLSearchParams(window.location.search); } catch(e){ return new URLSearchParams(); }
+  }
+  function getOrderId(){
+    const q = getQuery();
+    return q.get('id') || 'ORD-8815';
+  }
+  function getDeepLinkLine(){
+    const q = getQuery();
+    const v = q.get('line');
+    if (v == null || v === '') return null;
+    const n = parseInt(v, 10);
+    return isNaN(n) ? null : n;
+  }
+  function getLineState(orderId, idx){
+    if (window.ZE && ZE.orders && ZE.orders.lineFulfilment) {
+      const all = ZE.orders.lineFulfilment.forOrder(orderId) || {};
+      const r = all[String(idx)];
+      if (r) return r;
+    }
+    return { status: 'delivered' }; // sensible default for ORD-8815 (already delivered)
+  }
+  function lineEtaCopy(orderId, idx, status){
+    // Pre-shipment (pending / in_progress / ready) — use shared helper.
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function') {
+      const t = ZE.orders.deriveLineEtaCopy(orderId, idx);
+      if (t) return t;
+    }
+    // Shipped — derive "Arriving today" / "Arriving Thu 7 May".
+    if (status === 'shipped') {
+      const lf = getLineState(orderId, idx);
+      if (lf && lf.eta) {
+        const eta = new Date(lf.eta);
+        if (!isNaN(eta.getTime())) {
+          const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          const MO  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const t0 = new Date(); t0.setHours(0,0,0,0);
+          const t1 = new Date(eta); t1.setHours(0,0,0,0);
+          const days = Math.round((t1.getTime() - t0.getTime()) / 86400000);
+          if (days <= 0) return 'Arriving today';
+          if (days === 1) return 'Arriving tomorrow';
+          return 'Arriving ' + DOW[t1.getDay()] + ' ' + t1.getDate() + ' ' + MO[t1.getMonth()];
+        }
+      }
+      return 'Shipped — arriving soon';
+    }
+    return 'In progress';
+  }
+  function nextDeliveryHint(orderId, items){
+    // Pick the in-flight line with the soonest ETA for the empty-state hint.
+    let best = null;
+    items.forEach((it, idx) => {
+      const lf = getLineState(orderId, idx);
+      if (!lf || lf.status === 'cancelled' || lf.status === 'delivered') return;
+      const etaT = lf.eta ? new Date(lf.eta).getTime() : Infinity;
+      if (!best || etaT < best.etaT) best = { idx, item: it, status: lf.status, etaT };
+    });
+    return best;
+  }
+  function buildItemRow(orderId, idx, item, opts){
+    opts = opts || {};
+    const locked = !!opts.locked;
+    const status = opts.status || 'delivered';
+    const note = locked ? lineEtaCopy(orderId, idx, status) : '';
+    const checkedAttr = (opts.preselect && !locked) ? ' checked' : '';
+    const selectedCls = (opts.preselect && !locked) ? ' selected' : '';
+    const lockedCls = locked ? ' locked' : '';
+    return (
+      '<div class="item-row' + lockedCls + selectedCls + '" data-line-idx="' + idx + '"' + (locked ? ' aria-disabled="true"' : '') + '>' +
+        (locked
+          ? '<span class="lock-badge">Not yet</span>'
+          : '<input type="checkbox" data-line-checkbox' + checkedAttr + '/>') +
+        '<div class="it-thumb img-frame"><img src="' + item.img + '" alt=""/></div>' +
+        '<div>' +
+          '<div class="it-name">' + item.name + '</div>' +
+          '<div class="it-meta">Qty ordered: ' + item.qty + ' · ' + fmtINR(item.price) + (item.sku ? ' · SKU: ' + item.sku : '') + '</div>' +
+          (locked ? '<div class="lock-note"><i data-lucide="clock" class="w-3 h-3"></i><span>Available for return after delivery · ' + note + '</span></div>' : '') +
+        '</div>' +
+        (locked
+          ? '<span></span>'
+          : '<div class="it-qty"><button type="button">−</button><input value="1"/><button type="button">+</button></div>') +
+      '</div>'
+    );
+  }
+  function buildEmptyAllCancelled(){
+    return (
+      '<div class="returns-empty">' +
+        '<div class="ico"><i data-lucide="ban" class="w-6 h-6"></i></div>' +
+        '<h4>Nothing to return on this order</h4>' +
+        '<p>This order was cancelled — there\'s nothing to return. The full amount has been refunded to your wallet.</p>' +
+        '<a href="wallet_1.html" class="btn btn-primary" style="text-decoration:none;"><i data-lucide="wallet" class="w-4 h-4"></i> View wallet</a>' +
+      '</div>'
+    );
+  }
+  function buildEmptyNoDelivered(orderId, items){
+    const next = nextDeliveryHint(orderId, items);
+    const nextHtml = next
+      ? '<div class="next-line"><i data-lucide="truck" class="w-4 h-4" style="color:var(--brand)"></i><span>Next delivery: <strong>' + next.item.name + '</strong> · ' + lineEtaCopy(orderId, next.idx, next.status) + '</span></div>'
+      : '';
+    return (
+      '<div class="returns-empty">' +
+        '<div class="ico"><i data-lucide="package" class="w-6 h-6"></i></div>' +
+        '<h4>No items available for return yet</h4>' +
+        '<p>Your order is still on its way. You can return items once they are delivered.</p>' +
+        nextHtml +
+        '<a href="order_detail_1.html?id=' + orderId + '" class="btn btn-outline" style="text-decoration:none;"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to order</a>' +
+      '</div>'
+    );
+  }
+
+  // Suppress duplicate toasts per render cycle.
+  let _warnedThisRender = false;
+  function maybeWarn(msg){
+    if (_warnedThisRender) return;
+    _warnedThisRender = true;
+    if (window.ZE && ZE.notify && typeof ZE.notify.toast === 'function') ZE.notify.toast(msg);
+    else if (window.console) console.warn(msg);
+  }
+
+  function renderPicker(){
+    _warnedThisRender = false;
+    const orderId = getOrderId();
+    const picker = document.getElementById('itemPicker');
+    const empty  = document.getElementById('emptyState');
+    const cont   = document.getElementById('step1Continuation');
+    const sub    = document.getElementById('itemPickerSub');
+    if (!picker || !empty || !cont || !sub) return;
+
+    const items = ITEMS_BY_ORDER[orderId] || ITEMS_BY_ORDER['ORD-8815'];
+    const deepLine = getDeepLinkLine();
+
+    // Group lines by status.
+    const groupA = []; // delivered
+    const groupB = []; // pending / in_progress / ready / shipped
+    let cancelledCount = 0;
+    items.forEach((item, idx) => {
+      const lf = getLineState(orderId, idx);
+      const status = (lf && lf.status) || 'delivered';
+      if (status === 'cancelled') { cancelledCount++; return; }
+      if (status === 'delivered') groupA.push({ idx, item, status });
+      else groupB.push({ idx, item, status });
+    });
+
+    // EMPTY STATES ----------------------------------------------------------
+    if (groupA.length === 0 && groupB.length === 0 && cancelledCount > 0) {
+      // All cancelled
+      picker.innerHTML = '';
+      empty.innerHTML = buildEmptyAllCancelled();
+      empty.style.display = '';
+      cont.style.display = 'none';
+      sub.style.display = 'none';
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+    if (groupA.length === 0) {
+      // No delivered yet (some in-flight, possibly some cancelled)
+      picker.innerHTML = '';
+      empty.innerHTML = buildEmptyNoDelivered(orderId, items);
+      empty.style.display = '';
+      cont.style.display = 'none';
+      sub.style.display = 'none';
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      // Deep-link warn — line points to a non-delivered line
+      if (deepLine != null) maybeWarn("That line isn't delivered yet");
+      return;
+    }
+
+    // NORMAL: Group A always rendered; Group B only if non-empty; Group C hidden.
+    empty.style.display = 'none';
+    cont.style.display = '';
+    sub.style.display = '';
+
+    // Decide pre-selection in Group A:
+    // - If deep-line points to a delivered line, select it (others unchecked).
+    // - If deep-line points to a non-delivered line, warn + default first delivered.
+    // - Otherwise default first delivered selected.
+    let preselectIdx = groupA[0].idx;
+    if (deepLine != null) {
+      const inA = groupA.find(r => r.idx === deepLine);
+      if (inA) preselectIdx = deepLine;
+      else maybeWarn("That line isn't delivered yet");
+    }
+
+    let html = '';
+    groupA.forEach(r => {
+      html += buildItemRow(orderId, r.idx, r.item, { locked: false, status: r.status, preselect: r.idx === preselectIdx });
+    });
+    if (groupB.length) {
+      html += '<div class="group-heading"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Not yet available</div>';
+      groupB.forEach(r => {
+        html += buildItemRow(orderId, r.idx, r.item, { locked: true, status: r.status });
+      });
+    }
+    picker.innerHTML = html;
+
+    // Wire up selection toggling on Group A rows. Group B rows are inert.
+    picker.querySelectorAll('.item-row:not(.locked)').forEach(row => {
+      row.addEventListener('click', e => {
+        // Don't toggle when clicking the qty stepper inputs/buttons.
+        if (e.target.closest('.it-qty')) return;
+        const cb = row.querySelector('[data-line-checkbox]');
+        const wasChecked = cb && cb.checked;
+        // Single-select within Group A (mirrors how the side summary expects 1 line).
+        picker.querySelectorAll('.item-row:not(.locked)').forEach(r => {
+          r.classList.remove('selected');
+          const c = r.querySelector('[data-line-checkbox]');
+          if (c) c.checked = false;
+        });
+        if (!wasChecked) {
+          row.classList.add('selected');
+          if (cb) cb.checked = true;
+        }
+      });
+    });
+
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+
+  function bind(){
+    if (window.ZE && typeof ZE.on === 'function') {
+      ZE.on('orders:change', renderPicker);
+    }
+  }
+
+  function start(){
+    renderPicker();
+    bind();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
 </script>
 <script>
 /* =========== Wallet pill renderer (shared inline) =========== */

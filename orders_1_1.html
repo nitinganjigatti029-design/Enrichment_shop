@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
@@ -350,6 +352,47 @@ function inINR(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
 function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
 
 function statusChip(s){ return `<span class="chip chip-${s}"><i data-lucide="${STATUS_ICON[s]}" class="w-3 h-3"></i> ${STATUS_LABEL[s]}</span>`; }
+// Derived-status helper. Tries ZE.orders.deriveStatus first; falls back to
+// legacy mock status when the order id isn't a real ZE order.
+function derivedChipFor(o){
+  try {
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+      const real = (ZE.orders.read && ZE.orders.read()) || [];
+      if (real.some(x => x.id === o.id)) {
+        const d = ZE.orders.deriveStatus(o.id);
+        if (d && d.label) {
+          // Map chipClass to existing chip-* status classes already defined locally.
+          const icon = ({ 'chip-pending':'hourglass','chip-confirmed':'check-circle','chip-shipped':'truck','chip-delivered':'check-check','chip-cancelled':'x' })[d.chipClass] || 'circle';
+          const html = `<span class="chip ${d.chipClass}"><i data-lucide="${icon}" class="w-3 h-3"></i> ${d.label}</span>`;
+          return { html, summary: d.summary || '' };
+        }
+      }
+    }
+  } catch(_){}
+  return { html: statusChip(o.status), summary: '' };
+}
+// Refund value (real orders only). Returns 0 otherwise.
+function cancelledRefundV1(o){
+  try {
+    if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment || !ZE.orders.read) return 0;
+    if (!ZE.orders.read().some(x => x.id === o.id)) return 0;
+    const lines = ZE.orders.lineFulfilment.forOrder(o.id) || {};
+    let sum = 0;
+    (o.items || []).forEach((it, idx) => {
+      const lf = lines[idx];
+      if (!lf || lf.status !== 'cancelled') return;
+      let unit = 0;
+      try {
+        const pid = (it && it.p && it.p.id) || it.productId;
+        const p = pid && window.DB && DB.byId ? DB.byId(DB.PRODUCTS, pid) : null;
+        if (p && p.price) unit = (Number(p.price.material)||0) + (Number(p.price.labor)||0);
+        else if (it.unit != null) unit = Number(it.unit) || 0;
+      } catch(_){}
+      sum += unit * (Number(it.qty)||0);
+    });
+    return Math.max(0, Math.round(sum));
+  } catch(_){ return 0; }
+}
 function priorityChip(p){ if(!p||p==='Normal') return ''; const cls = p==='Critical'?'critical':(p==='High'?'high':''); return `<span class="chip chip-priority ${cls}"><i data-lucide="alert-triangle" class="w-3 h-3"></i> ${p}</span>`; }
 function speciesChip(spId){ const s = SPECIES[spId]; if(!s) return ''; return `<span class="chip-species"><img class="sp-avatar" src="${s.img}" alt=""/>${s.name}</span>`; }
 
@@ -446,17 +489,27 @@ function renderCard(o){
     actions = `<button class="btn-sm btn-sm-ghost" data-stop><i data-lucide="repeat" class="w-4 h-4"></i> Reorder</button>`;
   }
 
+  const dc = derivedChipFor(o);
+  const summarySub = dc.summary
+    ? `<div class="oc-summary-sub" style="font-size:11.5px;color:var(--text-muted);margin-top:-4px;margin-bottom:8px;">${dc.summary}</div>`
+    : '';
+  const refundV1 = cancelledRefundV1(o);
+  const headlineTotalV1 = Math.max(0, (Number(o.total)||0) - refundV1);
+  const refundChipV1 = refundV1 > 0
+    ? `<span class="oc-refund-chip" style="display:inline-flex;align-items:center;padding:1px 7px;margin-left:6px;border-radius:999px;font-size:10.5px;font-weight:700;background:#FEE2E2;color:#B91C1C;vertical-align:middle;">−${inINR(refundV1)} refunded</span>`
+    : '';
   return `
     <article class="order-card" data-id="${o.id}">
       <div class="oc-top">
         <div class="oc-top-left">
-          ${statusChip(o.status)}
+          ${dc.html}
           ${priorityChip(o.priority)}
           ${speciesChip(o.species)}
         </div>
         <span class="oc-date"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${fmtDate(o.createdAt)}</span>
       </div>
       <div class="oc-idrow"><span class="oc-id">${o.id}</span></div>
+      ${summarySub}
 
       ${vendor ? `<div class="oc-vendor-row">
         <a class="sold-by" href="vendor_store_1.html" data-stop>
@@ -477,7 +530,7 @@ function renderCard(o){
       </div>
 
       <div class="oc-bottom">
-        <div class="oc-total"><span class="sub-label">Order total</span>${inINR(o.total)}</div>
+        <div class="oc-total"><span class="sub-label">Order total</span>${inINR(headlineTotalV1)}${refundChipV1}</div>
         <div class="oc-actions">${actions}</div>
       </div>
     </article>`;
@@ -525,6 +578,14 @@ document.querySelectorAll('#tabsRow button').forEach(b => b.addEventListener('cl
   state.tab = b.dataset.tab;
   render();
 }));
+
+// Re-render on ZE event changes so derived statuses + refund stay in sync
+// when line-fulfilment writes happen elsewhere on the site.
+if (window.ZE && typeof ZE.on === 'function') {
+  ZE.on('orders:change', render);
+  ZE.on('wallet:change', render);
+  ZE.on('user:change',   render);
+}
 
 render();
 </script>

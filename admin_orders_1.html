@@ -7,8 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260430g"></script>
-  <script src="app.js?v=20260430g"></script>
+  <script src="data.js?v=20260504c"></script>
+  <script src="app.js?v=20260504c"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -156,6 +156,7 @@
 
     .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
     .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-pending          { background: #F1F2F4;           color: #6B7280; }
     .chip-quoted           { background: #E0F2FE;           color: #0369A1; }
     .chip-queued           { background: #FEF3C7;           color: #A16207; }
     .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
@@ -234,6 +235,8 @@
     .orders-table tbody td { padding: 14px; vertical-align: middle; background: var(--card); }
     .orders-table tbody td.right { text-align: right; }
     .orders-table tbody td.col-id { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+    .orders-table tbody td.col-id .id-main { display: block; line-height: 1.2; }
+    .orders-table tbody td.col-id .id-summary { display: block; font-family: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-top: 3px; letter-spacing: 0; text-transform: none; line-height: 1.2; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .buyer-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .buyer-cell .av { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; border: 1.5px solid var(--border); flex-shrink: 0; }
@@ -1292,6 +1295,25 @@ const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',m
 const escapeHtml = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function relTime(iso){ const t=new Date(iso).getTime(); const d=Date.now()-t; const m=Math.floor(d/60000); if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; const dd=Math.floor(h/24); if(dd===1) return 'yesterday'; if(dd<7) return dd+'d ago'; if(dd<30) return Math.floor(dd/7)+'wk ago'; return Math.floor(dd/30)+'mo ago'; }
 function chipStatus(st){ return `<span class="chip chip-${st}"><i data-lucide="${STATUS_ICON[st]}" class="w-3 h-3"></i> ${STATUS[st]}</span>`; }
+/* Derived status pill — uses ZE.orders.deriveStatus when available, falls back to legacy chipStatus.
+   Returns just the chip span; summary is rendered separately in the col-id cell. */
+function chipDerivedStatus(o){
+  if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+    try {
+      const d = ZE.orders.deriveStatus(o) || {};
+      const cls = d.chipClass || 'chip-pending';
+      const lbl = d.label || '—';
+      return `<span class="chip ${cls}">${escapeHtml(lbl)}</span>`;
+    } catch (e) {}
+  }
+  return chipStatus(o.status);
+}
+function deriveSummaryFor(o){
+  if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+    try { return (ZE.orders.deriveStatus(o) || {}).summary || ''; } catch (e) {}
+  }
+  return '';
+}
 function buyerChip(b){ return `<div class="buyer-chip"><img class="buyer-av" src="https://image.pollinations.ai/prompt/professional%20zoo%20staff%20portrait%20headshot%20smile?width=80&height=80&seed=${b.seed}&nologo=true" alt=""/><div><div class="buyer-nm">${b.nm}</div><div class="buyer-zoo">${b.zoo}</div></div></div>`; }
 
 function contextRow(o){
@@ -1322,7 +1344,7 @@ function actions(o){
   if (o.status === 'in_production') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="package-check" class="w-4 h-4"></i> Mark ready to ship</button><button class="btn-sm btn-ghost" data-stop><i data-lucide="pencil" class="w-4 h-4"></i> Update ETA</button>`;
   if (o.status === 'packed') return `${chatBtn}<button class="btn-sm btn-warn" data-stop><i data-lucide="printer" class="w-4 h-4"></i> Generate label</button><button class="btn-sm btn-primary" data-stop><i data-lucide="truck" class="w-4 h-4"></i> Mark shipped</button>`;
   if (o.status === 'shipped' || o.status === 'out_for_delivery') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="map-pin" class="w-4 h-4"></i> Track</button><button class="btn-sm btn-ghost" data-stop><i data-lucide="pencil" class="w-4 h-4"></i> Update tracking</button>`;
-  if (o.status === 'delivered') { const inv = o.invoiced?`<button class="btn-sm btn-ghost" data-stop><i data-lucide="download" class="w-4 h-4"></i> Invoice</button>`:`<button class="btn-sm btn-primary" data-stop><i data-lucide="file-text" class="w-4 h-4"></i> Mark invoiced</button>`; return `${chatBtn}${inv}<button class="btn-sm btn-ghost" data-stop><i data-lucide="star" class="w-4 h-4"></i> Request review</button>`; }
+  if (o.status === 'delivered') { const inv = o.invoiced?`<button class="btn-sm btn-ghost" data-stop><i data-lucide="download" class="w-4 h-4"></i> Invoice</button>`:`<button class="btn-sm btn-primary" data-stop><i data-lucide="file-text" class="w-4 h-4"></i> Mark invoiced</button>`; return `${chatBtn}${inv}`; }
   if (o.status === 'cancelled') return `${chatBtn}<button class="btn-sm btn-ghost" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View reason</button>`;
   if (o.status === 'returned')  return `${chatBtn}<a href="admin_returns_1.html" class="btn-sm btn-primary" data-stop><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Manage return</a>`;
   return chatBtn;
@@ -1489,10 +1511,14 @@ function renderCard(o){
     ${skuCount>1?`<div class="sub">${skuCount} SKUs</div>`:''}
   </div>`;
 
-  const pillsHtml = `<div class="pill-stack">${chipStatus(o.status)}${lineFulfilTags(o)}</div>`;
+  const pillsHtml = `<div class="pill-stack">${chipDerivedStatus(o)}${lineFulfilTags(o)}</div>`;
+  const summaryStr = deriveSummaryFor(o);
+  const idCellHtml = summaryStr
+    ? `<span class="id-main">${o.id}</span><span class="id-summary" title="${escapeHtml(summaryStr)}">${escapeHtml(summaryStr)}</span>`
+    : `<span class="id-main">${o.id}</span>`;
 
   const mainRow = `<tr class="orow" data-id="${o.id}" tabindex="0">
-    <td class="col-id">${o.id}</td>
+    <td class="col-id">${idCellHtml}</td>
     <td class="col-buyer">${buyerCell(b)}</td>
     <td class="col-site">${siteCell(b)}</td>
     <td class="col-items right">${itemCellHtml}</td>
@@ -1822,11 +1848,13 @@ render();
 (function(){
   if (!window.ZE || typeof ZE.on !== 'function') return;
   let pending = false;
-  ZE.on('orders:change', function(){
+  function schedule(){
     if (pending) return;
     pending = true;
     requestAnimationFrame(function(){ pending = false; render(); });
-  });
+  }
+  ZE.on('orders:change', schedule);
+  ZE.on('wallet:change', schedule);
 })();
 
 /* =========== Unified header: mobile drawer + avatar menu =========== */

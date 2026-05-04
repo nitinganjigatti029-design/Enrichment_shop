@@ -82,7 +82,8 @@
       "Bash(grep -nA3 \"pendingCardHtml\\\\|cardHtml.*pending\\\\|status===.pending\\\\|approvalStatus===.pending\" approvals_1.html)",
       "Bash(sed -n '590,615p' approvals_1.html)",
       "Bash(sed -n '775,815p' approvals_1.html)",
-      "Bash(ps -o command= -p 4799)"
+      "Bash(ps -o command= -p 4799)",
+      "Bash(claude plugin *)"
     ]
   }
 }
