@@ -821,6 +821,229 @@
         ]
       },
       source:'demo'
+    },
+
+    /* ----- Byculla Zoo (site_mum) — for wallet transaction history ----- */
+    { id:'ORD-M001', createdAt:'2026-04-28T10:30:00+05:30', createdBy:'u_patel', species:'sp_chimp', speciesId:'sp_chimp',
+      siteId:'site_mum', enclosureId:'enc_mum_1',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop', vendorResponse:null,
+      items:[
+        { productId:'prod_001', qty:4, config:{ size:'L', scent:'Catnip' } },
+        { productId:'prod_009', qty:2, config:{ size:'M' } }
+      ],
+      subtotal: 120*4 + 200*2, shippingMethod:'Standard', shippingFee:120, total: 1000,
+      status:'placed', priority:'Normal', notes:'Primate enrichment refresh.',
+      shippingAddress:{ name:'Dr. R. Patel', site:'Byculla Zoo', line1:'Lal Bahadur Shastri Rd', line2:'Byculla East', city:'Mumbai', state:'Maharashtra', pincode:'400027', phone:'+91 98211 00998' },
+      tracking:{ carrier:null, number:null, url:null, eta:'2026-05-04T18:00:00+05:30', events:[
+        { status:'placed', at:'2026-04-28T10:30:00+05:30', location:'Online', note:'Order placed' }
+      ]},
+      source:'demo'
+    },
+    { id:'ORD-M002', createdAt:'2026-04-20T14:10:00+05:30', createdBy:'u_patel', species:'sp_pengu', speciesId:'sp_pengu',
+      siteId:'site_mum', enclosureId:'enc_mum_2',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', vendorResponse:null,
+      items:[
+        { productId:'prod_013', qty:8 },
+        { productId:'prod_016', qty:1 }
+      ],
+      subtotal: 100*8 + 320*1, shippingMethod:'Express', shippingFee:200, total: 1320,
+      status:'shipped', priority:'High', notes:'Penguin foraging top-up — cold chain not required.',
+      shippingAddress:{ name:'Dr. R. Patel', site:'Byculla Zoo', line1:'Lal Bahadur Shastri Rd', line2:'Byculla East', city:'Mumbai', state:'Maharashtra', pincode:'400027', phone:'+91 98211 00998' },
+      tracking:{ carrier:'Blue Dart', number:'BD22119987', url:null, eta:'2026-05-02T18:00:00+05:30', events:[
+        { status:'placed',    at:'2026-04-20T14:10:00+05:30', location:'Online',  note:'Order placed' },
+        { status:'confirmed', at:'2026-04-20T16:55:00+05:30', location:'Chennai', note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-21T11:30:00+05:30', location:'Chennai', note:'Packed and ready to ship' },
+        { status:'shipped',   at:'2026-04-22T09:15:00+05:30', location:'Chennai', note:'Picked up by Blue Dart' }
+      ]},
+      source:'demo'
+    },
+    { id:'ORD-M003', createdAt:'2026-04-10T09:45:00+05:30', createdBy:'u_patel', species:'sp_orang', speciesId:'sp_orang',
+      siteId:'site_mum', enclosureId:'enc_mum_3',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', vendorResponse:null,
+      items:[
+        { productId:'prod_011', qty:3 },
+        { productId:'prod_017', qty:2 }
+      ],
+      subtotal: 240*3 + 150*2, shippingMethod:'Standard', shippingFee:120, total: 1140,
+      status:'delivered', priority:'Normal', notes:'',
+      shippingAddress:{ name:'Dr. R. Patel', site:'Byculla Zoo', line1:'Lal Bahadur Shastri Rd', line2:'Byculla East', city:'Mumbai', state:'Maharashtra', pincode:'400027', phone:'+91 98211 00998' },
+      tracking:{ carrier:'Delhivery', number:'DL3344115', url:null, eta:null, events:[
+        { status:'placed',    at:'2026-04-10T09:45:00+05:30', location:'Online',  note:'Order placed' },
+        { status:'confirmed', at:'2026-04-10T13:20:00+05:30', location:'Chennai', note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-11T10:10:00+05:30', location:'Chennai', note:'Packed and ready to ship' },
+        { status:'shipped',   at:'2026-04-11T17:25:00+05:30', location:'Chennai', note:'Picked up by Delhivery' },
+        { status:'delivered', at:'2026-04-14T11:50:00+05:30', location:'Mumbai',  note:'Delivered to receiver' }
+      ]},
+      source:'demo'
+    },
+    { id:'ORD-M004', createdAt:'2026-04-02T16:20:00+05:30', createdBy:'u_patel', species:'sp_macaw', speciesId:'sp_macaw',
+      siteId:'site_mum', enclosureId:'enc_mum_4',
+      requiresApproval:true, approvalStatus:'rejected', approverId:'u_singh', approvedAt:null, rejectReason:'Re-scope to next quarter',
+      vendorId:'ven_acme', vendorResponse:null,
+      items:[
+        { productId:'prod_017', qty:4 }
+      ],
+      subtotal: 150*4, shippingMethod:'Standard', shippingFee:80, total: 680,
+      status:'cancelled', priority:'Normal', notes:'Approval rejected — Re-scope to next quarter.',
+      shippingAddress:{ name:'Dr. R. Patel', site:'Byculla Zoo', line1:'Lal Bahadur Shastri Rd', line2:'Byculla East', city:'Mumbai', state:'Maharashtra', pincode:'400027', phone:'+91 98211 00998' },
+      tracking:{ carrier:null, number:null, url:null, eta:null, events:[
+        { status:'pending_approval', at:'2026-04-02T16:20:00+05:30', location:'Online', note:'Awaiting senior approval' },
+        { status:'cancelled',        at:'2026-04-03T09:30:00+05:30', location:'Online', note:'Approval rejected: Re-scope to next quarter' }
+      ]},
+      source:'demo'
+    }
+  ];
+
+  /* ============================================================
+     ZooEnrich V2 — single-product-per-order model
+     One product SKU + qty = one order. Different configs of the same product
+     split into separate orders. No multi-line orders. No partial-ship.
+     No per-line cancel/reject. Approval is per-product (no order-ID surfacing).
+     This block is ADDITIVE — DEMO_ORDERS above stays untouched so the v1
+     prototype keeps working. Pages under /v2/ read from DEMO_ORDERS_V2.
+     ============================================================ */
+  const DEMO_ORDERS_V2 = [
+    /* Pending approval — junior placed, senior to act */
+    { id:'V2-J201', createdAt:'2026-05-04T11:30:00+05:30', createdBy:'u_joshi', siteId:'site_hyd', enclosureId:'enc_hyd_1', speciesId:'sp_tiger',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop', productId:'prod_001', qty:6, config:{ size:'L', scent:'Catnip' },
+      unitPrice:120, subtotal:720, shippingMethod:'Standard', shippingFee:80, total:800,
+      status:'pending_approval', priority:'Normal', notes:'Big-cat enclosure rotation refresh.',
+      shippingAddress:{ name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889' },
+      tracking:{ carrier:null, number:null, url:null, eta:null, events:[ { status:'pending_approval', at:'2026-05-04T11:30:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' } ] },
+      source:'demo'
+    },
+    { id:'V2-J202', createdAt:'2026-05-04T11:30:00+05:30', createdBy:'u_joshi', siteId:'site_hyd', enclosureId:'enc_hyd_2', speciesId:'sp_orang',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_009', qty:4, config:{ size:'L' },
+      unitPrice:200, subtotal:800, shippingMethod:'Express', shippingFee:200, total:1000,
+      status:'pending_approval', priority:'High', notes:'Primate puzzle feeders — current set damaged.',
+      shippingAddress:{ name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889' },
+      tracking:{ carrier:null, number:null, url:null, eta:null, events:[ { status:'pending_approval', at:'2026-05-04T11:30:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' } ] },
+      source:'demo'
+    },
+    { id:'V2-J203', createdAt:'2026-05-04T11:30:00+05:30', createdBy:'u_joshi', siteId:'site_hyd', enclosureId:'enc_hyd_3', speciesId:'sp_macaw',
+      requiresApproval:true, approvalStatus:'pending', approverId:'u_kumar', approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_013', qty:6,
+      unitPrice:100, subtotal:600, shippingMethod:'Standard', shippingFee:80, total:680,
+      status:'pending_approval', priority:'Normal', notes:'Avian foraging blocks — top up.',
+      shippingAddress:{ name:'A. Joshi', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98406 77889' },
+      tracking:{ carrier:null, number:null, url:null, eta:null, events:[ { status:'pending_approval', at:'2026-05-04T11:30:00+05:30', location:'Online', note:'Awaiting approval from S. Kumar' } ] },
+      source:'demo'
+    },
+
+    /* Placed — admin to accept */
+    { id:'V2-D101', createdAt:'2026-05-03T09:15:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_1', speciesId:'sp_tiger',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop', productId:'prod_001', qty:3, config:{ size:'L', scent:'Catnip' },
+      unitPrice:120, subtotal:360, shippingMethod:'Standard', shippingFee:80, total:440,
+      status:'placed', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:null, number:null, url:null, eta:'2026-05-09T18:00:00+05:30', events:[ { status:'placed', at:'2026-05-03T09:15:00+05:30', location:'Online', note:'Order placed' } ] },
+      source:'demo'
+    },
+    { id:'V2-D102', createdAt:'2026-05-03T09:15:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_2', speciesId:'sp_orang',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_011', qty:2,
+      unitPrice:240, subtotal:480, shippingMethod:'Standard', shippingFee:80, total:560,
+      status:'placed', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:null, number:null, url:null, eta:'2026-05-09T18:00:00+05:30', events:[ { status:'placed', at:'2026-05-03T09:15:00+05:30', location:'Online', note:'Order placed' } ] },
+      source:'demo'
+    },
+
+    /* Confirmed — admin accepted */
+    { id:'V2-D103', createdAt:'2026-05-01T14:20:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_1', speciesId:'sp_lion',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop', productId:'prod_016', qty:1,
+      unitPrice:320, subtotal:320, shippingMethod:'Standard', shippingFee:80, total:400,
+      status:'confirmed', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:null, number:null, url:null, eta:'2026-05-08T18:00:00+05:30', events:[
+        { status:'placed',    at:'2026-05-01T14:20:00+05:30', location:'Online',    note:'Order placed' },
+        { status:'confirmed', at:'2026-05-01T17:05:00+05:30', location:'Hyderabad', note:'Seller has confirmed your order' }
+      ] },
+      source:'demo'
+    },
+
+    /* Packed */
+    { id:'V2-D104', createdAt:'2026-04-28T10:00:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_3', speciesId:'sp_macaw',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_013', qty:8,
+      unitPrice:100, subtotal:800, shippingMethod:'Standard', shippingFee:80, total:880,
+      status:'packed', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:null, number:null, url:null, eta:'2026-05-06T18:00:00+05:30', events:[
+        { status:'placed',    at:'2026-04-28T10:00:00+05:30', location:'Online',    note:'Order placed' },
+        { status:'confirmed', at:'2026-04-28T13:40:00+05:30', location:'Chennai',   note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-30T09:50:00+05:30', location:'Chennai',   note:'Packed and ready to ship' }
+      ] },
+      source:'demo'
+    },
+
+    /* Shipped — in transit */
+    { id:'V2-D105', createdAt:'2026-04-25T11:30:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_1', speciesId:'sp_tiger',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_natureloop', productId:'prod_001', qty:5, config:{ size:'M', scent:'Catnip' },
+      unitPrice:120, subtotal:600, shippingMethod:'Express', shippingFee:200, total:800,
+      status:'shipped', priority:'High', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:'Blue Dart', number:'BD2200447', url:null, eta:'2026-05-05T18:00:00+05:30', events:[
+        { status:'placed',    at:'2026-04-25T11:30:00+05:30', location:'Online',    note:'Order placed' },
+        { status:'confirmed', at:'2026-04-25T14:05:00+05:30', location:'Hyderabad', note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-26T10:00:00+05:30', location:'Hyderabad', note:'Packed and ready to ship' },
+        { status:'shipped',   at:'2026-04-26T17:30:00+05:30', location:'Hyderabad', note:'Picked up by Blue Dart' }
+      ] },
+      source:'demo'
+    },
+
+    /* Delivered */
+    { id:'V2-D106', createdAt:'2026-04-15T09:30:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_2', speciesId:'sp_orang',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_009', qty:2, config:{ size:'L' },
+      unitPrice:200, subtotal:400, shippingMethod:'Standard', shippingFee:80, total:480,
+      status:'delivered', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:'Delhivery', number:'DL3318822', url:null, eta:null, events:[
+        { status:'placed',    at:'2026-04-15T09:30:00+05:30', location:'Online',    note:'Order placed' },
+        { status:'confirmed', at:'2026-04-15T11:55:00+05:30', location:'Chennai',   note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-16T08:40:00+05:30', location:'Chennai',   note:'Packed and ready to ship' },
+        { status:'shipped',   at:'2026-04-16T17:15:00+05:30', location:'Chennai',   note:'Picked up by Delhivery' },
+        { status:'delivered', at:'2026-04-19T13:20:00+05:30', location:'Hyderabad', note:'Delivered to receiver' }
+      ] },
+      source:'demo'
+    },
+    { id:'V2-D107', createdAt:'2026-04-10T10:00:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_3', speciesId:'sp_macaw',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:null,
+      vendorId:'ven_biocraft', productId:'prod_017', qty:3,
+      unitPrice:150, subtotal:450, shippingMethod:'Standard', shippingFee:80, total:530,
+      status:'delivered', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:'Blue Dart', number:'BD2188110', url:null, eta:null, events:[
+        { status:'placed',    at:'2026-04-10T10:00:00+05:30', location:'Online',    note:'Order placed' },
+        { status:'confirmed', at:'2026-04-10T13:25:00+05:30', location:'Chennai',   note:'Seller has confirmed your order' },
+        { status:'packed',    at:'2026-04-11T09:30:00+05:30', location:'Chennai',   note:'Packed and ready to ship' },
+        { status:'shipped',   at:'2026-04-11T16:50:00+05:30', location:'Chennai',   note:'Picked up by Blue Dart' },
+        { status:'delivered', at:'2026-04-14T11:10:00+05:30', location:'Hyderabad', note:'Delivered to receiver' }
+      ] },
+      source:'demo'
+    },
+
+    /* Cancelled (whole order — only cancel mode in v2) */
+    { id:'V2-D108', createdAt:'2026-04-05T15:20:00+05:30', createdBy:'u_kumar', siteId:'site_hyd', enclosureId:'enc_hyd_1', speciesId:'sp_lion',
+      requiresApproval:false, approvalStatus:null, approverId:null, approvedAt:null, rejectReason:'No longer needed — alternate sourced locally',
+      vendorId:'ven_natureloop', productId:'prod_016', qty:2,
+      unitPrice:320, subtotal:640, shippingMethod:'Standard', shippingFee:80, total:720,
+      status:'cancelled', priority:'Normal', notes:'',
+      shippingAddress:{ name:'S. Kumar', site:'Nehru Zoological Park', line1:'Bahadurpura Road', line2:'Near Mir Alam Tank', city:'Hyderabad', state:'Telangana', pincode:'500064', phone:'+91 98400 55667' },
+      tracking:{ carrier:null, number:null, url:null, eta:null, events:[
+        { status:'placed',    at:'2026-04-05T15:20:00+05:30', location:'Online', note:'Order placed' },
+        { status:'cancelled', at:'2026-04-05T18:40:00+05:30', location:'Online', note:'Cancelled by buyer' }
+      ] },
+      source:'demo'
     }
   ];
 
@@ -913,5 +1136,5 @@
     return bank;
   };
 
-  window.DB = { SPECIES, TAGS, CATEGORIES, ATTRIBUTES, categoryAttributeSchema, USERS, VENDORS, PRODUCTS, REVIEWS, PENDING, DEMO_ORDERS, CARRIERS, SCREENS, SITES, ENCLOSURES, SITE_BUDGETS, FY_LABEL, FY_START, FY_END, byId, fmtINR, orderTotal, orderItemCount, img, galleryFor, filterBankForProducts, vendorLogo, vendorCover, reviewsForProduct, productRating, enclosuresForSite, enclosuresForSpecies, enclosuresForSiteAndSpecies, subordinatesOf, isApprover };
+  window.DB = { SPECIES, TAGS, CATEGORIES, ATTRIBUTES, categoryAttributeSchema, USERS, VENDORS, PRODUCTS, REVIEWS, PENDING, DEMO_ORDERS, DEMO_ORDERS_V2, CARRIERS, SCREENS, SITES, ENCLOSURES, SITE_BUDGETS, FY_LABEL, FY_START, FY_END, byId, fmtINR, orderTotal, orderItemCount, img, galleryFor, filterBankForProducts, vendorLogo, vendorCover, reviewsForProduct, productRating, enclosuresForSite, enclosuresForSpecies, enclosuresForSiteAndSpecies, subordinatesOf, isApprover };
 })();

@@ -1,0 +1,2225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Checkout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+
+    /* =========== Header (cloned from index_1.html) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+
+    .search-pill { flex: 1; max-width: 560px; height: 48px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--text-muted); transition: .15s; border: 1.5px solid transparent; }
+    .search-pill:focus-within { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.12); }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { background: #fff; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; transition: .15s; background: transparent; border: none; position: relative; min-width: 64px; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+
+    /* =========== Breadcrumb =========== */
+    .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); padding: 20px 0 4px; }
+    .crumbs a { color: var(--text-muted); transition: .15s; }
+    .crumbs a:hover { color: var(--brand); }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .current { color: var(--text); font-weight: 600; }
+
+    /* =========== Page heading =========== */
+    .page-head { padding: 8px 0 20px; }
+    .page-head h1 { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.1; margin-bottom: 6px; }
+    .page-head .sub { font-size: 14px; color: var(--text-muted); }
+
+    /* =========== Approval notice =========== */
+    .approval-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #FFF9DB;
+      border-left: 3px solid #E4B819;
+      color: #6D4B00;
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .approval-notice .an-ico {
+      flex-shrink: 0;
+      color: #E4B819;
+      margin-top: 1px;
+    }
+    .approval-notice .an-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #6D4B00;
+      margin-bottom: 3px;
+    }
+    .approval-notice .an-body { color: #6D4B00; }
+    .approval-notice strong { color: #6D4B00; font-weight: 700; }
+
+    /* =========== Two-column layout =========== */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 28px;
+      padding-bottom: 60px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .checkout-grid { grid-template-columns: 1fr; }
+      .summary-col { position: static !important; }
+    }
+    .forms-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .summary-col { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* =========== Cards =========== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-xs);
+    }
+    .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .card-head .ico { width: 32px; height: 32px; border-radius: 10px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-head h2 { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.005em; }
+    .card-head .hint { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+    /* =========== Form fields =========== */
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field-grid .full { grid-column: 1 / -1; }
+    @media (max-width: 620px) { .field-grid { grid-template-columns: 1fr; } .field-grid .full { grid-column: auto; } }
+
+    /* =========== Searchable popover dropdown =========== */
+    .ez-dd { position: relative; }
+    .ez-dd-btn { width: 100%; height: 42px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fff; cursor: pointer; text-align: left; font-size: 14px; color: var(--text); font-family: inherit; }
+    .ez-dd-btn:focus-visible { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .ez-dd-btn.placeholder { color: var(--text-muted); }
+    .ez-dd-btn .caret { color: var(--text-muted); transition: transform .15s; flex-shrink: 0; }
+    .ez-dd.open .ez-dd-btn { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .ez-dd.open .caret { transform: rotate(180deg); }
+    .ez-dd.has-err .ez-dd-btn { border-color: var(--danger); }
+    .ez-dd-label-main { display: inline-flex; flex-direction: column; min-width: 0; text-align: left; line-height: 1.15; }
+    .ez-dd-label-main .m { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ez-dd-label-main .s { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ez-dd-pop { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 50; display: none; max-height: 300px; overflow: hidden; flex-direction: column; }
+    .ez-dd.open .ez-dd-pop { display: flex; }
+    .ez-dd-search { position: sticky; top: 0; background: #fff; padding: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+    .ez-dd-search i { color: var(--text-muted); flex-shrink: 0; }
+    .ez-dd-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; color: var(--text); font-family: inherit; height: 28px; }
+    .ez-dd-list { overflow-y: auto; padding: 4px; }
+    .ez-dd-row { padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text); display: flex; flex-direction: column; gap: 1px; }
+    .ez-dd-row .sub { color: var(--text-muted); font-size: 11px; }
+    .ez-dd-row:hover { background: #F4F5F7; }
+    .ez-dd-row.selected { background: var(--brand-soft); color: var(--brand-hover); }
+    .ez-dd-row.selected .sub { color: var(--brand-hover); opacity: .8; }
+    .ez-dd-empty { padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .field label .req { color: var(--danger); margin-left: 2px; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: .15s ease;
+      font-family: inherit;
+    }
+    .field select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2391969E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 38px;
+      cursor: pointer;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(55,189,105,.15);
+    }
+    .field input.err, .field textarea.err, .field select.err {
+      border-color: var(--danger);
+      background: var(--danger-bg);
+    }
+    .field .err-msg {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+    .field.has-err .err-msg { display: inline-flex; }
+    .field textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+    .field .helper {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .field .site-address {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #F9FAFB;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.4;
+    }
+    .field .site-address .ship-ico { flex-shrink: 0; color: var(--text-muted); margin-top: 2px; }
+    .char-count { font-size: 11px; color: var(--text-subtle); text-align: right; margin-top: 4px; }
+
+    /* =========== Wallet check card =========== */
+    .wallet-check .wc-site {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+    .wallet-check .wc-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .wallet-check .wc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #F9FAFB;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .wallet-check .wc-row.highlight {
+      background: var(--brand-soft);
+      border-color: rgba(55,189,105,.25);
+    }
+    .wallet-check .wc-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .wallet-check .wc-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .wallet-check .wc-row.highlight .wc-value { color: var(--brand); }
+    .wallet-check .wc-row.danger { background: var(--danger-bg); border-color: rgba(220,69,69,.25); }
+    .wallet-check .wc-row.danger .wc-value { color: var(--danger); }
+    .wallet-check .wc-status {
+      margin-top: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      width: 100%;
+      justify-content: center;
+    }
+    .wallet-check .wc-status.ok {
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .wallet-check .wc-status.warn {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+    .wallet-check .wc-topup-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1.5px solid var(--brand);
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: .15s;
+    }
+    .wallet-check .wc-topup-btn:hover { background: var(--brand-soft); }
+
+    /* =========== Order summary =========== */
+    .vendor-group { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .vendor-head {
+      display: flex; align-items: center; gap: 10px;
+      background: #F9FAFB;
+      padding: 8px 12px;
+      border-radius: 10px 10px 0 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .vendor-head .v-logo { width: 24px; height: 24px; border-radius: 6px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
+    .vendor-head .v-meta { min-width: 0; flex: 1; }
+    .vendor-head .v-name { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -0.005em; line-height: 1.2; }
+    .vendor-head .v-tag  { font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vendor-body { padding: 4px 12px 10px; }
+    .vendor-subtotal {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 600; color: var(--text);
+      padding: 8px 0 2px; border-top: 1px dashed var(--border); margin-top: 4px;
+    }
+    .vendor-subtotal .label { color: var(--text-muted); }
+
+    .multi-vendor-banner {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: var(--brand-soft); color: var(--text);
+      border: 1px solid rgba(55,189,105,.25);
+      padding: 10px 12px; border-radius: 10px;
+      font-size: 12px; line-height: 1.4;
+      margin-top: 12px;
+    }
+    .multi-vendor-banner .b-ico { color: var(--brand); flex-shrink: 0; margin-top: 1px; }
+
+    /* =========== Line-item chips =========== */
+    .line-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .species-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .enc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #F1F2F4;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .line-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 4px;
+      line-height: 1.35;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* =========== Avatar dropdown =========== */
+    .avatar-wrap { position: relative; margin-left: 8px; }
+    .avatar-wrap .avatar { margin-left: 0; }
+    .avatar-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 200px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg, 0 10px 30px -8px rgba(0,0,0,.15));
+      padding: 6px;
+      z-index: 80;
+      display: none;
+    }
+    .avatar-menu.open { display: block; }
+    .avatar-menu .menu-head { padding: 8px 10px 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .avatar-menu .menu-head .nm { font-size: 13px; font-weight: 700; color: var(--text); }
+    .avatar-menu .menu-head .em { font-size: 11px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .avatar-menu button {
+      display: flex; align-items: center; gap: 8px; width: 100%;
+      padding: 8px 10px; border-radius: 8px; background: transparent; border: none;
+      font-size: 13px; color: var(--text); cursor: pointer; text-align: left;
+    }
+    .avatar-menu button:hover { background: #F1F2F4; }
+    .avatar-menu .sep-line { height: 1px; background: var(--border); margin: 4px 0; }
+
+    .signin-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      margin-left: 8px;
+      transition: .15s;
+    }
+    .signin-pill:hover { background: var(--brand-hover); }
+
+    .sum-line { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .sum-line:last-of-type { border-bottom: none; }
+    .sum-line .thumb { width: 64px; height: 64px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .sum-line .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sum-line .mid { flex: 1; min-width: 0; }
+    .sum-line .name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .sum-line .qtyprice { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .sum-line .line-total { font-size: 14px; font-weight: 700; color: var(--text); text-align: right; white-space: nowrap; margin-left: 8px; }
+
+    .sum-divider { height: 1px; background: var(--border); margin: 8px 0; }
+    .sum-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text); padding: 6px 0; }
+    .sum-row .label-muted { color: var(--text-muted); }
+    .sum-row.total { font-size: 18px; font-weight: 700; padding-top: 12px; margin-top: 4px; border-top: 1px dashed var(--border); }
+
+    .place-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 15px 20px;
+      border-radius: 12px;
+      background: var(--brand);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: .15s ease;
+      box-shadow: 0 6px 16px -6px rgba(55,189,105,.55);
+    }
+    .place-btn:hover:not(:disabled) { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 10px 20px -8px rgba(55,189,105,.55); }
+    .place-btn:active:not(:disabled) { transform: scale(.98); }
+    .place-btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+    /* Wallet-block enforcement: keeps brand colour but desaturated, no hover */
+    .place-btn.po-blocked,
+    .place-btn.po-blocked:hover,
+    .place-btn.po-blocked:active {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      filter: grayscale(0.25);
+      background: var(--brand);
+    }
+
+    .place-help { font-size: 11px; color: var(--text-subtle); text-align: center; margin-top: 10px; line-height: 1.5; display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
+
+    /* Compact warning ribbon shown only when funds are insufficient */
+    .po-warn-ribbon {
+      background: #FEE2E2;
+      color: #B91C1C;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.4;
+    }
+    .po-warn-ribbon .po-warn-ico { flex-shrink: 0; }
+
+    /* Inline secondary CTA row inside wallet-check warn state */
+    .wallet-check .wc-topup-row { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .wallet-check .wc-topup-btn.wc-topup-btn-fill {
+      margin-top: 0;
+      background: var(--danger, #DC4545);
+      border-color: var(--danger, #DC4545);
+      color: #fff;
+    }
+    .wallet-check .wc-topup-btn.wc-topup-btn-fill:hover {
+      background: #B91C1C;
+      border-color: #B91C1C;
+    }
+
+    /* =========== Empty cart =========== */
+    .empty-cart {
+      padding: 36px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: var(--text-muted);
+      gap: 14px;
+    }
+    .empty-cart .ico-wrap {
+      width: 72px; height: 72px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--brand);
+    }
+    .empty-cart .title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .empty-cart .sub { font-size: 13px; color: var(--text-muted); }
+    .back-shop-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 18px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      transition: .15s;
+    }
+    .back-shop-btn:hover { background: var(--brand-hover); }
+
+    /* =========== Toast =========== */
+    .ze-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; }
+    .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* =========== Responsive tweaks =========== */
+    @media (max-width: 900px) {
+      .app-header .row, .site-header-inner { height: 60px !important; gap: 10px; }
+      .search-pill { display: none !important; }
+      .header-btn span { display: none !important; }
+      .header-btn { min-width: 40px !important; padding: 8px !important; }
+      .page-wrap { padding: 0 16px !important; }
+      .page-head h1 { font-size: 24px; }
+      .checkout-grid { grid-template-columns: 1fr !important; gap: 20px; }
+      .summary-col { position: static !important; top: auto !important; }
+      .card { padding: 16px; }
+    }
+    @media (max-width: 600px) {
+      .field-grid { grid-template-columns: 1fr !important; }
+      .field-grid .full { grid-column: auto !important; }
+      .vendor-body { padding: 4px 10px 10px; }
+      .vendor-head { padding: 8px 10px; }
+      .sum-line .thumb { width: 52px; height: 52px; }
+      .sum-line .line-total { font-size: 13px; }
+      .page-head { padding: 6px 0 18px; }
+      .page-head h1 { font-size: 22px; }
+      .field input, .field textarea, .field select { padding: 12px 14px; min-height: 40px; }
+    }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="index_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <label class="search-pill">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <input id="searchInput" type="text" placeholder="Search enrichments, species, materials…"/>
+        <span class="kbd">⌘K</span>
+      </label>
+
+      <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
+        <button class="header-btn" type="button" id="ordersBtn" onclick="location.href='orders_1.html'">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+          <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="savedBtn" onclick="location.href='saved_1.html'">
+          <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+          <span class="badge-dot" id="savedBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="cartBtn" onclick="window.location.href='cart_1.html'">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+          <span class="badge-dot" id="cartBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="headerApprovalsLink" data-approvals-header onclick="window.location.href='approvals_1.html'" style="display:none">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
+        <div id="avatarSlot"><!-- avatar or sign-in pill injected by JS --></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== PAGE =============== -->
+  <div class="page-wrap">
+    <!-- Breadcrumb -->
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index_1.html">Home</a>
+      <span class="sep">·</span>
+      <a href="index_1.html">Cart</a>
+      <span class="sep">·</span>
+      <span class="current">Checkout</span>
+    </nav>
+
+    <!-- Page heading -->
+    <div class="page-head">
+      <h1>Checkout</h1>
+      <div class="sub">Review your shipping &amp; confirm</div>
+    </div>
+
+    <!-- Approval notice slot (populated by JS when user.canPurchase === false) -->
+    <div id="approvalNoticeSlot"></div>
+
+    <!-- Two column -->
+    <div class="checkout-grid">
+
+      <!-- ================= LEFT COLUMN ================= -->
+      <div class="forms-col">
+
+        <!-- Shipping address -->
+        <section class="card anim-in">
+          <div class="card-head">
+            <span class="ico"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
+            <h2>Shipping address</h2>
+          </div>
+          <form id="addrForm" autocomplete="on" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label>Site<span class="req">*</span></label>
+                <div class="ez-dd" id="siteDd" data-required>
+                  <button type="button" class="ez-dd-btn placeholder" id="siteDdBtn" aria-haspopup="listbox">
+                    <span class="ez-dd-label-main"><span class="m" id="siteDdLabel">Select a site</span><span class="s" id="siteDdSub"></span></span>
+                    <i data-lucide="chevron-down" class="caret w-4 h-4"></i>
+                  </button>
+                  <div class="ez-dd-pop" role="listbox">
+                    <div class="ez-dd-search">
+                      <i data-lucide="search" class="w-4 h-4"></i>
+                      <input type="search" id="siteDdSearch" placeholder="Search sites…" autocomplete="off"/>
+                    </div>
+                    <div class="ez-dd-list" id="siteDdList"></div>
+                  </div>
+                </div>
+                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Please pick a site</span>
+              </div>
+              <div class="field">
+                <label>Enclosure <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
+                <div class="ez-dd" id="encDd">
+                  <button type="button" class="ez-dd-btn placeholder" id="encDdBtn" aria-haspopup="listbox">
+                    <span class="ez-dd-label-main"><span class="m" id="encDdLabel">Not specified</span><span class="s" id="encDdSub"></span></span>
+                    <i data-lucide="chevron-down" class="caret w-4 h-4"></i>
+                  </button>
+                  <div class="ez-dd-pop" role="listbox">
+                    <div class="ez-dd-search">
+                      <i data-lucide="search" class="w-4 h-4"></i>
+                      <input type="search" id="encDdSearch" placeholder="Search enclosures…" autocomplete="off"/>
+                    </div>
+                    <div class="ez-dd-list" id="encDdList"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="field full">
+                <div class="site-address" id="siteAddress">
+                  <span class="ship-ico"><i data-lucide="truck" class="w-3 h-3"></i></span>
+                  <span id="siteAddressText">Shipping to: —</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-name">Recipient name<span class="req">*</span></label>
+                <input id="f-name" name="name" type="text" data-required/>
+                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Field required</span>
+              </div>
+              <div class="field">
+                <label for="f-phone">Phone<span class="req">*</span></label>
+                <input id="f-phone" name="phone" type="tel" data-required/>
+                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Must be at least 10 digits</span>
+              </div>
+              <div class="field full">
+                <label for="f-email">Contact email <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
+                <input id="f-email" name="email" type="email" autocomplete="email"/>
+                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Enter a valid email</span>
+              </div>
+              <div class="field full">
+                <label for="f-line2">Address line 2 <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
+                <input id="f-line2" name="line2" type="text" placeholder="Gate, block, landmark…"/>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <!-- Wallet check -->
+        <section class="card anim-in wallet-check" id="walletCheckCard">
+          <div class="card-head">
+            <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+            <h2>Wallet check</h2>
+            <span class="hint">For this site</span>
+          </div>
+          <div id="walletCheckBody"><!-- populated by JS --></div>
+        </section>
+
+        <!-- Notes -->
+        <section class="card anim-in">
+          <div class="card-head">
+            <span class="ico"><i data-lucide="message-square-text" class="w-4 h-4"></i></span>
+            <h2>Notes for the seller</h2>
+            <span class="hint">Optional</span>
+          </div>
+          <div class="field">
+            <textarea id="f-notes" rows="3" maxlength="240" placeholder="Any special handling instructions, enclosure access details, delivery window preferences…"></textarea>
+            <div class="char-count"><span id="notesCount">0</span> / 240</div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ================= RIGHT COLUMN ================= -->
+      <aside class="summary-col">
+        <section class="card anim-in" id="summaryCard">
+          <div class="card-head">
+            <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+            <h2>Order summary</h2>
+          </div>
+          <div id="summaryBody"><!-- populated by JS --></div>
+        </section>
+      </aside>
+
+    </div>
+  </div>
+
+</div></div>
+
+<!-- Toast -->
+<div class="ze-toast" id="toast"></div>
+
+<!-- =============== SCRIPTS =============== -->
+<script>
+(function(){
+  const DB = window.DB;
+  const ZE = window.ZE;
+
+  /* ---------- State ---------- */
+  const state = {
+    shippingMethod: 'Standard',
+    priority: 'Normal',
+    siteId: null,
+    orderEnclosureId: null,
+    user: null
+  };
+
+  /* ---------- Helpers ---------- */
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__zeToastT);
+    window.__zeToastT = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[c]);
+  }
+
+  function shippingFeeFor(method) { return method === 'Express' ? 200 : 80; }
+
+  function currentSite() {
+    return state.siteId ? DB.byId(DB.SITES, state.siteId) : null;
+  }
+
+  /* ---------- Badges ---------- */
+  function updateBadges() {
+    const oc = ZE.orders.count();
+    const sc = ZE.saved.count();
+    const cc = ZE.cart.count();
+    const orders = document.getElementById('ordersBadge');
+    const saved  = document.getElementById('savedBadge');
+    const cart   = document.getElementById('cartBadge');
+    if (orders) { orders.textContent = oc; orders.style.display = oc > 0 ? 'inline-flex' : 'none'; }
+    if (saved)  { saved.textContent  = sc; saved.style.display  = sc > 0 ? 'inline-flex' : 'none'; }
+    if (cart)   { cart.textContent   = cc; cart.style.display   = cc > 0 ? 'inline-flex' : 'none'; }
+  }
+
+  /* ---------- Approval notice (Task 4) ---------- */
+  function renderApprovalNotice() {
+    const slot = document.getElementById('approvalNoticeSlot');
+    if (!slot) return;
+    const u = state.user;
+    if (!u || u.canPurchase !== false) { slot.innerHTML = ''; return; }
+
+    const approver = u.approverId ? DB.byId(DB.USERS, u.approverId) : null;
+    const name = (approver && approver.name) || 'your approver';
+    const title = (approver && approver.title) || '';
+
+    slot.innerHTML = `
+      <div class="approval-notice" role="status">
+        <span class="an-ico"><i data-lucide="alert-triangle" class="w-5 h-5"></i></span>
+        <div>
+          <div class="an-title">Approval required</div>
+          <div class="an-body">
+            This order will be sent to
+            <strong>${escapeHtml(name)}</strong>${title ? ` (<span>${escapeHtml(title)}</span>)` : ''}
+            for approval before reaching the vendor.
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+
+  /* ---------- Searchable popover dropdown (reusable) ---------- */
+  // Registry so we can close all open popovers on outside click.
+  const _dds = [];
+  function setupSearchableDd(opts) {
+    // opts = { rootId, placeholder, getOptions: () => [{id, main, sub?}], selectedId: () => id|null, onSelect: (id|null) => void, nullLabel?: string, allowClear?: bool }
+    const root = document.getElementById(opts.rootId);
+    if (!root) return null;
+    const btn = root.querySelector('.ez-dd-btn');
+    const pop = root.querySelector('.ez-dd-pop');
+    const search = root.querySelector('.ez-dd-search input');
+    const list = root.querySelector('.ez-dd-list');
+    const labelEl = root.querySelector('.ez-dd-label-main .m');
+    const subEl   = root.querySelector('.ez-dd-label-main .s');
+
+    const api = {
+      open() { closeAllDds(api); root.classList.add('open'); setTimeout(() => search && search.focus(), 0); renderList(''); },
+      close() { root.classList.remove('open'); if (search) search.value = ''; },
+      isOpen() { return root.classList.contains('open'); },
+      refresh() { renderLabel(); if (api.isOpen()) renderList(search ? search.value : ''); },
+      root
+    };
+
+    function renderLabel() {
+      const opts2 = opts.getOptions() || [];
+      const curId = opts.selectedId();
+      const cur = curId ? opts2.find(o => o.id === curId) : null;
+      if (cur) {
+        labelEl.textContent = cur.main || '';
+        subEl.textContent = cur.sub || '';
+        btn.classList.remove('placeholder');
+      } else {
+        labelEl.textContent = opts.nullLabel || opts.placeholder || 'Select…';
+        subEl.textContent = '';
+        btn.classList.add('placeholder');
+      }
+    }
+
+    function renderList(q) {
+      const query = (q || '').trim().toLowerCase();
+      const options = opts.getOptions() || [];
+      const curId = opts.selectedId();
+      const filtered = options.filter(o => {
+        if (!query) return true;
+        const hay = ((o.main || '') + ' ' + (o.sub || '')).toLowerCase();
+        return hay.includes(query);
+      });
+      const rows = [];
+      if (opts.allowClear) {
+        rows.push(`<div class="ez-dd-row ${!curId ? 'selected' : ''}" data-id=""><span>${escapeHtml(opts.nullLabel || 'Not specified')}</span></div>`);
+      }
+      filtered.forEach(o => {
+        rows.push(`<div class="ez-dd-row ${o.id === curId ? 'selected' : ''}" data-id="${escapeHtml(o.id)}">`
+          + `<span>${escapeHtml(o.main || '')}</span>`
+          + (o.sub ? `<span class="sub">${escapeHtml(o.sub)}</span>` : '')
+          + `</div>`);
+      });
+      if (!rows.length) rows.push('<div class="ez-dd-empty">No matches</div>');
+      list.innerHTML = rows.join('');
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (api.isOpen()) api.close(); else api.open();
+    });
+    if (search) {
+      search.addEventListener('input', () => renderList(search.value));
+      search.addEventListener('keydown', (e) => { if (e.key === 'Escape') api.close(); });
+    }
+    list.addEventListener('click', (e) => {
+      const row = e.target.closest('.ez-dd-row');
+      if (!row) return;
+      const id = row.getAttribute('data-id') || null;
+      opts.onSelect(id || null);
+      renderLabel();
+      api.close();
+    });
+
+    _dds.push(api);
+    renderLabel();
+    return api;
+  }
+
+  function closeAllDds(except) {
+    _dds.forEach(d => { if (d !== except && d.isOpen()) d.close(); });
+  }
+  document.addEventListener('click', (e) => {
+    // Close any open popovers when clicking outside any .ez-dd
+    if (!e.target.closest('.ez-dd')) closeAllDds(null);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDds(null); });
+
+  /* ---------- Site picker (searchable popover) ---------- */
+  let _siteDd = null;
+  let _encDd = null;
+
+  function siteOptions() {
+    const sites = Array.isArray(DB.SITES) ? DB.SITES : [];
+    return sites.map(s => ({
+      id: s.id,
+      main: s.name,
+      sub: (s.city || '') + (s.state ? ', ' + s.state : '')
+    }));
+  }
+
+  function encOptions() {
+    if (!state.siteId) return [];
+    const encs = (typeof DB.enclosuresForSite === 'function')
+      ? (DB.enclosuresForSite(state.siteId) || [])
+      : [];
+    return encs.map(e => ({
+      id: e.id,
+      main: e.name,
+      sub: e.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) : ''
+    }));
+  }
+
+  function initSiteDd() {
+    const sites = Array.isArray(DB.SITES) ? DB.SITES : [];
+    const defaultSiteId = (state.user && state.user.siteId) || (sites[0] && sites[0].id) || null;
+    state.siteId = defaultSiteId;
+
+    _siteDd = setupSearchableDd({
+      rootId: 'siteDd',
+      placeholder: 'Select a site',
+      nullLabel: 'Select a site',
+      allowClear: false,
+      getOptions: siteOptions,
+      selectedId: () => state.siteId,
+      onSelect: (id) => {
+        state.siteId = id || null;
+        state.orderEnclosureId = null; // enclosure list is site-scoped
+        updateSiteAddressLine();
+        if (_encDd) _encDd.refresh();
+        validateAll(false);
+        renderWalletCheck();
+      }
+    });
+
+    updateSiteAddressLine();
+  }
+
+  function initEncDd() {
+    _encDd = setupSearchableDd({
+      rootId: 'encDd',
+      placeholder: 'Not specified',
+      nullLabel: 'Not specified',
+      allowClear: true,
+      getOptions: encOptions,
+      selectedId: () => state.orderEnclosureId,
+      onSelect: (id) => { state.orderEnclosureId = id || null; }
+    });
+  }
+
+  function updateSiteAddressLine() {
+    const site = currentSite();
+    const el = document.getElementById('siteAddressText');
+    if (!el) return;
+    if (!site) {
+      el.textContent = 'Shipping to: —';
+      return;
+    }
+    const parts = [site.addressLine1, site.city + ', ' + site.state + ' – ' + site.pincode];
+    el.textContent = 'Shipping to: ' + parts.filter(Boolean).join(', ');
+  }
+
+  /* ---------- Pre-fill from signed-in user (Task 1) ---------- */
+  function prefillFromUser() {
+    const u = state.user;
+    if (!u) return;
+    const nameEl  = document.getElementById('f-name');
+    const phoneEl = document.getElementById('f-phone');
+    const emailEl = document.getElementById('f-email');
+    if (nameEl  && !nameEl.value  && u.name)  nameEl.value  = u.name;
+    if (phoneEl && !phoneEl.value && u.phone) phoneEl.value = u.phone;
+    if (emailEl && !emailEl.value && u.email) emailEl.value = u.email;
+  }
+
+  /* ---------- Render order summary (Task 5) ---------- */
+  function renderSummary() {
+    const lines = ZE.cart.lines();
+    const body = document.getElementById('summaryBody');
+
+    if (!lines || lines.length === 0 || ZE.cart.isEmpty()) {
+      body.innerHTML = `
+        <div class="empty-cart">
+          <div class="ico-wrap"><i data-lucide="shopping-bag" class="w-7 h-7"></i></div>
+          <div>
+            <div class="title">Your cart is empty</div>
+            <div class="sub">Add a few items before you can check out.</div>
+          </div>
+          <button class="back-shop-btn" onclick="location.href='index_1.html'">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to shop
+          </button>
+        </div>
+      `;
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    // Resolve products for each line for unit-price math
+    function prodFor(l) { return DB.byId(DB.PRODUCTS, l.productId); }
+
+    const grouped = ZE.cart.groupByVendor();
+    const vendorIds = Object.keys(grouped);
+    const vendorCount = vendorIds.length;
+
+    const grandSubtotal = ZE.cart.subtotal();
+    const perVendorFee = shippingFeeFor(state.shippingMethod);
+    const totalShipping = perVendorFee * vendorCount;
+    const grandTotal = grandSubtotal + totalShipping;
+
+    const groupsHtml = vendorIds.map(vid => {
+      const list = grouped[vid] || [];
+      const vendor = (DB.VENDORS && DB.byId) ? DB.byId(DB.VENDORS, vid) : null;
+      const vName  = (vendor && vendor.name) || 'Vendor';
+      const vTag   = (vendor && (vendor.tagline || vendor.description || '')) || '';
+      const vLogo  = DB.vendorLogo ? DB.vendorLogo(vendor || { id: vid }) : ((vendor && vendor.logo) || '');
+
+      // Per-vendor subtotal
+      const vSubtotal = list.reduce((s, l) => {
+        const p = prodFor(l); if (!p) return s;
+        const unit = (p.price.material || 0) + (p.price.labor || 0);
+        return s + unit * (Number(l.qty) || 0);
+      }, 0);
+
+      const linesHtml = list.map(l => {
+        const p = prodFor(l); if (!p) return '';
+        const unit = (p.price.material || 0) + (p.price.labor || 0);
+        const qty  = Number(l.qty) || 0;
+        const lineTotal = unit * qty;
+        const img = p.imgSmall || p.img;
+
+        const species = l.speciesId ? DB.byId(DB.SPECIES, l.speciesId) : null;
+        const enclosure = l.enclosureId ? DB.byId(DB.ENCLOSURES, l.enclosureId) : null;
+
+        const speciesMissing = (l.speciesId === null || l.speciesId === undefined) && !species;
+        const chipsHtml = `
+          <div class="line-chips">
+            ${species ? `<span class="species-chip"><i data-lucide="paw-print" class="w-3 h-3"></i>${escapeHtml(species.name)}</span>` : (speciesMissing ? `<span class="species-missing" style="color:var(--text-muted);font-style:italic;font-size:11px;">Species: —</span>` : '')}
+            ${enclosure ? `<span class="enc-chip"><i data-lucide="map-pin" class="w-3 h-3"></i>${escapeHtml(enclosure.name)}</span>` : ''}
+          </div>
+        `;
+
+        const noteHtml = l.note ? `<div class="line-note">“${escapeHtml(l.note)}”</div>` : '';
+
+        return `
+          <div class="sum-line">
+            <div class="thumb img-frame">
+              <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy"/>
+            </div>
+            <div class="mid">
+              <div class="name">${escapeHtml(p.name)}</div>
+              ${chipsHtml}
+              <div class="qtyprice">${qty} × ${DB.fmtINR(unit)}</div>
+              ${noteHtml}
+            </div>
+            <div class="line-total">${DB.fmtINR(lineTotal)}</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="vendor-group">
+          <div class="vendor-head">
+            ${vLogo ? `<img class="v-logo" src="${vLogo}" alt="${escapeHtml(vName)}"/>` : `<span class="v-logo" style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted);"><i data-lucide="store" class="w-3 h-3"></i></span>`}
+            <div class="v-meta">
+              <div class="v-name">${escapeHtml(vName)}</div>
+              ${vTag ? `<div class="v-tag">${escapeHtml(vTag)}</div>` : ''}
+            </div>
+          </div>
+          <div class="vendor-body">
+            ${linesHtml}
+            <div class="vendor-subtotal">
+              <span class="label">Vendor subtotal</span>
+              <span>${DB.fmtINR(vSubtotal)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const shippingRowHtml = vendorCount > 1
+      ? `<div class="sum-row">
+           <span class="label-muted">Shipping <span style="color:var(--text-subtle); font-size:11px">(${state.shippingMethod}) — ${DB.fmtINR(perVendorFee)} × ${vendorCount} vendors</span></span>
+           <span>${DB.fmtINR(totalShipping)}</span>
+         </div>`
+      : `<div class="sum-row">
+           <span class="label-muted">Shipping fee <span style="color:var(--text-subtle); font-size:11px">(${state.shippingMethod})</span></span>
+           <span>${DB.fmtINR(perVendorFee)}</span>
+         </div>`;
+
+    const multiBannerHtml = vendorCount > 1
+      ? `<div class="multi-vendor-banner">
+           <span class="b-ico"><i data-lucide="info" class="w-4 h-4"></i></span>
+           <span>This cart ships from <strong>${vendorCount} vendors</strong> — you'll get ${vendorCount} orders with separate tracking.</span>
+         </div>`
+      : '';
+
+    const canPurchase = !state.user || state.user.canPurchase !== false;
+    const placeLabel = canPurchase
+      ? (vendorCount > 1 ? `Place ${vendorCount} orders` : 'Place order')
+      : 'Send for approval';
+    const placeIcon = canPurchase ? 'shield-check' : 'send';
+
+    body.innerHTML = `
+      <div id="sumGroups">${groupsHtml}</div>
+      <div class="sum-divider"></div>
+      <div class="sum-row"><span class="label-muted">${vendorCount > 1 ? 'Grand subtotal' : 'Subtotal'}</span><span>${DB.fmtINR(grandSubtotal)}</span></div>
+      ${shippingRowHtml}
+      <div class="sum-row total"><span>${vendorCount > 1 ? 'Grand total' : 'Total'}</span><span>${DB.fmtINR(grandTotal)}</span></div>
+      ${multiBannerHtml}
+      <div class="po-warn-ribbon" id="placeWarnRibbon" style="display:none">
+        <i data-lucide="alert-triangle" class="w-4 h-4 po-warn-ico"></i>
+        <span id="placeWarnRibbonText"></span>
+      </div>
+      <button class="place-btn" id="placeBtn" type="button" data-default-label="${escapeHtml(placeLabel)}" data-default-icon="${placeIcon}">
+        <i data-lucide="${placeIcon}" class="w-4 h-4"></i> <span class="place-btn-label">${escapeHtml(placeLabel)}</span>
+      </button>
+      <div class="place-help">
+        <i data-lucide="info" class="w-3 h-3"></i>
+        ${canPurchase
+          ? `You'll be able to track your ${vendorCount > 1 ? 'orders' : 'order'} after placing ${vendorCount > 1 ? 'them' : 'it'}.`
+          : `Approval required before this ${vendorCount > 1 ? 'reaches the vendors' : 'reaches the vendor'}.`}
+      </div>
+    `;
+
+    document.getElementById('placeBtn').addEventListener('click', onPlaceOrder);
+    validateAll(false);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+    applyWalletGuard();
+  }
+
+  /* ---------- Wallet check (left card) ---------- */
+  function activeSiteIdForWallet() {
+    const fromActive = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    return fromActive || state.siteId || (state.user && state.user.siteId) || null;
+  }
+
+  function renderWalletCheck() {
+    const body = document.getElementById('walletCheckBody');
+    if (!body) return;
+    const siteId = activeSiteIdForWallet();
+    if (!siteId) {
+      body.innerHTML = `<div class="wc-row"><span class="wc-label">No active site selected</span></div>`;
+      return;
+    }
+    const site = DB.byId(DB.SITES, siteId) || {};
+    const wallet = (ZE.wallet && ZE.wallet.forSite) ? ZE.wallet.forSite(siteId) : { available: 0 };
+    const available = Number(wallet.available) || 0;
+
+    // Order total from cart subtotal + shipping (per-vendor) — same math as renderSummary
+    const lines = ZE.cart.lines() || [];
+    const grouped = ZE.cart.groupByVendor();
+    const vendorCount = Object.keys(grouped).length || 0;
+    const subtotal = ZE.cart.subtotal() || 0;
+    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
+    const orderTotal = subtotal + totalShipping;
+
+    const after = available - orderTotal;
+    const ok = available >= orderTotal && orderTotal > 0;
+    const empty = orderTotal <= 0;
+
+    const shortfall = ok || empty ? 0 : Math.ceil(orderTotal - available);
+
+    body.innerHTML = `
+      <div class="wc-site">${escapeHtml(site.name || 'Site')}</div>
+      <div class="wc-grid">
+        <div class="wc-row">
+          <span class="wc-label">Available now</span>
+          <span class="wc-value">${DB.fmtINR(available)}</span>
+        </div>
+        <div class="wc-row">
+          <span class="wc-label">This order will lock</span>
+          <span class="wc-value">${DB.fmtINR(orderTotal)}</span>
+        </div>
+        <div class="wc-row ${after < 0 ? 'danger' : 'highlight'}">
+          <span class="wc-label">After delivery</span>
+          <span class="wc-value">${DB.fmtINR(after)}</span>
+        </div>
+      </div>
+      ${empty
+        ? ''
+        : (ok
+            ? `<div class="wc-status ok"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Funds available</div>`
+            : `<div class="wc-status warn"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Insufficient funds — short by ${DB.fmtINR(shortfall)}</div>
+               <div class="wc-topup-row">
+                 <button type="button" class="wc-topup-btn wc-topup-btn-fill" id="checkoutTopupPrefillBtn" data-topup-trigger data-topup-amount="${shortfall}"><i data-lucide="zap" class="w-4 h-4"></i> Top-up ${DB.fmtINR(shortfall)} to enable Place Order</button>
+                 <button type="button" class="wc-topup-btn" id="checkoutTopupBtn"><i data-lucide="plus-circle" class="w-4 h-4"></i> Request top-up</button>
+               </div>`)}
+    `;
+
+    const tBtn = document.getElementById('checkoutTopupBtn');
+    if (tBtn) {
+      tBtn.addEventListener('click', () => {
+        // Try to open the global top-up modal (defined on wallet_1.html via shared markup)
+        if (window.ZEOpenTopupModal) { window.ZEOpenTopupModal(); }
+        else { location.href = 'wallet_1.html'; }
+      });
+    }
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+    applyWalletGuard();
+  }
+
+  /* ---------- Wallet guard: compute and apply Place-button block state ---------- */
+  function computeWalletGuard() {
+    const siteId = activeSiteIdForWallet();
+    if (!siteId) return { blocked: false, shortfall: 0, orderTotal: 0 };
+    const wallet = (ZE.wallet && ZE.wallet.forSite) ? ZE.wallet.forSite(siteId) : { available: 0 };
+    const available = Number(wallet.available) || 0;
+    const lines = ZE.cart.lines() || [];
+    const grouped = ZE.cart.groupByVendor();
+    const vendorCount = Object.keys(grouped).length || 0;
+    const subtotal = ZE.cart.subtotal() || 0;
+    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
+    const orderTotal = subtotal + totalShipping;
+    if (orderTotal <= 0) return { blocked: false, shortfall: 0, orderTotal: 0 };
+    const blocked = available < orderTotal;
+    const shortfall = blocked ? Math.ceil(orderTotal - available) : 0;
+    return { blocked, shortfall, orderTotal, available };
+  }
+
+  function applyWalletGuard() {
+    const btn = document.getElementById('placeBtn');
+    if (!btn) return;
+    const ribbon = document.getElementById('placeWarnRibbon');
+    const ribbonTxt = document.getElementById('placeWarnRibbonText');
+    const labelEl = btn.querySelector('.place-btn-label');
+    const g = computeWalletGuard();
+
+    if (g.blocked) {
+      btn.classList.add('po-blocked');
+      btn.setAttribute('disabled', 'disabled');
+      btn.setAttribute('aria-disabled', 'true');
+      if (labelEl) labelEl.textContent = 'Insufficient funds';
+      if (ribbon && ribbonTxt) {
+        ribbonTxt.textContent = `Place Order is disabled until your site wallet has enough balance for ${DB.fmtINR(g.orderTotal)}.`;
+        ribbon.style.display = 'flex';
+      }
+    } else {
+      btn.classList.remove('po-blocked');
+      btn.removeAttribute('disabled');
+      btn.removeAttribute('aria-disabled');
+      const def = btn.getAttribute('data-default-label') || 'Place order';
+      if (labelEl) labelEl.textContent = def;
+      if (ribbon) ribbon.style.display = 'none';
+    }
+  }
+
+  // Pre-fill the global top-up modal amount when the inline shortfall CTA is used.
+  // The existing global delegated handler ([data-topup-trigger]) opens the modal;
+  // this handler runs alongside and fills the amount field a tick later.
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest && e.target.closest('[data-topup-trigger][data-topup-amount]');
+    if (!t) return;
+    const amt = parseInt(t.getAttribute('data-topup-amount'), 10);
+    if (!amt || amt <= 0) return;
+    setTimeout(() => {
+      const inp = document.getElementById('zeTopupAmt');
+      if (!inp) return;
+      // Format with thousands separators (modal expects formatted display, parses digits)
+      try { inp.value = amt.toLocaleString('en-IN'); } catch(e) { inp.value = String(amt); }
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.focus();
+      try { inp.select(); } catch(e){}
+    }, 50);
+  });
+
+  /* ---------- Notes counter ---------- */
+  function bindNotes() {
+    const ta = document.getElementById('f-notes');
+    const count = document.getElementById('notesCount');
+    ta.addEventListener('input', () => {
+      count.textContent = ta.value.length;
+    });
+  }
+
+  /* ---------- Validation (Task 7) ---------- */
+  function validateField(input, opts) {
+    opts = opts || {};
+    const wrap = input.closest('.field');
+    let ok = true;
+    let msg = 'Field required';
+
+    // Popover dropdown (e.g. #siteDd) — check state instead of a .value
+    if (input.classList && input.classList.contains('ez-dd')) {
+      if (input.id === 'siteDd') {
+        ok = !!state.siteId;
+        msg = 'Please pick a site';
+      }
+    } else {
+      const val = (input.value || '').trim();
+      if (input.hasAttribute('data-required') && val === '') {
+        ok = false;
+      } else if (input.id === 'f-phone') {
+        const digits = val.replace(/\D/g, '');
+        if (digits.length < 10) { ok = false; msg = 'Must be at least 10 digits'; }
+      } else if (input.id === 'f-email') {
+        if (val !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+          ok = false; msg = 'Enter a valid email';
+        }
+      }
+    }
+
+    if (opts.show) {
+      if (wrap) wrap.classList.toggle('has-err', !ok);
+      input.classList.toggle('err', !ok);
+      input.classList.toggle('has-err', !ok);
+      const errEl = wrap ? wrap.querySelector('.err-msg') : null;
+      if (errEl) {
+        const iconHtml = '<i data-lucide="alert-circle" class="w-3 h-3"></i> ';
+        errEl.innerHTML = iconHtml + msg;
+        if (window.lucide?.createIcons) window.lucide.createIcons();
+      }
+    }
+    return ok;
+  }
+
+  function validateAll(show) {
+    const required = document.querySelectorAll('#addrForm [data-required]');
+    let allOk = true;
+    required.forEach(inp => {
+      const ok = validateField(inp, { show: !!show });
+      if (!ok) allOk = false;
+    });
+    // email is not required, but we still validate format if present
+    const emailEl = document.getElementById('f-email');
+    if (emailEl) {
+      const ok = validateField(emailEl, { show: !!show });
+      if (!ok) allOk = false;
+    }
+    const placeBtn = document.getElementById('placeBtn');
+    if (placeBtn) placeBtn.disabled = !allOk;
+    return allOk;
+  }
+
+  function bindLiveValidation() {
+    const inputs = document.querySelectorAll('#addrForm [data-required], #addrForm #f-email');
+    inputs.forEach(inp => {
+      // The site popover (.ez-dd) doesn't fire 'input' / 'change' — its
+      // onSelect handler already triggers validateAll(false) on change.
+      if (inp.classList && inp.classList.contains('ez-dd')) return;
+      const evType = inp.tagName === 'SELECT' ? 'change' : 'input';
+      inp.addEventListener(evType, () => {
+        if (validateField(inp, { show: false })) {
+          inp.closest('.field').classList.remove('has-err');
+          inp.classList.remove('err');
+        }
+        validateAll(false);
+      });
+      inp.addEventListener('blur', () => validateField(inp, { show: true }));
+    });
+  }
+
+  /* ---------- Place order (Task 6) ---------- */
+  function onPlaceOrder() {
+    // Wallet guard: block placement (and "Send for approval") when site wallet is short.
+    const guard = computeWalletGuard();
+    if (guard.blocked) {
+      toast(`Insufficient site wallet — short by ${DB.fmtINR(guard.shortfall)}`);
+      const ribbon = document.getElementById('placeWarnRibbon');
+      if (ribbon && ribbon.scrollIntoView) ribbon.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const ok = validateAll(true);
+    if (!ok) {
+      toast('Please fix the highlighted fields');
+      const firstErr = document.querySelector('#addrForm .field.has-err input, #addrForm .field.has-err select');
+      if (firstErr) firstErr.focus();
+      return;
+    }
+
+    const user = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : state.user;
+    if (!user) { toast('Please sign in to place an order'); return; }
+
+    const lines = ZE.cart.lines();
+    if (!lines || lines.length === 0 || ZE.cart.isEmpty()) {
+      toast('Your cart is empty'); return;
+    }
+
+    const byVendor = ZE.cart.groupByVendor();
+    const vendorKeys = Object.keys(byVendor);
+    if (vendorKeys.length === 0) { toast('Your cart is empty'); return; }
+
+    // Shipping address: site-derived lines + form overrides
+    const site = currentSite() || {};
+    const shippingAddress = {
+      name:    document.getElementById('f-name').value.trim(),
+      phone:   document.getElementById('f-phone').value.trim(),
+      email:   document.getElementById('f-email').value.trim() || null,
+      site:    site.name || null,
+      siteId:  site.id  || null,
+      line1:   site.addressLine1 || '',
+      line2:   document.getElementById('f-line2').value.trim() || '',
+      city:    site.city || '',
+      state:   site.state || '',
+      pincode: site.pincode || ''
+    };
+
+    const shippingMethod = state.shippingMethod;
+    const priority = state.priority;
+    const notes = document.getElementById('f-notes').value.trim();
+    const requiresApproval = user.canPurchase === false;
+    const approverId = user.approverId || null;
+
+    /* V2: one order per (productId + config) — split each cart line into its own order. */
+    const cartLinesV2 = lines.map(l => ({
+      productId: l.productId,
+      qty: Number(l.qty) || 0,
+      config: l.config || null,
+      enclosureId: l.enclosureId || state.orderEnclosureId || null,
+      speciesId: l.speciesId || null,
+      shippingMethod, priority, notes
+    }));
+    const created = (window.ZE.ordersV2 && window.ZE.ordersV2.placeFromCart)
+      ? window.ZE.ordersV2.placeFromCart(cartLinesV2, {
+          requiresApproval, approverId, shippingAddress,
+          siteId: (ZE.activeSite && ZE.activeSite.get && ZE.activeSite.get()) || state.siteId
+        })
+      : [];
+    const orderIds = created.map(o => o.id);
+    if (!orderIds.length) { toast('Could not place orders'); return; }
+
+    /* V2: cart is consumed at place — clear so buyer doesn't replace twice. */
+    try { if (window.ZE.cart && ZE.cart.clear) ZE.cart.clear(); } catch (e) {}
+
+    if (orderIds.length === 1) {
+      window.location.href = 'order_confirmation_1.html?id=' + encodeURIComponent(orderIds[0]);
+    } else {
+      window.location.href = 'order_confirmation_1.html?ids=' + orderIds.map(encodeURIComponent).join(',');
+    }
+  }
+
+  /* ---------- Header avatar / sign-in ---------- */
+  function renderAvatar() {
+    const slot = document.getElementById('avatarSlot');
+    if (!slot) return;
+    const user = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+
+    if (!user) {
+      slot.innerHTML = `<button class="signin-pill" type="button" onclick="location.href='login_1.html'"><i data-lucide="log-in" class="w-4 h-4"></i> Sign in</button>`;
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    const name = user.name || user.fullName || 'Account';
+    const email = user.email || '';
+    const img = user.avatar || user.photo || 'https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true';
+
+    slot.innerHTML = `
+      <div class="avatar-wrap" id="avatarWrap">
+        <img class="avatar" id="avatarImg" src="${img}" alt="${escapeHtml(name)}" loading="eager"/>
+        <div class="avatar-menu" id="avatarMenu" role="menu">
+          <div class="menu-head">
+            <div class="nm">${escapeHtml(name)}</div>
+            ${email ? `<div class="em">${escapeHtml(email)}</div>` : ''}
+          </div>
+          <button type="button" data-act="profile"><i data-lucide="user" class="w-4 h-4"></i> Profile</button>
+          <button type="button" data-act="orders"><i data-lucide="package" class="w-4 h-4"></i> Orders</button>
+          <button type="button" data-act="saved"><i data-lucide="heart" class="w-4 h-4"></i> Saved</button>
+          <button type="button" id="personaSwitchItem" data-persona-item data-act="persona" data-mode-switch="to-other-persona" onclick="window.location.reload();return false;"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></button><button type="button" data-act="admin" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</button>
+          <div class="sep-line"></div>
+          <button type="button" data-act="signout"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+        </div>
+      </div>
+    `;
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+
+    const wrap = document.getElementById('avatarWrap');
+    const menu = document.getElementById('avatarMenu');
+    const img2 = document.getElementById('avatarImg');
+    img2.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) menu.classList.remove('open');
+    });
+    menu.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const act = b.dataset.act;
+        if (act === 'profile') location.href = 'profile_1.html';
+        else if (act === 'orders') location.href = 'orders_1.html';
+        else if (act === 'saved') location.href = 'saved_1.html';
+        else if (act === 'admin') location.href = 'admin_dashboard_1.html';
+        else if (act === 'signout') {
+          if (ZE.user && ZE.user.signOut) ZE.user.signOut();
+          location.href = 'login_1.html';
+        }
+      });
+    });
+  }
+
+  /* ---------- Sign-in guard ---------- */
+  function enforceRole() {
+    try {
+      if (ZE.user && ZE.user.requireRole) {
+        const ok = ZE.user.requireRole('buyer');
+        if (ok === false) {
+          location.href = 'login_1.html?force=1&next=checkout_1.html';
+          return false;
+        }
+      } else {
+        const u = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+        if (!u) {
+          location.href = 'login_1.html?force=1&next=checkout_1.html';
+          return false;
+        }
+      }
+    } catch (e) {
+      location.href = 'login_1.html?force=1&next=checkout_1.html';
+      return false;
+    }
+    return true;
+  }
+
+  /* ---------- Init ---------- */
+  ZE.init();
+  if (!enforceRole()) return;
+
+  // Resolve current user up-front (used by many of the bootstraps below).
+  state.user = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+
+  renderAvatar();
+  updateBadges();
+  ZE.on('cart:change', () => { updateBadges(); renderSummary(); renderWalletCheck(); });
+  ZE.on('saved:change', updateBadges);
+  ZE.on('orders:change', updateBadges);
+  if (ZE.on) ZE.on('activeSite:change', () => { renderWalletCheck(); });
+  if (ZE.on) ZE.on('topup:change', () => { renderWalletCheck(); });
+  if (ZE.on) ZE.on('user:change', () => {
+    state.user = (ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+    renderAvatar();
+    renderApprovalNotice();
+    prefillFromUser();
+    // Re-default the site to the user's primary site if changed
+    if (state.user && state.user.siteId) {
+      state.siteId = state.user.siteId;
+      state.orderEnclosureId = null;
+      if (_siteDd) _siteDd.refresh();
+      if (_encDd) _encDd.refresh();
+      updateSiteAddressLine();
+    }
+    renderSummary();
+    renderWalletCheck();
+  });
+
+  // Task 4 — approval callout
+  renderApprovalNotice();
+
+  // Searchable Site + Enclosure picker (one row)
+  initSiteDd();
+  initEncDd();
+
+  // Task 1 — pre-fill from user
+  prefillFromUser();
+
+  bindNotes();
+  bindLiveValidation();
+  renderSummary();
+  renderWalletCheck();
+  validateAll(false);
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
+      var pop = document.getElementById('walletPillPop');
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+
+
+<!-- ===================================================================
+     TOP-UP REQUEST MODAL (mirrored from wallet_1.html)
+     Trigger: any element with id="checkoutTopupBtn", id="walletRequestTopupBtn",
+     or [data-topup-trigger] (or call window.ZEOpenTopupModal()).
+     Depends on: ZE.activeSite, ZE.topup.submit, DB.byId/DB.SITES,
+     DB.fmtINR; lucide icons (already loaded by host page).
+     =================================================================== -->
+<style>
+  /* Top-up modal */
+  .ze-topup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .ze-topup-overlay.open { display: flex; opacity: 1; }
+  .ze-topup-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.4);
+    transform: translateY(8px) scale(.98);
+    transition: transform .2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+  }
+  .ze-topup-overlay.open .ze-topup-modal { transform: translateY(0) scale(1); }
+  .ze-topup-head {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border, #E5E7EB);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .ze-topup-head .ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--brand-soft, #E6F7EE);
+    color: var(--brand, #37BD69);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ze-topup-head .ze-topup-title {
+    font-size: 16px; font-weight: 700; color: var(--text, #0F172A);
+    line-height: 1.2;
+  }
+  .ze-topup-head .ze-topup-sub {
+    font-size: 12px; color: var(--text-muted, #6B7280);
+    margin-top: 4px;
+  }
+  .ze-topup-head .close-x {
+    margin-left: auto;
+    background: transparent; border: none;
+    width: 32px; height: 32px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-muted, #6B7280);
+    cursor: pointer; transition: .15s;
+  }
+  .ze-topup-head .close-x:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .ze-topup-field label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--text, #0F172A);
+    margin-bottom: 6px;
+  }
+  .ze-topup-field label .req { color: var(--danger, #DC4545); margin-left: 2px; }
+  .ze-topup-amt-wrap { position: relative; }
+  .ze-topup-amt-wrap .currency {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; font-weight: 600; color: var(--text-muted, #6B7280);
+    pointer-events: none;
+  }
+  .ze-topup-field input,
+  .ze-topup-field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border, #E5E7EB);
+    background: #fff;
+    font-size: 14px;
+    color: var(--text, #0F172A);
+    outline: none;
+    transition: .15s;
+    font-family: inherit;
+  }
+  .ze-topup-field input.amt { padding-left: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ze-topup-field input:focus,
+  .ze-topup-field textarea:focus {
+    border-color: var(--brand, #37BD69);
+    box-shadow: 0 0 0 3px rgba(55,189,105,.15);
+  }
+  .ze-topup-field input.err,
+  .ze-topup-field textarea.err {
+    border-color: var(--danger, #DC4545);
+    background: var(--danger-bg, #FEF2F2);
+  }
+  .ze-topup-field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .ze-topup-field .helper {
+    font-size: 11px; color: var(--text-muted, #6B7280);
+    margin-top: 6px; line-height: 1.4;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+  .ze-topup-field .err-msg {
+    font-size: 11px; color: var(--danger, #DC4545);
+    margin-top: 4px; display: none;
+    align-items: center; gap: 4px;
+  }
+  .ze-topup-field.has-err .err-msg { display: inline-flex; }
+
+  .ze-topup-urgency {
+    display: flex; gap: 6px;
+    background: #F1F2F4;
+    padding: 4px;
+    border-radius: 999px;
+  }
+  .ze-topup-urgency button {
+    flex: 1;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #6B7280);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: .15s;
+  }
+  .ze-topup-urgency button.active {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 2px 6px -2px rgba(55,189,105,.5);
+  }
+
+  .ze-topup-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border, #E5E7EB);
+    background: #FAFBFC;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .ze-topup-foot button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .ze-topup-cancel {
+    background: transparent;
+    color: var(--text-muted, #6B7280);
+  }
+  .ze-topup-cancel:hover { background: #F1F2F4; color: var(--text, #0F172A); }
+  .ze-topup-submit {
+    background: var(--brand, #37BD69);
+    color: #fff;
+    box-shadow: 0 4px 10px -3px rgba(55,189,105,.5);
+  }
+  .ze-topup-submit:hover:not(:disabled) { background: var(--brand-hover, #2DA058); }
+  .ze-topup-submit:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+  .ze-topup-form-err {
+    padding: 10px 12px;
+    background: var(--danger-bg, #FEF2F2);
+    border: 1px solid rgba(220,69,69,.25);
+    border-radius: 10px;
+    color: var(--danger, #DC4545);
+    font-size: 12px;
+    display: none;
+    align-items: center; gap: 6px;
+  }
+  .ze-topup-form-err.show { display: inline-flex; }
+
+  /* Generic toast (only injected if host page doesn't already have one) */
+  .ze-topup-toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A; color: #fff;
+    padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 10px 30px -8px rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: .25s;
+    z-index: 400;
+  }
+  .ze-topup-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Mobile bottom-sheet */
+  @media (max-width: 600px) {
+    .ze-topup-overlay { padding: 0; align-items: flex-end; }
+    .ze-topup-modal {
+      max-width: 100%;
+      border-radius: 20px 20px 0 0;
+      max-height: 92vh;
+    }
+    .ze-topup-modal::before {
+      content: '';
+      display: block;
+      width: 40px; height: 4px;
+      background: #D1D5DB;
+      border-radius: 999px;
+      margin: 8px auto 4px;
+    }
+  }
+</style>
+
+<div class="ze-topup-overlay" id="zeTopupOverlay" role="dialog" aria-modal="true" aria-labelledby="zeTopupTitle">
+  <div class="ze-topup-modal" role="document">
+    <div class="ze-topup-head">
+      <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+      <div>
+        <div class="ze-topup-title" id="zeTopupTitle">Request a top-up</div>
+        <div class="ze-topup-sub" id="zeTopupSubtitle">Site: —</div>
+      </div>
+      <button type="button" class="close-x" id="zeTopupClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <form class="ze-topup-body" id="zeTopupForm" novalidate>
+      <div class="ze-topup-form-err" id="zeTopupFormErr">
+        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+        <span id="zeTopupFormErrMsg">Could not submit request.</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupAmtField">
+        <label for="zeTopupAmt">Amount<span class="req">*</span></label>
+        <div class="ze-topup-amt-wrap">
+          <span class="currency">₹</span>
+          <input id="zeTopupAmt" class="amt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="12"/>
+        </div>
+        <div class="helper">
+          <span>Up to ₹50,00,000 per request</span>
+          <span id="zeTopupAmtPretty"></span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Enter an amount greater than zero</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupReasonField">
+        <label for="zeTopupReason">Reason<span class="req">*</span></label>
+        <textarea id="zeTopupReason" rows="4" maxlength="500" placeholder="Why is this top-up needed? (e.g. monsoon enclosure repairs, urgent feed restock)"></textarea>
+        <div class="helper">
+          <span>Be specific — admins approve faster with context.</span>
+          <span><span id="zeTopupReasonCount">0</span> / 500</span>
+        </div>
+        <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Please add a reason</span>
+      </div>
+      <div class="ze-topup-field" id="zeTopupLinksField">
+        <label for="zeTopupLinks">Product links <span style="font-weight:500;color:var(--text-muted);font-size:11px;margin-left:4px">(optional)</span></label>
+        <textarea id="zeTopupLinks" rows="3" placeholder="https://example.com/product-1&#10;https://example.com/product-2 | 1500" style="font-family: ui-monospace, Menlo, monospace; font-size: 12px;"></textarea>
+        <div class="helper">
+          <span>One link per line · add <code style="background:#F1F2F4;padding:1px 5px;border-radius:4px;font-size:11px">| 1500</code> after a URL to note its cost</span>
+          <span><span id="zeTopupLinksCount">0</span> links</span>
+        </div>
+      </div>
+      <div class="ze-topup-field">
+        <label>Urgency</label>
+        <div class="ze-topup-urgency" id="zeTopupUrgency">
+          <button type="button" data-urg="Normal" class="active">Normal</button>
+          <button type="button" data-urg="High">High</button>
+        </div>
+      </div>
+    </form>
+    <div class="ze-topup-foot">
+      <button type="button" class="ze-topup-cancel" id="zeTopupCancel">Cancel</button>
+      <button type="button" class="ze-topup-submit" id="zeTopupSubmit">
+        <i data-lucide="send" class="w-4 h-4"></i> Submit request
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__zeTopupModalInited) return;
+  window.__zeTopupModalInited = true;
+
+  const ZE = window.ZE; const DB = window.DB;
+  if (!ZE || !DB) { console.warn('Top-up modal: ZE/DB not found'); return; }
+
+  const overlay   = document.getElementById('zeTopupOverlay');
+  const subtitle  = document.getElementById('zeTopupSubtitle');
+  const amtInput  = document.getElementById('zeTopupAmt');
+  const amtPretty = document.getElementById('zeTopupAmtPretty');
+  const amtField  = document.getElementById('zeTopupAmtField');
+  const reasonInp = document.getElementById('zeTopupReason');
+  const reasonField = document.getElementById('zeTopupReasonField');
+  const reasonCnt = document.getElementById('zeTopupReasonCount');
+  const linksInput = document.getElementById('zeTopupLinks');
+  const linksCount = document.getElementById('zeTopupLinksCount');
+  const urgWrap   = document.getElementById('zeTopupUrgency');
+  const submitBtn = document.getElementById('zeTopupSubmit');
+  const cancelBtn = document.getElementById('zeTopupCancel');
+  const closeBtn  = document.getElementById('zeTopupClose');
+  const formErr   = document.getElementById('zeTopupFormErr');
+  const formErrMsg = document.getElementById('zeTopupFormErrMsg');
+
+  let state = { urgency: 'Normal' };
+  let lastFocus = null;
+
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+  function getAmount(){
+    const raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    return raw ? parseInt(raw, 10) : 0;
+  }
+  function parseLinks(raw) {
+    return String(raw || '').split(/\r?\n/).map(line => {
+      const t = line.trim();
+      if (!t) return null;
+      const m = t.match(/^(.*?)\s*\|\s*(\d[\d,]*)\s*$/);
+      if (m) {
+        const url = m[1].trim();
+        const cost = parseInt(m[2].replace(/,/g, ''), 10) || 0;
+        return url ? { url, cost } : null;
+      }
+      return { url: t, cost: 0 };
+    }).filter(Boolean);
+  }
+  function formatINR(n){
+    if (typeof DB.fmtINR === 'function') return DB.fmtINR(n);
+    return '₹' + Number(n||0).toLocaleString('en-IN');
+  }
+  function formatThou(n){
+    return Number(n||0).toLocaleString('en-IN');
+  }
+
+  function showToast(msg){
+    // Reuse host page toast if present
+    const host = document.getElementById('toast');
+    if (host) {
+      host.textContent = msg;
+      host.classList.add('show');
+      clearTimeout(window.__zeToastT);
+      window.__zeToastT = setTimeout(()=>host.classList.remove('show'), 2400);
+      return;
+    }
+    let t = document.getElementById('zeTopupToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'zeTopupToast';
+      t.className = 'ze-topup-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__zeTopupToastT);
+    window.__zeTopupToastT = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  function open(){
+    lastFocus = document.activeElement;
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    const site = siteId ? DB.byId(DB.SITES, siteId) : null;
+    subtitle.textContent = 'Site: ' + (site && site.name ? site.name : '—');
+
+    // Reset form
+    amtInput.value = '';
+    amtPretty.textContent = '';
+    amtField.classList.remove('has-err'); amtInput.classList.remove('err');
+    reasonInp.value = '';
+    reasonCnt.textContent = '0';
+    reasonField.classList.remove('has-err'); reasonInp.classList.remove('err');
+    if (linksInput) linksInput.value = '';
+    if (linksCount) linksCount.textContent = '0';
+    state.urgency = 'Normal';
+    urgWrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.urg === 'Normal'));
+    formErr.classList.remove('show');
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(()=> amtInput.focus(), 50);
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch(e){}
+  }
+  window.ZEOpenTopupModal = open;
+  window.ZECloseTopupModal = close;
+
+  // Trigger button(s) on the page
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('#checkoutTopupBtn, #walletRequestTopupBtn, [data-topup-trigger]');
+    if (t) { e.preventDefault(); open(); }
+  });
+
+  closeBtn.addEventListener('click', close);
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) close();
+  });
+
+  // Amount: keep only digits, cap at 50,00,000
+  amtInput.addEventListener('input', () => {
+    let raw = (amtInput.value || '').replace(/[^0-9]/g, '');
+    if (raw) {
+      let n = parseInt(raw, 10);
+      if (n > 5000000) { n = 5000000; raw = '5000000'; }
+      amtInput.value = formatThou(n);
+      amtPretty.textContent = '= ' + formatINR(n);
+    } else {
+      amtInput.value = '';
+      amtPretty.textContent = '';
+    }
+    if (getAmount() > 0) { amtField.classList.remove('has-err'); amtInput.classList.remove('err'); }
+  });
+  amtInput.addEventListener('blur', () => {
+    const n = getAmount();
+    if (n > 0) amtInput.value = formatThou(n);
+  });
+  amtInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); reasonInp.focus(); }
+  });
+
+  reasonInp.addEventListener('input', () => {
+    reasonCnt.textContent = String(reasonInp.value.length);
+    if (reasonInp.value.trim().length > 0) { reasonField.classList.remove('has-err'); reasonInp.classList.remove('err'); }
+  });
+  reasonInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSubmit(); }
+  });
+
+  if (linksInput) {
+    linksInput.addEventListener('input', () => {
+      const n = (linksInput.value || '').split(/\r?\n/).filter(s => s.trim().length).length;
+      if (linksCount) linksCount.textContent = String(n);
+    });
+  }
+
+  urgWrap.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-urg]');
+    if (!b) return;
+    state.urgency = b.dataset.urg;
+    urgWrap.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+  });
+
+  function doSubmit(){
+    formErr.classList.remove('show');
+    const amount = getAmount();
+    const reason = (reasonInp.value || '').trim();
+    let ok = true;
+    if (amount <= 0) { amtField.classList.add('has-err'); amtInput.classList.add('err'); ok = false; }
+    if (reason.length === 0) { reasonField.classList.add('has-err'); reasonInp.classList.add('err'); ok = false; }
+    if (!ok) return;
+
+    const siteId = (ZE.activeSite && ZE.activeSite.get) ? ZE.activeSite.get() : null;
+    if (!siteId) {
+      formErrMsg.textContent = 'No active site selected — pick a site first.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    const productLinks = parseLinks(linksInput ? linksInput.value : '');
+
+    submitBtn.disabled = true;
+    let req = null;
+    try {
+      req = (ZE.topup && ZE.topup.submit) ? ZE.topup.submit({
+        siteId, amount, reason, urgency: state.urgency, productLinks
+      }) : null;
+    } catch (err) { req = null; }
+    submitBtn.disabled = false;
+
+    if (!req) {
+      formErrMsg.textContent = 'Could not submit request — please try again.';
+      formErr.classList.add('show');
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    close();
+    showToast('Top-up request submitted — pending approval' + (productLinks.length ? ' · ' + productLinks.length + ' product link' + (productLinks.length === 1 ? '' : 's') : ''));
+  }
+
+  submitBtn.addEventListener('click', doSubmit);
+
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+})();
+</script>
+</body>
+</html>

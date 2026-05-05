@@ -1,0 +1,1596 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Orders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    :root{
+      --st-amber-fg:#A16207; --st-amber-bg:#FEF3C7;
+      --st-blue-fg:#0369A1;  --st-blue-bg:#E0F2FE;
+      --st-red-fg:#B00020;   --st-red-bg:#FFE5EA;
+      --st-ret-fg:#92400E;   --st-ret-bg:#FDE68A;
+    }
+    html,body{ background:var(--card-subtle) !important; }
+    body{ font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
+
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 900px) { .page-wrap { padding: 0 16px; } }
+
+    /* ========== HEADER ========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); text-decoration:none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color:#fff; display:inline-flex; align-items:center; justify-content:center; }
+    .search-pill { flex: 1; max-width: 560px; height: 44px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { font-size: 11px; color: var(--text-muted); background:#fff; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); font-family: ui-monospace, monospace; }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; background: transparent; border: none; position: relative; min-width: 64px; transition: .15s; text-decoration:none; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+
+    /* Avatar dropdown */
+    .user-wrap { position: relative; margin-left:8px; }
+    .dd-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background:#fff; border:1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding:8px; display:none; z-index: 60; }
+    .dd-menu.open { display:block; animation: ddIn .18s ease-out; }
+    @keyframes ddIn { from{ opacity:0; transform:translateY(-4px);} to{ opacity:1; transform:none;} }
+    .dd-head { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom:6px; }
+    .dd-head .nm { font-weight:700; color:var(--text); font-size:14px; }
+    .dd-head .em { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .dd-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:13.5px; color:var(--text); cursor:pointer; }
+    .dd-item:hover { background:#F1F2F4; }
+    .dd-item.active { color: var(--brand-hover); background: var(--brand-soft); font-weight:600; }
+
+    /* ========== PAGE HEAD ========== */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; gap: 8px; }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .here { color: var(--text); font-weight:600; }
+
+    .page-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .page-head-row h1 { font-size: 28px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 12px; margin:0; }
+    .page-head-row h1 .count-badge { font-size: 12px; font-weight: 600; background: #F1F2F4; color: var(--text-muted); padding: 4px 10px; border-radius: 999px; }
+
+    .btn-sm { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: 1px solid transparent; transition: .15s; background:transparent; color: var(--text); }
+    .btn-sm-ghost { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-sm-ghost:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .btn-sm-primary { background: var(--brand); color:#fff; border-color: var(--brand); }
+    .btn-sm-primary:hover { background: var(--brand-hover); }
+    @media (max-width: 540px) {
+      .btn-label-desk { display:none; }
+    }
+
+    /* ========== STATUS TABS ========== */
+    .tabs-wrap { margin-bottom: 14px; overflow-x: auto; }
+    .tabs { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; }
+    .tabs button { padding: 9px 18px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+    .tabs button:hover { color: var(--text); }
+    .tabs button.active { background: var(--brand); color:#fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
+    .tabs button .count-pill { font-size: 11px; font-weight: 700; background: rgba(255,255,255,.25); padding: 1px 7px; border-radius: 999px; }
+    .tabs button:not(.active) .count-pill { background:#fff; color: var(--text-muted); }
+
+    /* ========== TOOLBAR ========== */
+    .toolbar { display:flex; align-items:center; gap:10px; margin-bottom: 14px; flex-wrap: wrap; padding: 12px 16px; background:#fff; border:1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-xs); }
+    .search-input-wrap { flex:1; min-width: 240px; position:relative; }
+    .search-input-wrap > i, .search-input-wrap > svg { position:absolute; left:14px; top:50%; transform: translateY(-50%); color: var(--text-muted); pointer-events:none; }
+    .search-input-wrap input { width:100%; padding: 11px 14px 11px 40px; border-radius: 999px; border: 1px solid var(--border); background:#fff; font-size: 14px; outline:none; color: var(--text); }
+    .search-input-wrap input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .dd-trigger { display:inline-flex; align-items:center; gap:8px; padding: 11px 16px; border-radius: 999px; border:1px solid var(--border); background:#fff; font-size:13px; font-weight:600; color: var(--text); cursor:pointer; white-space:nowrap; position:relative; }
+    .dd-trigger:hover { border-color: var(--border-strong); background:#F9FAFB; }
+    .dd-trigger .val { color: var(--brand-hover); font-weight:700; margin-left: 2px; }
+    .dd-pop { position:absolute; top: calc(100% + 6px); right:0; min-width: 220px; background:#fff; border:1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding:6px; display:none; z-index: 40; }
+    .dd-pop.open { display:block; animation: ddIn .18s ease-out; }
+    .dd-opt { display:flex; align-items:center; gap:10px; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); cursor:pointer; }
+    .dd-opt:hover { background:#F1F2F4; }
+    .dd-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight:600; }
+    .dd-opt .tick { margin-left:auto; color: var(--brand); opacity:0; }
+    .dd-opt.active .tick { opacity:1; }
+
+    /* ========== DESKTOP TABLE ========== */
+    .table-wrap { background:#fff; border:1px solid var(--border); border-radius: 16px; overflow-x: auto; overflow-y: visible; position: relative; box-shadow: var(--shadow-xs); }
+    .orders-table { width:100%; border-collapse: separate; border-spacing: 0; min-width: 760px; }
+    .orders-table thead th { position: sticky; top: 0; background: var(--card-subtle); z-index: 2; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; user-select: none; }
+    .orders-table thead th.sortable { cursor: pointer; }
+    .orders-table thead th.sortable:hover { color: var(--text); }
+    .orders-table thead th .chev { display: inline-block; margin-left: 4px; opacity: .35; transition: transform .18s, opacity .18s; }
+    .orders-table thead th.sorted .chev { opacity: 1; color: var(--brand); }
+    .orders-table thead th.sorted.desc .chev { transform: rotate(180deg); }
+    .orders-table tbody td { padding: 10px 12px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--border); background:#fff; vertical-align: middle; height: 56px; }
+    .orders-table tbody tr:last-child td { border-bottom: none; }
+    .orders-table tbody tr { cursor: pointer; }
+    .orders-table tbody tr:hover td { background: #F9FAFB; }
+    .orders-table tbody tr.selected td { background: var(--brand-soft); }
+    .orders-table tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--brand), 2px 0 6px -3px rgba(15,23,42,.08); }
+
+    /* Column widths */
+    .orders-table th.col-check, .orders-table td.col-check { width: 44px; padding-left: 14px; padding-right: 4px; }
+    .orders-table th.col-id, .orders-table td.col-id { width: 120px; }
+    .orders-table th.col-date, .orders-table td.col-date { width: 120px; white-space: nowrap; }
+    .orders-table th.col-items, .orders-table td.col-items { width: 100px; }
+    .orders-table th.col-total, .orders-table td.col-total { width: 104px; text-align: right; font-variant-numeric: tabular-nums; }
+    .orders-table th.col-status, .orders-table td.col-status { width: 140px; }
+    .orders-table th.col-act, .orders-table td.col-act { width: 72px; text-align: center; padding-right: 14px; padding-left: 4px; }
+
+    /* Sticky left (checkbox) */
+    .orders-table th.col-check, .orders-table td.col-check {
+      position: sticky; left: 0; z-index: 3;
+    }
+    .orders-table thead th.col-check { z-index: 4; }
+    .table-wrap.scrolled .orders-table td.col-check { box-shadow: 2px 0 6px -3px rgba(15,23,42,.18); }
+    .table-wrap.scrolled .orders-table th.col-check { box-shadow: 2px 0 6px -3px rgba(15,23,42,.18); }
+
+    /* Sticky right (download) */
+    .orders-table th.col-act, .orders-table td.col-act {
+      position: sticky; right: 0; z-index: 3;
+    }
+    .orders-table thead th.col-act { z-index: 4; }
+    .table-wrap.scroll-end-hidden .orders-table td.col-act { box-shadow: -2px 0 6px -3px rgba(15,23,42,.18); }
+    .table-wrap.scroll-end-hidden .orders-table th.col-act { box-shadow: -2px 0 6px -3px rgba(15,23,42,.18); }
+
+    /* ID cell */
+    .id-main { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+
+    /* Items cell */
+    .cell-items-count { font-size: 13px; color: var(--text); }
+
+    /* Total cell */
+    .cell-total { font-weight: 700; color: var(--text); font-size: 13.5px; }
+
+    /* Status cell chip */
+    .st-chip { display:inline-flex; align-items:center; gap:6px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+    .st-chip .dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink:0; background: currentColor; }
+    .st-awaiting { background: var(--st-amber-bg); color: var(--st-amber-fg); }
+    .st-awaiting .dot { background: var(--st-amber-fg); }
+    .st-transit  { background: var(--st-blue-bg); color: var(--st-blue-fg); }
+    .st-transit .dot { background: var(--st-blue-fg); }
+    .st-delivered{ background: var(--brand-soft); color: #006D35; }
+    .st-delivered .dot { background: var(--brand); }
+    .st-cancel   { background: var(--st-red-bg); color: var(--st-red-fg); }
+    .st-cancel .dot { background: var(--st-red-fg); }
+    .st-return   { background: var(--st-ret-bg); color: var(--st-ret-fg); }
+    .st-return .dot { background: var(--st-ret-fg); }
+    /* Derived-status chip classes (from tokens.css). Add explicit local rules
+       so the .st-chip wrapper still gets a dot color when paired with the
+       chip-* classes coming from ZE.orders.deriveStatus. */
+    .st-chip.chip-confirmed { background: var(--st-blue-bg); color: var(--st-blue-fg); }
+    .st-chip.chip-confirmed .dot { background: var(--st-blue-fg); }
+    .st-chip.chip-shipped   { background: #CFFAFE; color: #0891B2; }
+    .st-chip.chip-shipped .dot { background: #0891B2; }
+    .st-chip.chip-delivered { background: var(--brand-soft); color: #006D35; }
+    .st-chip.chip-delivered .dot { background: var(--brand); }
+    .st-chip.chip-cancelled { background: var(--st-red-bg); color: var(--st-red-fg); }
+    .st-chip.chip-cancelled .dot { background: var(--st-red-fg); }
+    .st-chip.chip-pending   { background: var(--st-amber-bg); color: var(--st-amber-fg); }
+    .st-chip.chip-pending .dot { background: var(--st-amber-fg); }
+
+    /* Line-level tally tags (rendered inside status cell, after the main chip) */
+    .row-line-tag { display: inline-flex; align-items: center; padding: 2px 8px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1.4; white-space: nowrap; cursor: pointer; text-decoration: none; vertical-align: middle; }
+    .row-line-tag + .row-line-tag { margin-left: 4px; }
+    .row-tag-cancel  { background: #FEE2E2; color: #B91C1C; }
+    .row-tag-partial { background: #FEF3C7; color: #A16207; }
+    .row-line-tag:hover { filter: brightness(.96); }
+
+    /* Derived-status row decorations (sub summary + refund + next event). */
+    .row-summary-sub { display:block; font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-refund-chip { display: inline-flex; align-items: center; padding: 1px 7px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #FEE2E2; color: #B91C1C; vertical-align: middle; white-space: nowrap; }
+    .row-next-event { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .row-next-event strong { color: var(--text); font-weight: 600; }
+    /* Mobile-card variants */
+    .o-card .oc-summary-sub { font-size: 11.5px; color: var(--text-muted); margin: 4px 0 6px; padding-left: 28px; }
+    .o-card .oc-next-event  { font-size: 11.5px; color: var(--text-muted); margin: 0 0 6px; padding-left: 28px; }
+    .o-card .oc-next-event strong { color: var(--text); font-weight: 600; }
+    .o-card .oc-refund-chip { display: inline-flex; align-items: center; padding: 1px 7px; margin-left: 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #FEE2E2; color: #B91C1C; vertical-align: middle; }
+
+    /* Download icon button */
+    .icon-dl { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-hover); border: none; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; transition: .15s; }
+    .icon-dl:hover { background: var(--brand); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .icon-dl:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    /* Checkbox */
+    .cb { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 5px; background:#fff; cursor:pointer; position: relative; transition: .12s; vertical-align: middle; flex-shrink: 0; }
+    .cb:hover { border-color: var(--brand); }
+    .cb:checked { background: var(--brand); border-color: var(--brand); }
+    .cb:checked::after { content:''; position: absolute; left: 4px; top: 0px; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .cb:indeterminate { background: var(--brand); border-color: var(--brand); }
+    .cb:indeterminate::after { content:''; position: absolute; left: 3px; top: 7px; width: 10px; height: 2px; background: #fff; }
+    .cb:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    /* ========== MOBILE CARDS ========== */
+    .orders-cards { display: none; flex-direction: column; gap: 10px; padding-bottom: 100px; }
+    .o-card { background:#fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px; cursor: pointer; transition: .15s; position: relative; }
+    .o-card:hover { background: #F9FAFB; }
+    .o-card.selected { background: var(--brand-soft); border-color: var(--brand); border-width: 2px; padding: 13px; }
+    .o-card .oc-top { display:flex; align-items:center; gap: 10px; margin-bottom: 8px; }
+    .o-card .oc-top .cb { margin-top:0; }
+    .o-card .oc-top .oid { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 700; color: var(--text); }
+    .o-card .oc-top .spacer { flex: 1; }
+    .o-card .sub-line { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; padding-left: 28px; }
+    .o-card .thumbs-row { display:flex; align-items:center; gap: 10px; padding-left: 28px; margin-bottom: 8px; }
+    .o-card .thumbs-row .thumb { width: 40px; height: 40px; border-radius: 8px; overflow:hidden; background:#F1F2F4; border:2px solid #fff; box-shadow: 0 0 0 1px var(--border); margin-left: -8px; }
+    .o-card .thumbs-row .thumb:first-child { margin-left: 0; }
+    .o-card .thumbs-row .thumb img { width:100%; height:100%; object-fit:cover; }
+    .o-card .thumbs-row .more-thumb { width: 40px; height: 40px; border-radius: 8px; background:#F1F2F4; color: var(--text-muted); display:inline-flex; align-items:center; justify-content:center; font-size: 11px; font-weight:700; margin-left: -8px; border:2px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+    .o-card .vendor-line { display:inline-flex; align-items:center; gap: 8px; padding-left: 28px; margin-bottom: 10px; }
+    .o-card .vendor-line img { width: 18px; height: 18px; border-radius:999px; }
+    .o-card .vendor-line .v-name { font-size: 12.5px; color: var(--text-muted); }
+    .o-card .vendor-line .v-name strong { color: var(--text); font-weight: 600; }
+    .o-card .foot { display:flex; align-items:center; justify-content: space-between; padding-left: 28px; margin-top: 4px; }
+    .o-card .foot .total-line { font-weight: 700; font-size: 15px; color: var(--text); }
+
+    /* Empty */
+    .empty-wrap { display:flex; flex-direction:column; align-items:center; text-align:center; padding: 72px 20px; background:#fff; border:1px solid var(--border); border-radius: 16px; }
+    .empty-wrap .big-ico { width: 88px; height: 88px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display:inline-flex; align-items:center; justify-content:center; margin-bottom: 16px; }
+    .empty-wrap h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .empty-wrap p { color: var(--text-muted); font-size: 14px; max-width: 380px; margin-bottom: 18px; }
+
+    /* ========== BULK BAR ========== */
+    .bulk-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+      display: none; justify-content: center; pointer-events: none;
+      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    }
+    .bulk-bar.show { display: flex; animation: bulkIn .22s cubic-bezier(.2,.8,.2,1); }
+    @keyframes bulkIn { from{ transform: translateY(120%);} to{ transform: translateY(0);} }
+    .bulk-inner {
+      pointer-events: auto;
+      display: inline-flex; align-items: center; gap: 12px;
+      background: #0F172A; color: #fff;
+      border-radius: 999px; padding: 10px 10px 10px 22px;
+      box-shadow: 0 16px 40px -10px rgba(15,23,42,.35), 0 4px 10px -4px rgba(15,23,42,.25);
+      max-width: calc(100vw - 32px);
+      flex-wrap: wrap;
+    }
+    .bulk-inner .bulk-label { font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+    .bulk-inner .bulk-label .num { background: var(--brand); color: #fff; padding: 2px 10px; border-radius: 999px; font-weight:700; margin-right:4px; }
+    .bulk-inner .bulk-dl {
+      display:inline-flex; align-items:center; gap:8px;
+      background: var(--brand); color:#fff; border:none; padding: 10px 18px;
+      border-radius: 999px; font-size: 13.5px; font-weight: 700; cursor:pointer;
+      transition: .15s;
+    }
+    .bulk-inner .bulk-dl:hover { background: var(--brand-hover); }
+    .bulk-inner .bulk-clear {
+      display:inline-flex; align-items:center; gap:6px;
+      background: transparent; color:#fff; border:1px solid rgba(255,255,255,.25);
+      padding: 9px 16px; border-radius: 999px; font-size:13px; cursor:pointer; font-weight:500;
+    }
+    .bulk-inner .bulk-clear:hover { border-color:#fff; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 767px) {
+      .table-wrap { display: none; }
+      .orders-cards { display: flex; }
+      .page-head-row h1 { font-size: 22px; }
+      .crumbs { padding: 14px 0 6px; }
+      .app-header .row { height: 60px; gap: 10px; }
+      .search-pill { max-width: none; }
+      .search-pill .kbd { display: none; }
+      .header-btn span { display: none; }
+      .header-btn { min-width: 44px; padding: 8px; }
+      .avatar { width: 36px; height: 36px; }
+    }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .orders-table { min-width: 700px; }
+    }
+
+    /* ========== PRINT-ONLY VIEW ========== */
+    .print-only { display: none; }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      html, body { background: #fff !important; }
+      body > *:not(.print-only) { display: none !important; }
+      .print-only { display: block !important; }
+      .print-page { page-break-after: always; padding: 0; color: #0F172A; font-family: 'Inter', sans-serif; }
+      .print-page:last-child { page-break-after: auto; }
+      .p-head { display:flex; justify-content: space-between; align-items:flex-start; border-bottom: 2px solid #0F172A; padding-bottom: 10px; margin-bottom: 16px; }
+      .p-brand { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+      .p-brand span { color: #37BD69; }
+      .p-meta { text-align: right; font-size: 11px; color: #555; }
+      .p-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+      .p-sub { font-size: 12px; color: #555; margin-bottom: 16px; }
+      .p-grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+      .p-box h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #6B7280; margin-bottom: 4px; font-weight:700; }
+      .p-box p { font-size: 12.5px; line-height: 1.5; color: #111; margin:0; }
+      .p-table { width:100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px; }
+      .p-table th { text-align:left; background: #F1F2F4; padding: 8px 10px; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#555; border-bottom: 1px solid #D1D5DB; font-weight:700; }
+      .p-table td { padding: 10px; border-bottom: 1px solid #E5E7EB; vertical-align: top; }
+      .p-table .p-r { text-align: right; font-variant-numeric: tabular-nums; }
+      .p-totals { margin-top: 10px; display: flex; justify-content: flex-end; }
+      .p-totals table { min-width: 260px; font-size: 12px; }
+      .p-totals td { padding: 4px 8px; }
+      .p-totals tr.p-grand td { font-weight: 700; font-size: 14px; border-top: 1.5px solid #0F172A; padding-top:10px; }
+      .p-foot { margin-top: 22px; font-size: 10px; color: #888; text-align:center; padding-top: 10px; border-top: 1px solid #E5E7EB; }
+      .p-status { display:inline-block; font-size: 10px; padding: 3px 10px; border-radius: 999px; font-weight:600; background:#F1F2F4; color:#374151; text-transform:uppercase; letter-spacing:.04em; }
+    }
+
+    /* Dropdown overlay helper */
+    .dd-backdrop { position: fixed; inset: 0; background: transparent; z-index: 35; display:none; }
+    .dd-backdrop.show { display: block; }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body>
+
+<!-- =============== HEADER =============== -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="index_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+    <label class="search-pill">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input id="hdrSearch" type="text" placeholder="Search orders, items, vendors…"/>
+      <span class="kbd">⌘K</span>
+    </label>
+    <div class="header-actions">
+      <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span></button>
+      <a href="orders_1_2.html" class="header-btn active" title="Orders">
+        <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+      </a>
+      <a href="saved_1.html" class="header-btn" title="Saved">
+        <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+      </a>
+      <a href="cart_1.html" class="header-btn" title="Cart">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+      </a>
+      <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header title="Approvals" style="display:none; position:relative;">
+        <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+        <span id="headerApprovalsBadge" data-approvals-header-badge style="display:none; position:absolute; top:4px; right:6px; min-width:18px; height:18px; padding:0 5px; background:var(--danger); color:#fff; border-radius:999px; font-size:10px; font-weight:700; align-items:center; justify-content:center; border:2px solid #fff;">0</span>
+      </a>
+      <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
+      <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
+        <div class="user-wrap" id="userWrap">
+        <img class="avatar" id="userAvatar" src="https://image.pollinations.ai/prompt/professional%20portrait%20headshot%20zoo%20curator?width=80&height=80&seed=401&nologo=true" alt="Account"/>
+        <div class="dd-menu" id="userMenu" role="menu">
+          <div class="dd-head">
+            <div class="nm" id="userName">Dr. S. Ramesh</div>
+            <div class="em" id="userEmail">subhash@lifesciencetrust.com</div>
+          </div>
+          <div class="dd-item"><i data-lucide="user" class="w-4 h-4"></i> Profile</div>
+          <div class="dd-item active"><i data-lucide="package" class="w-4 h-4"></i> Orders</div>
+          <div class="dd-item"><i data-lucide="heart" class="w-4 h-4"></i> Saved</div>
+          <div class="dd-item"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Cart</div>
+          <div style="height:1px; background:var(--border); margin:6px 4px;"></div>
+          <a class="dd-item" id="personaSwitchItem" data-persona-item data-mode-switch="to-other-persona" onclick="window.location.reload();return false;" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></a><a href="admin_dashboard_1.html" class="dd-item" data-mode-switch="to-admin" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</a>
+          <div class="dd-item"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =============== MAIN =============== -->
+<main class="page-wrap">
+  <div class="crumbs"><span>Home</span><span class="sep">·</span><span class="here">Orders</span></div>
+
+  <div class="page-head-row">
+    <h1>Your orders <span class="count-badge" id="totalBadge">24 orders</span></h1>
+    <button class="btn-sm btn-sm-ghost" id="downloadAllBtn" type="button">
+      <i data-lucide="download" class="w-4 h-4"></i>
+      <span class="btn-label-desk">Download all as PDF</span>
+    </button>
+  </div>
+
+  <!-- Status tabs -->
+  <div class="tabs-wrap">
+    <div class="tabs" id="tabsRow" role="tablist">
+      <button data-tab="all" class="active" role="tab" aria-selected="true">All <span class="count-pill" data-count="all">24</span></button>
+      <button data-tab="awaiting" role="tab">Awaiting <span class="count-pill" data-count="awaiting">3</span></button>
+      <button data-tab="transit" role="tab">In transit <span class="count-pill" data-count="transit">8</span></button>
+      <button data-tab="delivered" role="tab">Delivered <span class="count-pill" data-count="delivered">10</span></button>
+      <button data-tab="cancelled" role="tab">Cancelled <span class="count-pill" data-count="cancelled">3</span></button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-input-wrap">
+      <i data-lucide="search" class="w-4 h-4"></i>
+      <input id="tbSearch" type="search" placeholder="Search by order ID or item…" aria-label="Search orders"/>
+    </div>
+    <div class="dd-trigger" id="dateTrigger" tabindex="0" role="button" aria-haspopup="listbox">
+      <i data-lucide="calendar" class="w-4 h-4"></i>
+      <span>Date: <span class="val" id="dateLabel">All time</span></span>
+      <i data-lucide="chevron-down" class="w-4 h-4"></i>
+      <div class="dd-pop" id="datePop" role="listbox"></div>
+    </div>
+    <div class="dd-trigger" id="sortTrigger" tabindex="0" role="button" aria-haspopup="listbox">
+      <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
+      <span>Sort: <span class="val" id="sortLabel">Newest</span></span>
+      <i data-lucide="chevron-down" class="w-4 h-4"></i>
+      <div class="dd-pop" id="sortPop" role="listbox"></div>
+    </div>
+  </div>
+
+  <!-- Desktop / tablet table -->
+  <div class="table-wrap" id="tableWrap">
+    <table class="orders-table" id="ordersTable">
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" class="cb" id="selectAll" aria-label="Select all"/></th>
+          <th class="col-id sortable" data-sort="id">Order ID <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
+          <th class="col-date sortable sorted desc" data-sort="date">Date <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
+          <th class="col-items">Items</th>
+          <th class="col-total sortable" data-sort="total">Total <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
+          <th class="col-status sortable" data-sort="status">Status <i data-lucide="chevron-down" class="chev w-3 h-3"></i></th>
+          <th class="col-act" aria-label="Actions"></th>
+        </tr>
+      </thead>
+      <tbody id="ordersTbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="orders-cards" id="ordersCards"></div>
+
+  <!-- Empty -->
+  <div id="emptyState" style="display:none;"></div>
+</main>
+
+<!-- =============== BULK BAR =============== -->
+<div class="bulk-bar" id="bulkBar" aria-live="polite">
+  <div class="bulk-inner">
+    <div class="bulk-label"><span class="num" id="bulkNum">0</span>selected</div>
+    <button class="bulk-dl" id="bulkDownload" type="button">
+      <i data-lucide="download" class="w-4 h-4"></i>
+      Download PDF <span id="bulkDlCount">(0)</span>
+    </button>
+    <button class="bulk-clear" id="bulkClear" type="button">
+      <i data-lucide="x" class="w-4 h-4"></i> Clear
+    </button>
+  </div>
+</div>
+
+<!-- =============== PRINT-ONLY CONTAINER =============== -->
+<div class="print-only" id="printArea"></div>
+
+<!-- =============== SCRIPTS =============== -->
+<script>
+/* ================================================================
+ *  DATA
+ * ================================================================ */
+const VENDORS = {
+  teakcraft: { name: 'TeakCraft Wildlife Studio', logo: 'https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true' },
+  safeloom:  { name: 'SafeLoom Enrichments',      logo: 'https://image.pollinations.ai/prompt/minimal%20enrichment%20rope%20logo%20green?width=60&height=60&seed=702&nologo=true' },
+  wildforge: { name: 'WildForge Fabrication',     logo: 'https://image.pollinations.ai/prompt/minimal%20industrial%20zoo%20logo%20metal?width=60&height=60&seed=703&nologo=true' },
+  clawplay:  { name: 'ClawPlay Puzzles',          logo: 'https://image.pollinations.ai/prompt/puzzle%20toy%20logo%20minimal%20brown?width=60&height=60&seed=704&nologo=true' },
+  browsebox: { name: 'BrowseBox Feeds',           logo: 'https://image.pollinations.ai/prompt/leafy%20browse%20feed%20logo%20minimal?width=60&height=60&seed=705&nologo=true' }
+};
+const P = (name, seed) => ({ name, img: `https://image.pollinations.ai/prompt/${encodeURIComponent(name+' zoo enrichment product studio shot')}?width=140&height=140&seed=${seed}&nologo=true` });
+
+/* 24 mock orders across all status buckets (3 awaiting, 8 in transit, 10 delivered, 3 cancelled). */
+const _MOCK_ORDERS = [
+  // ==== AWAITING (3) ====
+  { id:'ORD-9012', status:'awaiting', subStatus:'Awaiting approval', vendor:'wildforge',
+    createdAt:'2026-04-23', total:186500,
+    items:[ {p:P('Reinforced steel scratch post',101), qty:2}, {p:P('Anti-slip resting platform',102), qty:1} ],
+    site:'Mysuru Zoo', pin:'570002', approver:'Dr. Ramesh K.' },
+  { id:'ORD-9008', status:'awaiting', subStatus:'Awaiting approval', vendor:'teakcraft',
+    createdAt:'2026-04-22', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Bannerghatta Biological Park', pin:'560083', approver:'Dr. S. Ramesh' },
+  { id:'ORD-9004', status:'awaiting', subStatus:'Awaiting approval', vendor:'browsebox',
+    createdAt:'2026-04-22', total:68400,
+    items:[ {p:P('Bamboo browse bundle XXL',104), qty:40}, {p:P('Sugarcane log feeder',105), qty:8} ],
+    site:'Nehru Zoological Park', pin:'500253', approver:'Dr. Anita Patel' },
+
+  // ==== IN TRANSIT (8) ====
+  { id:'ORD-8960', status:'transit', subStatus:'Confirmed · In production', vendor:'wildforge',
+    createdAt:'2026-04-17', total:234000,
+    items:[ {p:P('Reinforced lion scratch tower',110), qty:1}, {p:P('Stainless scent diffuser',111), qty:2} ],
+    site:'Gir Reserve', pin:'362150',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-LG11-3302', event:'In production · ready by 30 Apr' } },
+  { id:'ORD-8954', status:'transit', subStatus:'In production', vendor:'teakcraft',
+    createdAt:'2026-04-15', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Mysuru Zoo', pin:'570002',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-TC88-1010', event:'In production · ready by 29 Apr' } },
+  { id:'ORD-8948', status:'transit', subStatus:'Packed', vendor:'wildforge',
+    createdAt:'2026-04-12', total:78000,
+    items:[ {p:P('Swing-log enrichment',112), qty:2} ],
+    site:'Nandankanan', pin:'754005',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-7H29-8842', event:'Packed · awaiting pickup' } },
+  { id:'ORD-8932', status:'transit', subStatus:'Shipped', vendor:'clawplay',
+    createdAt:'2026-04-10', total:24500,
+    items:[ {p:P('Floating puzzle feeder',106), qty:3}, {p:P('Aqua food-finder ball',107), qty:6} ],
+    site:'Alipore Zoo', pin:'700027',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-4291-5566', event:'Reached Kolkata hub' } },
+  { id:'ORD-8928', status:'transit', subStatus:'Shipped', vendor:'safeloom',
+    createdAt:'2026-04-09', total:37800,
+    items:[ {p:P('Woven foraging canopy',108), qty:8} ],
+    site:'Vandalur', pin:'600048',
+    tracking:{ carrier:'XpressBees', awb:'XB-8822-4401', event:'In transit to Chennai' } },
+  { id:'ORD-8921', status:'transit', subStatus:'Out for delivery', vendor:'browsebox',
+    createdAt:'2026-04-08', total:68400,
+    items:[ {p:P('Bamboo browse bundle XXL',104), qty:40}, {p:P('Sugarcane log feeder',105), qty:8} ],
+    site:'Nehru Zoological Park', pin:'500253',
+    tracking:{ carrier:'Porter Freight', awb:'PRT-LH82-0091', event:'Out for delivery' } },
+  { id:'ORD-8915', status:'transit', subStatus:'Shipped', vendor:'teakcraft',
+    createdAt:'2026-04-07', total:54200,
+    items:[ {p:P('Teak puzzle feeder tray',113), qty:5} ],
+    site:'Nehru Zoo', pin:'500253',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-TK22-9932', event:'Bengaluru hub' } },
+  { id:'ORD-8908', status:'transit', subStatus:'Packed', vendor:'safeloom',
+    createdAt:'2026-04-05', total:92400,
+    items:[ {p:P('Heavy-duty rope bridge',114), qty:1}, {p:P('Anchoring hardware kit',115), qty:2} ],
+    site:'Sakkarbaug Zoo', pin:'362001',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-SL77-4402', event:'Packed · courier en route' } },
+
+  // ==== DELIVERED (10) ====
+  { id:'ORD-8890', status:'delivered', subStatus:'Delivered', vendor:'teakcraft',
+    createdAt:'2026-04-02', total:142000,
+    items:[ {p:P('Custom teak climbing structure',103), qty:1} ],
+    site:'Bannerghatta', pin:'560083',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-3101-7720', event:'Delivered 12d ago' } },
+  { id:'ORD-8884', status:'delivered', subStatus:'Delivered', vendor:'clawplay',
+    createdAt:'2026-03-30', total:31200,
+    items:[ {p:P('Interactive food cube',116), qty:4} ],
+    site:'Alipore Zoo', pin:'700027',
+    tracking:{ carrier:'XpressBees', awb:'XB-CP32-1012', event:'Delivered 14d ago' } },
+  { id:'ORD-8871', status:'delivered', subStatus:'Delivered', vendor:'wildforge',
+    createdAt:'2026-03-25', total:78000,
+    items:[ {p:P('Swing-log enrichment',112), qty:2} ],
+    site:'Mysuru Zoo', pin:'570002',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-3341-9921', event:'Delivered 20d ago' } },
+  { id:'ORD-8865', status:'delivered', subStatus:'Delivered', vendor:'browsebox',
+    createdAt:'2026-03-22', total:22800,
+    items:[ {p:P('Mixed browse weekly pack',117), qty:12} ],
+    site:'Vandalur', pin:'600048',
+    tracking:{ carrier:'Porter Freight', awb:'PRT-BB65-2034', event:'Delivered 23d ago' } },
+  { id:'ORD-8859', status:'delivered', subStatus:'Delivered', vendor:'safeloom',
+    createdAt:'2026-03-18', total:46400,
+    items:[ {p:P('Foraging mat large',118), qty:6} ],
+    site:'Gir Reserve', pin:'362150',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-SL18-6644', event:'Delivered 27d ago' } },
+  { id:'ORD-8851', status:'delivered', subStatus:'Delivered', vendor:'teakcraft',
+    createdAt:'2026-03-15', total:58900,
+    items:[ {p:P('Wooden platform bench',119), qty:3} ],
+    site:'Mysuru Zoo', pin:'570002',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-TK15-2299', event:'Delivered 30d ago' } },
+  { id:'ORD-8842', status:'delivered', subStatus:'Delivered', vendor:'clawplay',
+    createdAt:'2026-03-12', total:24500,
+    items:[ {p:P('Floating puzzle feeder',106), qty:3}, {p:P('Aqua food-finder ball',107), qty:6} ],
+    site:'Alipore Zoo', pin:'700027',
+    tracking:{ carrier:'XpressBees', awb:'XB-7842-0011', event:'Delivered 5 weeks ago' } },
+  { id:'ORD-8836', status:'delivered', subStatus:'Delivered', vendor:'wildforge',
+    createdAt:'2026-03-08', total:112800,
+    items:[ {p:P('Stainless climbing frame',120), qty:1}, {p:P('Rope tie-down kit',121), qty:4} ],
+    site:'Nandankanan', pin:'754005',
+    tracking:{ carrier:'Delhivery Freight', awb:'DLV-WF08-5540', event:'Delivered · 6 weeks ago' } },
+  { id:'ORD-8828', status:'delivered', subStatus:'Delivered', vendor:'browsebox',
+    createdAt:'2026-03-04', total:18600,
+    items:[ {p:P('Sugarcane log feeder',105), qty:10} ],
+    site:'Nehru Zoological Park', pin:'500253',
+    tracking:{ carrier:'Porter Freight', awb:'PRT-BB04-3388', event:'Delivered · 7 weeks ago' } },
+  { id:'ORD-8820', status:'delivered', subStatus:'Delivered', vendor:'safeloom',
+    createdAt:'2026-03-01', total:33400,
+    items:[ {p:P('Hammock woven rope',122), qty:5} ],
+    site:'Sakkarbaug Zoo', pin:'362001',
+    tracking:{ carrier:'BlueDart Surface', awb:'BDS-SL01-7711', event:'Delivered · 7 weeks ago' } },
+
+  // ==== CANCELLED (3) ====
+  { id:'ORD-8830', status:'cancelled', subStatus:'Cancelled', vendor:'safeloom',
+    createdAt:'2026-03-08', total:18900,
+    items:[ {p:P('Woven foraging canopy',108), qty:4} ],
+    site:'Gir Reserve', pin:'362150',
+    reason:'Rejected by approver — budget exhausted for Q4' },
+  { id:'ORD-8815', status:'cancelled', subStatus:'Return in progress', vendor:'wildforge',
+    createdAt:'2026-03-02', total:94200,
+    items:[ {p:P('Mud-wallow liner heavy-gauge',109), qty:1} ],
+    site:'Kaziranga', pin:'785609',
+    reason:'Dimensions did not match spec · Rework offered' },
+  { id:'ORD-8801', status:'cancelled', subStatus:'Cancelled', vendor:'clawplay',
+    createdAt:'2026-02-24', total:14800,
+    items:[ {p:P('Puzzle ball set',123), qty:6} ],
+    site:'Alipore Zoo', pin:'700027',
+    reason:'Vendor unable to fulfil within SLA' }
+];
+
+/* ================================================================
+   Real-orders bridge — pulls live orders from ZE.orders.read() so
+   anything placed via checkout (junior pending-approval, senior placed,
+   etc.) shows up in this listing. Mock data still appended for demo richness.
+   ================================================================ */
+function _zeMapRealOrder(o){
+  var statusMap = {
+    pending_approval:    { status:'awaiting',  subStatus:'Awaiting approval' },
+    placed:              { status:'transit',   subStatus:'Sent to admin · awaiting confirmation' },
+    confirmed:           { status:'transit',   subStatus:'Confirmed · awaiting production' },
+    packed:              { status:'transit',   subStatus:'Packed · ready for shipment' },
+    shipped:             { status:'transit',   subStatus:'Shipped' },
+    out_for_delivery:    { status:'transit',   subStatus:'Out for delivery' },
+    delivered:           { status:'delivered', subStatus:'Delivered' },
+    cancelled:           { status:'cancelled', subStatus: o.rejectReason ? ('Rejected: '+o.rejectReason) : 'Cancelled' }
+  };
+  var sm = statusMap[o.status] || { status:'awaiting', subStatus: o.status || '—' };
+  var prodLookup = function(pid){ try { return (window.DB && DB.byId) ? DB.byId(DB.PRODUCTS, pid) : null; } catch(_){ return null; } };
+  var siteName = '';
+  try {
+    siteName = (o.shippingAddress && o.shippingAddress.site)
+            || (window.DB && DB.byId(DB.SITES, o.siteId) && DB.byId(DB.SITES, o.siteId).name)
+            || '—';
+  } catch(_){ siteName='—'; }
+  var approverName = null;
+  try {
+    if (o.approverId && window.DB && DB.byId) {
+      var ap = DB.byId(DB.USERS, o.approverId);
+      if (ap) approverName = ap.name;
+    }
+  } catch(_){}
+  // Ensure the VENDORS dict has an entry for this vendor so the renderer can find name+logo
+  try {
+    if (window.DB && DB.VENDORS && o.vendorId) {
+      var realVend = DB.byId(DB.VENDORS, o.vendorId);
+      if (realVend) {
+        var key = o.vendorId.replace(/^ven_/, '');
+        if (!VENDORS[key]) {
+          VENDORS[key] = {
+            name: realVend.name,
+            logo: (typeof DB.vendorLogo === 'function') ? DB.vendorLogo(realVend) : ''
+          };
+        }
+      }
+    }
+  } catch(_){}
+  return {
+    id: o.id,
+    status: sm.status,
+    subStatus: sm.subStatus,
+    vendor: (o.vendorId || '').replace(/^ven_/,'') || 'in-house',
+    createdAt: (o.createdAt || '').slice(0,10),
+    total: o.total || 0,
+    items: (o.items || []).map(function(it){
+      var prod = prodLookup(it.productId);
+      var img  = (prod && (prod.imgSmall || prod.img))
+              || (prod && prod.imgQ && window.DB && DB.img ? DB.img(prod.imgQ, 140, 140, prod.seed||0) : '')
+              || '';
+      return { p: { name: (prod && prod.name) || it.productId, id: it.productId, img: img }, qty: it.qty };
+    }),
+    site: siteName,
+    pin: (o.shippingAddress && o.shippingAddress.pincode) || '',
+    approver: approverName,
+    tracking: (o.tracking && o.tracking.carrier) ? { carrier: o.tracking.carrier, awb: o.tracking.number || '', event: 'Tracking updated' } : null,
+    reason: (o.status === 'cancelled' ? (o.rejectReason || '') : undefined),
+    _real: true,
+    _approvalStatus: o.approvalStatus,
+    _approvedBy: o.approverId,
+    _approvedAt: o.approvedAt
+  };
+}
+
+function _zeLoadRealOrders(){
+  if (!window.ZE || !ZE.orders || !ZE.orders.read) return [];
+  var u = (ZE.user && ZE.user.read) ? ZE.user.read() : null;
+  var uid = u && u.id;
+  var arr = ZE.orders.read() || [];
+  var mine = uid ? arr.filter(function(o){ return o.buyerId === uid || o.createdBy === uid; }) : arr;
+  return mine.map(_zeMapRealOrder);
+}
+
+/* V2: pull seeded V2 orders (already shimmed by v2-bridge.js into DB.DEMO_ORDERS)
+   plus any user-placed V2 orders, and convert to row shape. */
+function _zeLoadV2Orders(){
+  if (!window.DB || !Array.isArray(window.DB.DEMO_ORDERS)) return [];
+  var u = (window.ZE && ZE.user && ZE.user.read) ? ZE.user.read() : null;
+  var uid = u && u.id;
+  var demo = DB.DEMO_ORDERS.slice();
+  var mineDemo = uid ? demo.filter(function(o){ return !o.createdBy || o.createdBy === uid; }) : demo;
+  return mineDemo.map(_zeMapRealOrder);
+}
+
+// Default entry for in-house fulfilment (admin orders without external vendor)
+if (!VENDORS['in-house']) {
+  VENDORS['in-house'] = { name: 'In-house (Admin)', logo: 'https://image.pollinations.ai/prompt/minimal%20paw%20print%20logo%20green%20brand?width=60&height=60&seed=900&nologo=true' };
+}
+
+/* V2: drop the legacy _MOCK_ORDERS — the V2 demo dataset (DB.DEMO_ORDERS_V2,
+   swapped into DB.DEMO_ORDERS by v2-bridge.js) is the canonical source here. */
+let ORDERS = _zeLoadRealOrders().concat(_zeLoadV2Orders());
+
+function _zeRefreshOrders(){
+  ORDERS = _zeLoadRealOrders().concat(_zeLoadV2Orders());
+  if (typeof updateCounts === 'function') updateCounts();
+  if (typeof render === 'function') render();
+}
+
+if (window.ZE && typeof ZE.on === 'function') {
+  ZE.on('orders:change', _zeRefreshOrders);
+  ZE.on('wallet:change', _zeRefreshOrders);
+  ZE.on('user:change',   _zeRefreshOrders);
+}
+window.addEventListener('storage', function(e){
+  if (e.key === 'ze_orders_v1' || e.key === 'ze_user_v1') _zeRefreshOrders();
+});
+
+
+/* ================================================================
+ *  STATE + HELPERS
+ * ================================================================ */
+const state = {
+  tab: 'all',
+  search: '',
+  dateRange: 'all',
+  sortBy: 'date_desc',
+  selectedIds: new Set(),
+  expandedRowId: null
+};
+
+const DATE_OPTS = [
+  { k:'all',   label:'All time' },
+  { k:'today', label:'Today' },
+  { k:'7d',    label:'Last 7 days' },
+  { k:'30d',   label:'Last 30 days' }
+];
+const SORT_OPTS = [
+  { k:'date_desc', label:'Newest' },
+  { k:'date_asc',  label:'Oldest' },
+  { k:'total_asc', label:'Total ↑' },
+  { k:'total_desc',label:'Total ↓' }
+];
+
+const fmtINR = n => '₹' + Number(n).toLocaleString('en-IN');
+function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function fmtDateFull(iso){ const d = new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function statusClass(s){
+  return ({ awaiting:'st-awaiting', transit:'st-transit', delivered:'st-delivered', cancelled: /Return/.test(s) ? 'st-return':'st-cancel' })[s] || 'st-transit';
+}
+function _legacyStatusLabel(o){
+  if (o.status === 'awaiting')  return 'Awaiting';
+  if (o.status === 'transit')   return 'In transit';
+  if (o.status === 'delivered') return 'Delivered';
+  if (o.status === 'cancelled') return /Return/.test(o.subStatus) ? 'Return' : 'Cancelled';
+  return 'Order';
+}
+function _legacyChipClass(o){
+  if (o.status === 'awaiting')  return 'st-awaiting';
+  if (o.status === 'transit')   return 'st-transit';
+  if (o.status === 'delivered') return 'st-delivered';
+  if (o.status === 'cancelled') return /Return/.test(o.subStatus) ? 'st-return':'st-cancel';
+  return 'st-transit';
+}
+// Derived status — prefers ZE.orders.deriveStatus when the order is real,
+// falls back to legacy mock-status mapping for the seed/_MOCK_ORDERS rows.
+function derivedFor(o){
+  /* V2: skip deriveStatus (v1 line-fulfilment based) — v2 has no per-line state.
+     Use the simple legacy label/chip mapping which already covers v2 status codes. */
+  if (o && typeof o.id === 'string' && o.id.indexOf('V2-') === 0) {
+    return { code: 'legacy', label: _legacyStatusLabel(o), chipClass: _legacyChipClass(o), summary: o.subStatus || '' };
+  }
+  try {
+    if (o && o._real && window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+      const d = ZE.orders.deriveStatus(o.id);
+      if (d && d.label) return d;
+    }
+  } catch(_){}
+  return { code: 'legacy', label: _legacyStatusLabel(o), chipClass: _legacyChipClass(o), summary: '' };
+}
+function statusLabel(o){ return derivedFor(o).label; }
+function statusChipClass(o){ return derivedFor(o).chipClass; }
+
+// Refund value = sum of (qty * unitPrice) for cancelled lines.
+// Returns 0 when no lineFulfilment data, or no cancelled lines.
+function cancelledRefund(o){
+  if (!o || !o.id || !Array.isArray(o.items)) return 0;
+  if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment) return 0;
+  let lines;
+  try { lines = ZE.orders.lineFulfilment.forOrder(o.id); } catch(_){ return 0; }
+  if (!lines) return 0;
+  let sum = 0;
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf || lf.status !== 'cancelled') return;
+    let unit = 0;
+    try {
+      const pid = (it && it.p && it.p.id) || it.productId;
+      const p = pid && window.DB && DB.byId ? DB.byId(DB.PRODUCTS, pid) : null;
+      if (p && p.price) unit = (Number(p.price.material)||0) + (Number(p.price.labor)||0);
+      else if (it.unit != null) unit = Number(it.unit) || 0;
+    } catch(_){}
+    sum += unit * (Number(it.qty)||0);
+  });
+  return Math.max(0, Math.round(sum));
+}
+
+// Next event subline text — earliest non-shipped/non-delivered ETA across in-flight lines.
+// Returns '' when nothing useful to show.
+function nextEventSubline(o, code){
+  if (!o || !o.id || !Array.isArray(o.items)) return '';
+  if (!window.ZE || !ZE.orders || !ZE.orders.lineFulfilment) return '';
+  if (!['confirmed','confirmed-partial','partially-shipped','partially-delivered'].includes(code)) return '';
+  let lines;
+  try { lines = ZE.orders.lineFulfilment.forOrder(o.id); } catch(_){ return ''; }
+  if (!lines) return '';
+  // Phase 1: not-yet-shipped (pending/confirmed/in_progress/ready) lines with ETA.
+  const preShip = ['pending','confirmed','in_progress','ready'];
+  let best = null; // { etaTime, idx, kind }
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf || !lf.eta) return;
+    if (lf.status === 'cancelled') return;
+    const t = new Date(lf.eta).getTime();
+    if (isNaN(t)) return;
+    if (preShip.includes(lf.status || 'pending')) {
+      if (!best || t < best.etaTime) best = { etaTime: t, idx, kind: 'ships' };
+    }
+  });
+  // Phase 2: if none pre-shipped have ETA, look at shipped lines arriving (use eta as arrival).
+  if (!best) {
+    o.items.forEach((it, idx) => {
+      const lf = lines[idx];
+      if (!lf || !lf.eta) return;
+      if (lf.status !== 'shipped') return;
+      const t = new Date(lf.eta).getTime();
+      if (isNaN(t)) return;
+      if (!best || t < best.etaTime) best = { etaTime: t, idx, kind: 'arriving' };
+    });
+  }
+  if (!best) return '';
+  const it = o.items[best.idx];
+  const name = (it && it.p && it.p.name) || 'item';
+  // Render ETA short e.g. "Thu 7 May"
+  const _DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const _MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date(best.etaTime);
+  const etaStr = _DOW[d.getDay()] + ' ' + d.getDate() + ' ' + _MON[d.getMonth()];
+  const verb = best.kind === 'ships' ? 'ships' : 'arriving';
+  return { name, verb, etaStr };
+}
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ================================================================
+ *  FILTER + SORT
+ * ================================================================ */
+function filterList(){
+  let list = ORDERS.slice();
+  // tab
+  if (state.tab !== 'all') list = list.filter(o => o.status === state.tab);
+  // search
+  const q = state.search.trim().toLowerCase();
+  if (q) {
+    list = list.filter(o => {
+      if (o.id.toLowerCase().includes(q)) return true;
+      if ((VENDORS[o.vendor]?.name||'').toLowerCase().includes(q)) return true;
+      if (o.items.some(it => it.p.name.toLowerCase().includes(q))) return true;
+      return false;
+    });
+  }
+  // date
+  if (state.dateRange !== 'all') {
+    const now = new Date('2026-04-24');
+    const cutoff = new Date(now);
+    if (state.dateRange === 'today') cutoff.setHours(0,0,0,0);
+    else if (state.dateRange === '7d')  cutoff.setDate(cutoff.getDate()-7);
+    else if (state.dateRange === '30d') cutoff.setDate(cutoff.getDate()-30);
+    list = list.filter(o => new Date(o.createdAt) >= cutoff);
+  }
+  // sort
+  const cmp = {
+    date_desc: (a,b) => new Date(b.createdAt) - new Date(a.createdAt),
+    date_asc:  (a,b) => new Date(a.createdAt) - new Date(b.createdAt),
+    total_asc: (a,b) => a.total - b.total,
+    total_desc:(a,b) => b.total - a.total,
+    id_asc:    (a,b) => a.id.localeCompare(b.id),
+    id_desc:   (a,b) => b.id.localeCompare(a.id),
+    status_asc:(a,b) => a.status.localeCompare(b.status),
+    status_desc:(a,b) => b.status.localeCompare(a.status)
+  }[state.sortBy] || ((a,b)=>0);
+  list.sort(cmp);
+  return list;
+}
+
+/* ================================================================
+ *  COUNTS
+ * ================================================================ */
+function updateCounts(){
+  const c = { all: ORDERS.length, awaiting:0, transit:0, delivered:0, cancelled:0 };
+  ORDERS.forEach(o => c[o.status]++);
+  Object.entries(c).forEach(([k,v]) => {
+    const el = document.querySelector(`[data-count="${k}"]`);
+    if (el) el.textContent = v;
+  });
+  document.getElementById('totalBadge').textContent = `${ORDERS.length} orders`;
+}
+
+/* ================================================================
+ *  RENDER TABLE ROWS
+ * ================================================================ */
+function itemsCell(o){
+  const totalQty = o.items.reduce((s,it)=> s + it.qty, 0);
+  return `<span class="cell-items-count">${totalQty} ${totalQty === 1 ? 'item' : 'items'}</span>`;
+}
+
+// Build inline line-level tally tags (cancelled / partial). Returns '' when nothing to show.
+function lineTagsHTML(o){
+  if (!o || !o.id || !Array.isArray(o.items)) return '';
+  let lines = null;
+  try {
+    if (window.ZE && ZE.orders && ZE.orders.lineFulfilment && typeof ZE.orders.lineFulfilment.forOrder === 'function') {
+      lines = ZE.orders.lineFulfilment.forOrder(o.id) || null;
+    }
+  } catch(_){ lines = null; }
+  if (!lines) return '';
+  let cancelled = 0, partial = 0;
+  o.items.forEach((it, idx) => {
+    const lf = lines[idx];
+    if (!lf) return;
+    if (lf.status === 'cancelled') { cancelled++; return; }
+    const shipped = Number(lf.shippedQty || 0);
+    const qty = Number(it.qty || 0);
+    if ((lf.status === 'shipped' || lf.status === 'delivered') && shipped > 0 && qty > 0 && shipped < qty) partial++;
+  });
+  if (!cancelled && !partial) return '';
+  const href = 'order_detail_1.html?id=' + encodeURIComponent(o.id);
+  let html = '';
+  if (cancelled) html += `<a href="${href}" class="row-line-tag row-tag-cancel" title="${cancelled} of ${o.items.length} ${cancelled===1?'line':'lines'} cancelled">${cancelled} cancelled</a>`;
+  if (partial)   html += `<a href="${href}" class="row-line-tag row-tag-partial" title="${partial} of ${o.items.length} ${partial===1?'line':'lines'} partially shipped">${partial} partial</a>`;
+  return html;
+}
+
+function renderTableRows(list){
+  const tb = document.getElementById('ordersTbody');
+  if (!list.length) { tb.innerHTML = ''; return; }
+  tb.innerHTML = list.map(o => {
+    const sel = state.selectedIds.has(o.id);
+    const d = derivedFor(o);
+    const refund = cancelledRefund(o);
+    const headlineTotal = Math.max(0, (Number(o.total)||0) - refund);
+    const refundChip = refund > 0
+      ? `<span class="row-refund-chip" title="${refund.toLocaleString('en-IN')} refunded for cancelled lines">−${fmtINR(refund)} refunded</span>`
+      : '';
+    const summarySub = d.summary
+      ? `<span class="row-summary-sub" title="${escapeHtml(d.summary)}">${escapeHtml(d.summary)}</span>`
+      : '';
+    const ne = nextEventSubline(o, d.code);
+    const nextLine = ne
+      ? `<div class="row-next-event" title="Next: ${escapeHtml(ne.name)} ${ne.verb} ${ne.etaStr}">Next: <strong>${escapeHtml(ne.name)}</strong> · ${ne.verb} ${ne.etaStr}</div>`
+      : '';
+    return `
+      <tr data-id="${o.id}" class="${sel?'selected':''}">
+        <td class="col-check">
+          <input type="checkbox" class="cb row-cb" data-id="${o.id}" ${sel?'checked':''} aria-label="Select ${o.id}"/>
+        </td>
+        <td class="col-id">
+          <span class="id-main">${o.id}</span>
+          ${summarySub}
+          ${nextLine}
+        </td>
+        <td class="col-date">${fmtDate(o.createdAt)} ${new Date(o.createdAt).getFullYear()}</td>
+        <td class="col-items">${itemsCell(o)}</td>
+        <td class="col-total"><span class="cell-total">${fmtINR(headlineTotal)}</span>${refundChip}</td>
+        <td class="col-status">
+          <span class="st-chip ${d.chipClass}">
+            <span class="dot"></span>${escapeHtml(d.label)}
+          </span>${lineTagsHTML(o)}
+        </td>
+        <td class="col-act">
+          <button class="icon-dl" data-dl="${o.id}" aria-label="Download PDF for ${o.id}" title="Download PDF">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ================================================================
+ *  RENDER CARDS (mobile)
+ * ================================================================ */
+function renderCards(list){
+  const host = document.getElementById('ordersCards');
+  if (!list.length) { host.innerHTML = ''; return; }
+  host.innerHTML = list.map(o => {
+    const v = VENDORS[o.vendor];
+    const totalQty = o.items.reduce((s,it)=> s + it.qty, 0);
+    const shown = o.items.slice(0,3);
+    const remaining = o.items.length - shown.length;
+    const thumbs = shown.map(it => `<div class="thumb"><img src="${it.p.img}" loading="lazy" alt=""/></div>`).join('');
+    const moreT = remaining > 0 ? `<div class="more-thumb">+${remaining}</div>` : '';
+    const sel = state.selectedIds.has(o.id);
+    const d = derivedFor(o);
+    const refund = cancelledRefund(o);
+    const headlineTotal = Math.max(0, (Number(o.total)||0) - refund);
+    const refundChip = refund > 0
+      ? `<span class="oc-refund-chip" title="${refund.toLocaleString('en-IN')} refunded for cancelled lines">−${fmtINR(refund)} refunded</span>`
+      : '';
+    const summarySub = d.summary
+      ? `<div class="oc-summary-sub">${escapeHtml(d.summary)}</div>`
+      : '';
+    const ne = nextEventSubline(o, d.code);
+    const nextLine = ne
+      ? `<div class="oc-next-event">Next: <strong>${escapeHtml(ne.name)}</strong> · ${ne.verb} ${ne.etaStr}</div>`
+      : '';
+    return `
+      <article class="o-card ${sel?'selected':''}" data-id="${o.id}">
+        <div class="oc-top">
+          <input type="checkbox" class="cb row-cb" data-id="${o.id}" ${sel?'checked':''} aria-label="Select ${o.id}"/>
+          <span class="oid">${o.id}</span>
+          <div class="spacer"></div>
+          <button class="icon-dl" data-dl="${o.id}" aria-label="Download PDF"><i data-lucide="download" class="w-4 h-4"></i></button>
+        </div>
+        <div class="sub-line">${fmtDateFull(o.createdAt)} · ${totalQty} ${totalQty===1?'item':'items'}</div>
+        ${summarySub}
+        ${nextLine}
+        <div class="thumbs-row">${thumbs}${moreT}</div>
+        <div class="vendor-line">
+          <img src="${v?.logo}" alt=""/>
+          <span class="v-name"><strong>${v?.name||''}</strong></span>
+        </div>
+        <div class="foot">
+          <span class="total-line">${fmtINR(headlineTotal)}${refundChip}</span>
+          <span class="st-chip ${d.chipClass}"><span class="dot"></span>${escapeHtml(d.label)}</span>${lineTagsHTML(o)}
+        </div>
+      </article>`;
+  }).join('');
+}
+
+/* ================================================================
+ *  RENDER ENTRY POINT
+ * ================================================================ */
+function render(){
+  const list = filterList();
+  const empty = document.getElementById('emptyState');
+  const twrap = document.getElementById('tableWrap');
+  const cards = document.getElementById('ordersCards');
+  if (!list.length) {
+    twrap.style.display = 'none';
+    cards.style.display = 'none';
+    empty.style.display = 'block';
+    empty.innerHTML = renderEmpty();
+  } else {
+    empty.style.display = 'none';
+    twrap.style.display = '';
+    cards.style.display = '';
+    renderTableRows(list);
+    renderCards(list);
+  }
+  updateSelectAll(list);
+  updateBulkBar();
+  updateSortIndicators();
+  refreshIcons();
+}
+
+function renderEmpty(){
+  const hasFilters = state.tab !== 'all' || state.search || state.dateRange !== 'all';
+  if (hasFilters) {
+    return `<div class="empty-wrap">
+      <span class="big-ico"><i data-lucide="package-search" class="w-10 h-10"></i></span>
+      <h3>No orders match</h3>
+      <p>Try another status or clear filters.</p>
+      <button class="btn-sm btn-sm-ghost" id="clearFiltersBtn"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear filters</button>
+    </div>`;
+  }
+  return `<div class="empty-wrap">
+    <span class="big-ico"><i data-lucide="package" class="w-10 h-10"></i></span>
+    <h3>You haven't placed an order</h3>
+    <p>When you place an order, it will appear here for easy tracking.</p>
+    <a class="btn-sm btn-sm-primary" href="index_1.html"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Shop now</a>
+  </div>`;
+}
+
+/* ================================================================
+ *  SORT INDICATORS
+ * ================================================================ */
+function updateSortIndicators(){
+  const mapping = {
+    id:{a:'id_asc',d:'id_desc'},
+    date:{a:'date_asc',d:'date_desc'},
+    total:{a:'total_asc',d:'total_desc'},
+    status:{a:'status_asc',d:'status_desc'}
+  };
+  document.querySelectorAll('.orders-table thead th.sortable').forEach(th => {
+    th.classList.remove('sorted','desc');
+    const k = th.dataset.sort;
+    const m = mapping[k];
+    if (!m) return;
+    if (state.sortBy === m.a) th.classList.add('sorted');
+    if (state.sortBy === m.d) th.classList.add('sorted','desc');
+  });
+}
+
+/* ================================================================
+ *  SELECT ALL (tri-state)
+ * ================================================================ */
+function updateSelectAll(list){
+  const cb = document.getElementById('selectAll');
+  if (!cb) return;
+  const visibleIds = list.map(o => o.id);
+  const selectedCount = visibleIds.filter(id => state.selectedIds.has(id)).length;
+  cb.indeterminate = selectedCount > 0 && selectedCount < visibleIds.length;
+  cb.checked = visibleIds.length > 0 && selectedCount === visibleIds.length;
+}
+
+/* ================================================================
+ *  BULK BAR
+ * ================================================================ */
+function updateBulkBar(){
+  const bar = document.getElementById('bulkBar');
+  const n = state.selectedIds.size;
+  bar.classList.toggle('show', n > 0);
+  document.getElementById('bulkNum').textContent = n;
+  document.getElementById('bulkDlCount').textContent = `(${n})`;
+}
+
+/* ================================================================
+ *  EVENT WIRING
+ * ================================================================ */
+function wireEvents(){
+  // Tabs
+  document.querySelectorAll('#tabsRow button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#tabsRow button').forEach(x => { x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
+      b.classList.add('active'); b.setAttribute('aria-selected','true');
+      state.tab = b.dataset.tab;
+      render();
+    });
+  });
+
+  // Toolbar search
+  const tb = document.getElementById('tbSearch');
+  tb.addEventListener('input', e => { state.search = e.target.value; render(); });
+
+  // Dropdowns (date, sort)
+  buildDropdown('datePop', DATE_OPTS, state.dateRange, k => { state.dateRange = k; document.getElementById('dateLabel').textContent = DATE_OPTS.find(o=>o.k===k).label; render(); });
+  buildDropdown('sortPop', SORT_OPTS, state.sortBy,    k => { state.sortBy    = k; document.getElementById('sortLabel').textContent = SORT_OPTS.find(o=>o.k===k).label; render(); });
+
+  document.getElementById('dateTrigger').addEventListener('click', e => toggleDD('datePop', e));
+  document.getElementById('sortTrigger').addEventListener('click', e => toggleDD('sortPop', e));
+
+  document.addEventListener('click', e => {
+    document.querySelectorAll('.dd-pop.open').forEach(p => {
+      if (!p.contains(e.target) && !p.parentElement.contains(e.target)) p.classList.remove('open');
+    });
+    // user menu
+    const um = document.getElementById('userMenu');
+    const uw = document.getElementById('userWrap');
+    if (um.classList.contains('open') && !uw.contains(e.target)) um.classList.remove('open');
+  });
+
+  // Avatar menu
+  document.getElementById('userAvatar').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('userMenu').classList.toggle('open');
+  });
+
+  // Sort headers
+  document.querySelectorAll('.orders-table thead th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      const map = {
+        id:['id_desc','id_asc'],
+        date:['date_desc','date_asc'],
+        total:['total_desc','total_asc'],
+        status:['status_asc','status_desc']
+      }[k];
+      if (!map) return;
+      state.sortBy = state.sortBy === map[0] ? map[1] : map[0];
+      render();
+    });
+    th.tabIndex = 0;
+    th.addEventListener('keydown', e => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); th.click(); } });
+  });
+
+  // Select-all
+  document.getElementById('selectAll').addEventListener('change', e => {
+    const list = filterList();
+    if (e.target.checked) list.forEach(o => state.selectedIds.add(o.id));
+    else list.forEach(o => state.selectedIds.delete(o.id));
+    render();
+  });
+
+  // Delegated row checkbox + download
+  document.body.addEventListener('change', e => {
+    if (!e.target.classList.contains('row-cb')) return;
+    const id = e.target.dataset.id;
+    if (e.target.checked) state.selectedIds.add(id); else state.selectedIds.delete(id);
+    render();
+  });
+  document.body.addEventListener('click', e => {
+    const dlBtn = e.target.closest('[data-dl]');
+    if (dlBtn) {
+      e.stopPropagation();
+      const id = dlBtn.dataset.dl;
+      const o = ORDERS.find(x => x.id === id);
+      if (o) printOrders([o]);
+      return;
+    }
+    // clear filters from empty state
+    if (e.target.closest('#clearFiltersBtn')) {
+      state.tab = 'all'; state.search = ''; state.dateRange = 'all';
+      document.getElementById('tbSearch').value = '';
+      document.getElementById('dateLabel').textContent = 'All time';
+      document.querySelectorAll('#tabsRow button').forEach(x => x.classList.remove('active'));
+      document.querySelector('#tabsRow button[data-tab="all"]').classList.add('active');
+      render();
+      return;
+    }
+    // Row / card click → open order detail. Skip clicks on checkboxes,
+    // download button, or any anchor/button inside the row.
+    if (e.target.closest('input,button,a,label')) return;
+    const row = e.target.closest('#ordersTbody tr[data-id], #ordersCards article.o-card[data-id]');
+    if (row) {
+      const id = row.dataset.id;
+      if (!id) return;
+      // Stash full order payload so order_detail can render seeded mocks
+      // that don't live in ZE.orders / DB.DEMO_ORDERS.
+      const o = ORDERS.find(x => x.id === id);
+      if (o) {
+        try { sessionStorage.setItem('ze_view_order_' + id, JSON.stringify(o)); } catch(_) {}
+      }
+      window.location.href = 'order_detail_1.html?id=' + encodeURIComponent(id);
+    }
+  });
+
+  // Bulk actions
+  document.getElementById('bulkDownload').addEventListener('click', () => {
+    const ords = ORDERS.filter(o => state.selectedIds.has(o.id));
+    if (ords.length) printOrders(ords);
+  });
+  document.getElementById('bulkClear').addEventListener('click', () => {
+    state.selectedIds.clear(); render();
+  });
+
+  // Download all visible
+  document.getElementById('downloadAllBtn').addEventListener('click', () => {
+    const list = filterList();
+    if (list.length) printOrders(list);
+  });
+
+  // Sticky-shadow toggles on horizontal scroll
+  const tw = document.getElementById('tableWrap');
+  tw.addEventListener('scroll', () => {
+    tw.classList.toggle('scrolled', tw.scrollLeft > 0);
+    const atEnd = tw.scrollLeft + tw.clientWidth >= tw.scrollWidth - 1;
+    tw.classList.toggle('scroll-end-hidden', !atEnd);
+  });
+  // Initial shadow state
+  setTimeout(() => {
+    const atEnd = tw.scrollLeft + tw.clientWidth >= tw.scrollWidth - 1;
+    tw.classList.toggle('scroll-end-hidden', !atEnd);
+  }, 50);
+
+  // Esc closes dropdowns
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.dd-pop.open, .dd-menu.open').forEach(p => p.classList.remove('open'));
+    }
+  });
+}
+
+function buildDropdown(id, opts, current, onPick){
+  const el = document.getElementById(id);
+  el.innerHTML = opts.map(o => `<div class="dd-opt ${o.k===current?'active':''}" data-k="${o.k}" role="option">${o.label}<i data-lucide="check" class="tick w-4 h-4"></i></div>`).join('');
+  el.querySelectorAll('.dd-opt').forEach(it => {
+    it.addEventListener('click', e => {
+      e.stopPropagation();
+      el.classList.remove('open');
+      onPick(it.dataset.k);
+      // re-highlight
+      el.querySelectorAll('.dd-opt').forEach(x => x.classList.remove('active'));
+      it.classList.add('active');
+      refreshIcons();
+    });
+  });
+}
+function toggleDD(id, e){
+  e.stopPropagation();
+  const el = document.getElementById(id);
+  document.querySelectorAll('.dd-pop.open').forEach(p => { if (p !== el) p.classList.remove('open'); });
+  el.classList.toggle('open');
+}
+
+/* ================================================================
+ *  PRINT / PDF
+ * ================================================================ */
+function printOrders(orders){
+  const host = document.getElementById('printArea');
+  host.innerHTML = orders.map(renderPrintPage).join('');
+  // Ensure layout before print
+  setTimeout(() => { window.print(); }, 60);
+}
+
+function renderPrintPage(o){
+  const v = VENDORS[o.vendor];
+  const subtotal = o.total;
+  const tax = Math.round(o.total * 0.18);
+  const total = subtotal + tax;
+  const addr = `${o.site} · ${o.pin}`;
+  const user = 'Dr. S. Ramesh';
+  const email = 'subhash@lifesciencetrust.com';
+  const items = o.items.map(it => `
+    <tr>
+      <td style="width:48px;"><img src="${it.p.img}" style="width:42px; height:42px; object-fit:cover; border-radius:6px;" alt=""/></td>
+      <td><div style="font-weight:600; color:#111;">${it.p.name}</div></td>
+      <td class="p-r">${it.qty}</td>
+      <td class="p-r">${fmtINR(Math.round(o.total / Math.max(1, o.items.reduce((s,x)=>s+x.qty,0))))}</td>
+      <td class="p-r">${fmtINR(Math.round((it.qty * o.total) / Math.max(1, o.items.reduce((s,x)=>s+x.qty,0))))}</td>
+    </tr>
+  `).join('');
+
+  const trackingBlock = o.tracking ? `
+    <div class="p-box" style="margin-top:10px; padding:10px 12px; border:1px solid #E5E7EB; border-radius:6px; background:#F9FAFB;">
+      <h4>Tracking</h4>
+      <p><strong>${o.tracking.carrier}</strong> · AWB ${o.tracking.awb}<br>Latest: ${o.tracking.event}</p>
+    </div>` : '';
+
+  const reasonBlock = o.reason ? `
+    <div class="p-box" style="margin-top:10px; padding:10px 12px; border:1px solid #FECDD3; border-radius:6px; background:#FFF1F2;">
+      <h4>Cancellation note</h4>
+      <p style="color:#B00020;">${o.reason}</p>
+    </div>` : '';
+
+  return `
+    <section class="print-page">
+      <div class="p-head">
+        <div>
+          <div class="p-brand">Zoo<span>Enrich</span></div>
+          <div style="font-size:11px; color:#6B7280; margin-top:2px;">Wildlife Enrichment Marketplace</div>
+        </div>
+        <div class="p-meta">
+          <div>Order confirmation</div>
+          <div>Printed: ${fmtDateFull(new Date().toISOString())}</div>
+        </div>
+      </div>
+
+      <div class="p-title">${o.id}</div>
+      <div class="p-sub">Placed ${fmtDateFull(o.createdAt)} · <span class="p-status">${o.subStatus}</span></div>
+
+      <div class="p-grid-2">
+        <div class="p-box">
+          <h4>Buyer</h4>
+          <p><strong>${user}</strong><br>${email}</p>
+        </div>
+        <div class="p-box">
+          <h4>Vendor</h4>
+          <p><strong>${v?.name||''}</strong></p>
+        </div>
+        <div class="p-box">
+          <h4>Ship to</h4>
+          <p>${addr}</p>
+        </div>
+        <div class="p-box">
+          <h4>Approver</h4>
+          <p>${o.approver || '—'}</p>
+        </div>
+      </div>
+
+      <table class="p-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Item</th>
+            <th class="p-r" style="width:60px;">Qty</th>
+            <th class="p-r" style="width:90px;">Unit</th>
+            <th class="p-r" style="width:100px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${items}</tbody>
+      </table>
+
+      <div class="p-totals">
+        <table>
+          <tr><td style="color:#6B7280;">Subtotal</td><td class="p-r">${fmtINR(subtotal)}</td></tr>
+          <tr><td style="color:#6B7280;">GST (18%)</td><td class="p-r">${fmtINR(tax)}</td></tr>
+          <tr class="p-grand"><td>Total</td><td class="p-r">${fmtINR(total)}</td></tr>
+        </table>
+      </div>
+
+      ${trackingBlock}
+      ${reasonBlock}
+
+      <div class="p-foot">ZooEnrich · ${o.id} · Generated ${fmtDateFull(new Date().toISOString())}</div>
+    </section>
+  `;
+}
+
+/* ================================================================
+ *  ICONS
+ * ================================================================ */
+function refreshIcons(){ if (window.lucide?.createIcons) window.lucide.createIcons(); }
+
+/* ================================================================
+ *  INIT
+ * ================================================================ */
+(function init(){
+  // Try to pull signed-in user if ZE available
+  try {
+    if (window.ZE?.user?.resolve) {
+      const u = window.ZE.user.resolve();
+      if (u?.name)   document.getElementById('userName').textContent  = u.name;
+      if (u?.email)  document.getElementById('userEmail').textContent = u.email;
+      if (u?.avatar||u?.img) document.getElementById('userAvatar').src = u.avatar || u.img;
+    }
+  } catch {}
+
+  updateCounts();
+  wireEvents();
+  render();
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
+      var pop = document.getElementById('walletPillPop');
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+</body>
+</html>

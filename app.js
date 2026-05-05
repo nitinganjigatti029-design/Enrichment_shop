@@ -1741,6 +1741,182 @@
   };
 })();
 
+/* ============================================================
+   ZE.ordersV2 — single-product-per-order API for the V2 prototype
+   Reads/writes localStorage 've_orders_v2_v1' for user-placed orders, and
+   merges DB.DEMO_ORDERS_V2 for the seed dataset. Fully isolated from ZE.orders.
+   ============================================================ */
+(function () {
+  if (!window.ZE) return;
+  var STORE_KEY = 've_orders_v2_v1';
+  var LOCKED = ['pending_approval','placed','approved','confirmed','packed','shipped','out_for_delivery'];
+  var SPENT  = ['delivered'];
+
+  function read() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]') || []; } catch (e) { return []; } }
+  function write(list) { try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch (e) {} ZE.emit && ZE.emit('ordersV2:change', { count: list.length }); }
+  function demo() { try { return (window.DB && Array.isArray(DB.DEMO_ORDERS_V2)) ? DB.DEMO_ORDERS_V2.slice() : []; } catch (e) { return []; } }
+  function all() { return read().concat(demo()); }
+  function byId(id) { return all().find(function (o) { return o && o.id === id; }) || null; }
+
+  function listFor(filter) {
+    filter = filter || {};
+    var list = all();
+    if (filter.siteId)    list = list.filter(function (o) { return o.siteId === filter.siteId; });
+    if (filter.createdBy) list = list.filter(function (o) { return o.createdBy === filter.createdBy; });
+    if (filter.status)    list = list.filter(function (o) { return o.status === filter.status; });
+    if (filter.approverId) list = list.filter(function (o) { return o.requiresApproval && o.approverId === filter.approverId && o.approvalStatus === 'pending'; });
+    list.sort(function (a, b) { return Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0); });
+    return list;
+  }
+
+  function newOrderId() {
+    var n = read().length + 1;
+    return 'V2-U' + String(Date.now()).slice(-4) + n;
+  }
+
+  /* Split a cart of {productId, qty, config?, ...} entries into N v2 orders.
+     Same product + same config = 1 order with that qty.
+     Same product + different config = 2 separate orders.
+     Returns array of created order objects. */
+  function placeFromCart(cartLines, ctx) {
+    ctx = ctx || {};
+    var user = (ZE.user && ZE.user.resolve()) || null;
+    if (!user) throw new Error('No signed-in user');
+    var siteId = ctx.siteId || user.siteId;
+    var nowIso = new Date().toISOString();
+    var requiresApproval = !!ctx.requiresApproval;
+    var approverId = ctx.approverId || (user.approverId || null);
+    var existing = read();
+    var created = [];
+    (cartLines || []).forEach(function (ln) {
+      var p = (window.DB && Array.isArray(DB.PRODUCTS)) ? DB.PRODUCTS.find(function (x) { return x.id === ln.productId; }) : null;
+      var unitPrice = (p && p.price) ? ((Number(p.price.material) || 0) + (Number(p.price.labor) || 0)) : (Number(ln.unitPrice) || 0);
+      var qty = Number(ln.qty) || 1;
+      var subtotal = unitPrice * qty;
+      var shippingFee = Number(ln.shippingFee) || 80;
+      var total = subtotal + shippingFee;
+      var order = {
+        id: newOrderId() + '-' + (created.length + 1),
+        createdAt: nowIso,
+        createdBy: user.id,
+        siteId: siteId,
+        enclosureId: ln.enclosureId || null,
+        speciesId: ln.speciesId || null,
+        requiresApproval: requiresApproval,
+        approvalStatus: requiresApproval ? 'pending' : null,
+        approverId: requiresApproval ? approverId : null,
+        approvedAt: null,
+        rejectReason: null,
+        vendorId: (p && p.vendorId) || null,
+        productId: ln.productId,
+        qty: qty,
+        config: ln.config || null,
+        unitPrice: unitPrice,
+        subtotal: subtotal,
+        shippingMethod: ln.shippingMethod || 'Standard',
+        shippingFee: shippingFee,
+        total: total,
+        status: requiresApproval ? 'pending_approval' : 'placed',
+        priority: ln.priority || 'Normal',
+        notes: ln.notes || '',
+        shippingAddress: ctx.shippingAddress || null,
+        tracking: { carrier: null, number: null, url: null, eta: null, events: [
+          { status: requiresApproval ? 'pending_approval' : 'placed', at: nowIso, location: 'Online', note: requiresApproval ? 'Awaiting senior approval' : 'Order placed' }
+        ] },
+        source: 'user'
+      };
+      existing.push(order);
+      created.push(order);
+    });
+    write(existing);
+    return created;
+  }
+
+  function _saveOne(order) {
+    var list = read();
+    var i = list.findIndex(function (o) { return o.id === order.id; });
+    if (i >= 0) { list[i] = order; write(list); return order; }
+    // Demo orders are immutable — but we mutate via override list.
+    list.push(order);
+    write(list);
+    return order;
+  }
+
+  function setStatus(id, newStatus, eventNote) {
+    var o = byId(id);
+    if (!o) return null;
+    var copy = JSON.parse(JSON.stringify(o));
+    copy.status = newStatus;
+    copy.tracking = copy.tracking || { events: [] };
+    copy.tracking.events = (copy.tracking.events || []).concat([{ status: newStatus, at: new Date().toISOString(), location: 'Online', note: eventNote || newStatus }]);
+    return _saveOne(copy);
+  }
+
+  function approve(id) {
+    var o = byId(id);
+    if (!o) return null;
+    var copy = JSON.parse(JSON.stringify(o));
+    copy.approvalStatus = 'approved';
+    copy.approvedAt = new Date().toISOString();
+    copy.status = 'placed';
+    copy.tracking = copy.tracking || { events: [] };
+    copy.tracking.events = (copy.tracking.events || []).concat([{ status: 'placed', at: copy.approvedAt, location: 'Online', note: 'Approved · order placed' }]);
+    return _saveOne(copy);
+  }
+  function reject(id, reason) {
+    var o = byId(id);
+    if (!o) return null;
+    var copy = JSON.parse(JSON.stringify(o));
+    copy.approvalStatus = 'rejected';
+    copy.status = 'cancelled';
+    copy.rejectReason = reason || 'No reason given';
+    copy.tracking = copy.tracking || { events: [] };
+    copy.tracking.events = (copy.tracking.events || []).concat([{ status: 'cancelled', at: new Date().toISOString(), location: 'Online', note: 'Approval rejected: ' + copy.rejectReason }]);
+    return _saveOne(copy);
+  }
+  function cancel(id, reason) {
+    var o = byId(id);
+    if (!o) return null;
+    var copy = JSON.parse(JSON.stringify(o));
+    copy.status = 'cancelled';
+    copy.rejectReason = reason || copy.rejectReason || null;
+    copy.tracking = copy.tracking || { events: [] };
+    copy.tracking.events = (copy.tracking.events || []).concat([{ status: 'cancelled', at: new Date().toISOString(), location: 'Online', note: reason ? ('Cancelled: ' + reason) : 'Cancelled' }]);
+    return _saveOne(copy);
+  }
+
+  /* Wallet rollup for v2 orders only (does NOT touch v1 wallet) */
+  function walletForSiteV2(siteId) {
+    if (!siteId) return { siteId: null, allotted: 0, locked: 0, spent: 0, available: 0 };
+    var budget = null;
+    try { budget = (window.DB && DB.SITE_BUDGETS) ? DB.SITE_BUDGETS[siteId] : null; } catch (e) {}
+    if (!budget) return { siteId: siteId, allotted: 0, locked: 0, spent: 0, available: 0 };
+    var allotted = Number(budget.allotted) || 0;
+    var locked = 0, spent = 0;
+    listFor({ siteId: siteId }).forEach(function (o) {
+      var t = Number(o.total) || 0;
+      if (LOCKED.indexOf(o.status) !== -1) locked += t;
+      else if (SPENT.indexOf(o.status) !== -1) spent += t;
+    });
+    return { siteId: siteId, allotted: allotted, locked: locked, spent: spent, available: Math.max(0, allotted - locked - spent) };
+  }
+
+  ZE.ordersV2 = {
+    LOCKED_STATUSES: LOCKED,
+    SPENT_STATUSES: SPENT,
+    list: listFor,
+    all: all,
+    byId: byId,
+    placeFromCart: placeFromCart,
+    setStatus: setStatus,
+    approve: approve,
+    reject: reject,
+    cancel: cancel,
+    pendingApprovalsFor: function (approverUserId) { return listFor({ approverId: approverUserId }); },
+    walletForSite: walletForSiteV2
+  };
+})();
+
   /* ---------- Mode switch (Buyer ↔ Admin ↔ Senior ↔ Junior) ---------- */
   // Persona constants for the demo:
   //   Junior buyer: u_joshi  (Lab Technician at Hyderabad, canPurchase:false, approverId:u_kumar)

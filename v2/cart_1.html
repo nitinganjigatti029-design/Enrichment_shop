@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+
+    /* =========== Header (cloned from index_1.html) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+
+    .search-pill { flex: 1; max-width: 560px; height: 48px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--text-muted); transition: .15s; border: 1.5px solid transparent; }
+    .search-pill:focus-within { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.12); }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { background: #fff; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; transition: .15s; background: transparent; border: none; position: relative; min-width: 64px; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+
+    /* User slot menu */
+    .avatar-wrap { position: relative; margin-left: 8px; }
+    .avatar-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-md); min-width: 220px; padding: 6px; z-index: 60; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: .15s; }
+    .avatar-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .avatar-menu .menu-header { padding: 10px 12px 8px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .avatar-menu .menu-header .name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .avatar-menu .menu-header .email { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
+    .avatar-menu a, .avatar-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; transition: .12s; }
+    .avatar-menu a:hover, .avatar-menu button:hover { background: var(--card-subtle); color: var(--brand-hover); }
+    .avatar-menu .menu-sep { height: 1px; background: var(--border); margin: 6px 0; }
+    .avatar-menu .sign-out { color: var(--danger); }
+    .signin-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; margin-left: 8px; transition: .15s; }
+    .signin-pill:hover { background: var(--brand-hover); }
+
+    /* =========== Breadcrumb & Page heading =========== */
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .crumbs a { color: var(--text-muted); }
+    .crumbs a:hover { color: var(--brand); }
+    .crumbs .sep { color: var(--text-subtle); }
+
+    .title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .title-row h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 12px; }
+    .count-chip { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 13px; font-weight: 600; }
+    .btn-destructive-ghost { background: #fff; color: var(--danger); border: 1.5px solid #F5C2CB; padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+    .btn-destructive-ghost:hover { background: var(--danger-bg); border-color: var(--danger); }
+    .btn-destructive-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* =========== Two-column layout =========== */
+    .cart-grid { display: grid; grid-template-columns: 1fr 400px; gap: 28px; padding-bottom: 80px; }
+    @media (max-width: 960px) {
+      .cart-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+
+    /* =========== Bulk action bar =========== */
+    .bulk-bar {
+      position: sticky; top: 88px; z-index: 30;
+      display: flex; align-items: center; gap: 14px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px 16px; margin-bottom: 16px; box-shadow: var(--shadow-xs);
+      flex-wrap: wrap;
+    }
+    .bulk-all { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); }
+    .bulk-all input { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; }
+    .bulk-count { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 4px; padding-left: 14px; border-left: 1px solid var(--border); }
+    .bulk-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: .15s; white-space: nowrap; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-outline { background: #fff; color: var(--brand); border: 1.5px solid var(--brand); }
+    .btn-outline:hover:not(:disabled) { background: var(--brand-soft); }
+    .btn-ghost { background: transparent; color: var(--text); }
+    .btn-ghost:hover:not(:disabled) { background: #F1F2F4; }
+    .btn-ghost.danger { color: var(--danger); }
+    .btn-ghost.danger:hover:not(:disabled) { background: var(--danger-bg); }
+    .btn-brand { background: var(--brand); color: #fff; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); }
+    .btn-brand:hover:not(:disabled) { background: var(--brand-hover); }
+    .btn-brand:disabled { box-shadow: none; background: var(--border-strong); }
+
+    /* =========== Line cards =========== */
+    .line-list { display: flex; flex-direction: column; gap: 14px; }
+    .line-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 16px; box-shadow: var(--shadow-xs);
+      display: grid; grid-template-columns: 28px 96px 1fr; gap: 14px;
+      transition: .18s ease; position: relative;
+    }
+    .line-card:hover { box-shadow: var(--shadow-sm); border-color: var(--border-strong); }
+    .line-card.is-selected { border-color: var(--brand); background: #FCFEFD; box-shadow: 0 0 0 3px rgba(55,189,105,.08); }
+
+    .line-check { display: flex; align-items: flex-start; padding-top: 4px; justify-content: center; }
+    .line-check input { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; }
+
+    .line-thumb { display: block; width: 96px; height: 96px; border-radius: 12px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .line-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+    .line-thumb:hover img { transform: scale(1.05); }
+
+    .line-body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .line-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .line-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; text-decoration: none; transition: color .15s; }
+    .line-name:hover { color: var(--brand); }
+    .line-remove { width: 32px; height: 32px; border-radius: 999px; background: transparent; border: none; color: var(--text-subtle); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: .15s; flex-shrink: 0; }
+    .line-remove:hover { background: var(--danger-bg); color: var(--danger); }
+
+    .line-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 2px; }
+    .line-species { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text); }
+    .line-species img { width: 20px; height: 20px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1; }
+    .chip--muted { background: #FEF3C7; color: #A16207; }
+    .chip--species-missing { background: #FEF3C7; color: #A16207; }
+    .chip:not(.chip--muted):not(.chip--species-missing) { background: #F1F2F4; color: var(--text-muted); }
+
+    .btn-select-species {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1.5px solid var(--brand);
+      background: #fff;
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .15s;
+      line-height: 1;
+      height: 24px;
+    }
+    .btn-select-species:hover { background: var(--brand-soft); color: var(--brand-hover); }
+
+    .line-note { font-size: 12px; color: var(--text-muted); font-style: italic; padding: 6px 10px; background: #FAFBFC; border-left: 2px solid var(--border); border-radius: 4px; }
+
+    .line-vendor-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: #F7F8F9; border-radius: 10px; padding: 10px 12px; margin-top: 2px;
+    }
+    .vendor-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .vendor-eyebrow { font-size: 10px; font-weight: 700; color: var(--text-subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+    .vendor-name { font-size: 13px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+    .vendor-name .v-logo { width: 18px; height: 18px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
+    .vendor-name.unknown-vendor { color: var(--text-muted); font-style: italic; }
+    /* Cart-wide vendor dropdown (replaces per-line Change vendor + bulk Change vendor button) */
+    .cart-vendor-dd { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; max-width: 360px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 6px; display: none; z-index: 80; max-height: 320px; overflow-y: auto; }
+    .cart-vendor-dd.open { display: block; }
+    .cart-vendor-dd .dd-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: background .12s; }
+    .cart-vendor-dd .dd-item:hover { background: #F1F2F4; }
+    .cart-vendor-dd .dd-item.active { background: var(--brand-soft); }
+    .cart-vendor-dd .dd-item img { width: 28px; height: 28px; border-radius: 999px; object-fit: cover; flex-shrink: 0; background: var(--card-subtle); }
+    .cart-vendor-dd .dd-item .dd-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .cart-vendor-dd .dd-item .dd-check { margin-left: auto; color: var(--brand); opacity: 0; }
+    .cart-vendor-dd .dd-item.active .dd-check { opacity: 1; }
+    .cart-vendor-dd .dd-hint { padding: 10px 12px; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+
+    .line-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+    .line-stepper { display: inline-flex; align-items: center; background: var(--brand); color: #fff; border-radius: 999px; padding: 3px; gap: 2px; }
+    .line-stepper button { width: 30px; height: 30px; border-radius: 999px; background: transparent; color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; transition: .1s; }
+    .line-stepper button:hover { background: rgba(255,255,255,.2); }
+    .line-stepper .qty { min-width: 24px; text-align: center; font-weight: 700; font-size: 14px; }
+    .line-price { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+    .unit-price { font-size: 11px; color: var(--text-muted); }
+    .total-price { font-size: 16px; font-weight: 700; color: var(--text); }
+
+    /* =========== Summary card =========== */
+    .summary-col { align-self: start; position: sticky; top: 96px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-xs); }
+    .summary-card { padding: 22px; }
+    .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .card-head .ico { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+    .card-head h2 { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+
+    .sum-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; color: var(--text-muted); }
+    .sum-row span:last-child { color: var(--text); font-weight: 600; }
+    .sum-row.total { font-size: 18px; }
+    .sum-row.total strong:last-child { font-size: 22px; color: var(--text); letter-spacing: -0.01em; }
+    .sum-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+    .proceed-btn { width: 100%; padding: 14px 18px; font-size: 15px; margin-top: 14px; }
+    .multi-vendor-note { margin-top: 12px; padding: 10px 12px; background: #FFF9DB; border-left: 3px solid #E4B819; border-radius: 6px; font-size: 12px; color: #6D4B00; line-height: 1.45; }
+    .continue-shop { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: var(--text-muted); text-decoration: none; transition: .15s; width: 100%; justify-content: center; padding: 8px; }
+    .continue-shop:hover { color: var(--brand); }
+
+    /* =========== Empty state =========== */
+    .empty-state { background: var(--card); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-xs); display: flex; flex-direction: column; align-items: center; text-align: center; padding: 80px 24px; gap: 16px; max-width: 520px; margin: 40px auto 80px; }
+    .empty-state .ico-wrap { width: 88px; height: 88px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+    .empty-state h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+    .empty-state p { font-size: 14px; color: var(--text-muted); max-width: 380px; line-height: 1.5; }
+    .empty-state a.btn-brand { text-decoration: none; padding: 12px 22px; margin-top: 6px; }
+
+    /* =========== Vendor picker sheet =========== */
+    .vp-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: .25s; z-index: 120; }
+    .vp-overlay.open { opacity: 1; pointer-events: auto; }
+    .vp-sheet {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw;
+      background: var(--card); border-left: 1px solid var(--border); box-shadow: var(--shadow-xl);
+      transform: translateX(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1); z-index: 130;
+      display: flex; flex-direction: column;
+    }
+    .vp-sheet.open { transform: translateX(0); }
+    .vp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 20px 22px 12px; border-bottom: 1px solid var(--border); }
+    .vp-head h3 { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .vp-close { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: .15s; color: var(--text-muted); }
+    .vp-close:hover { background: #E5E7EB; color: var(--text); }
+    .vp-sub { padding: 12px 22px 0; font-size: 13px; color: var(--text-muted); }
+    .vp-search { margin: 12px 22px 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: 10px; height: 42px; background: #fff; color: var(--text-muted); transition: .15s; }
+    .vp-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
+    .vp-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text); }
+    .vp-list { flex: 1; overflow-y: auto; padding: 12px 16px 16px; }
+    .vp-row { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s; margin-bottom: 8px; background: var(--card); }
+    .vp-row:hover { border-color: var(--border-strong); background: #FAFBFC; }
+    .vp-row.selected { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 2px rgba(55,189,105,.15); }
+    .vp-logo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: var(--card-subtle); }
+    .vp-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .vp-name { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .vp-tagline { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+    .vp-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--text-subtle); }
+    .vp-city { display: inline-flex; align-items: center; gap: 3px; }
+    .vp-rating { display: inline-flex; align-items: center; gap: 3px; background: var(--brand-soft); color: var(--brand-hover); padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .vp-radio { width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--border-strong); flex-shrink: 0; position: relative; transition: .15s; }
+    .vp-row.selected .vp-radio { border-color: var(--brand); }
+    .vp-row.selected .vp-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 10px; height: 10px; border-radius: 999px; background: var(--brand); }
+    .vp-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px; border-top: 1px solid var(--border); background: var(--card); }
+    .vp-empty { padding: 32px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+    /* =========== Species-assign sheet =========== */
+    .sa-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: .25s; z-index: 120; }
+    .sa-overlay.open { opacity: 1; pointer-events: auto; }
+    .sa-sheet {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw;
+      background: var(--card); border-left: 1px solid var(--border); box-shadow: var(--shadow-xl);
+      transform: translateX(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1); z-index: 130;
+      display: flex; flex-direction: column;
+    }
+    .sa-sheet.open { transform: translateX(0); }
+    .sa-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 20px 22px 12px; border-bottom: 1px solid var(--border); }
+    .sa-head h3 { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .sa-close { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: .15s; color: var(--text-muted); }
+    .sa-close:hover { background: #E5E7EB; color: var(--text); }
+    .sa-sub { padding: 12px 22px 0; font-size: 13px; color: var(--text-muted); }
+    .sa-search { margin: 12px 22px 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: 10px; height: 42px; background: #fff; color: var(--text-muted); transition: .15s; }
+    .sa-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
+    .sa-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text); }
+    .sa-list { flex: 1; overflow-y: auto; padding: 12px 16px 16px; }
+    .sa-row { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s; margin-bottom: 8px; background: var(--card); }
+    .sa-row:hover { border-color: var(--border-strong); background: #FAFBFC; }
+    .sa-row.selected { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 2px rgba(55,189,105,.15); }
+    .sa-row-img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: var(--card-subtle); }
+    .sa-row-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .sa-row-name .name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .sa-row-name .latin { font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.35; }
+    .sa-enc { padding: 12px 22px 0; border-top: 1px solid var(--border); margin-top: 4px; }
+    .sa-enc-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-subtle); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+    .sa-enc select { width: 100%; height: 40px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-size: 14px; color: var(--text); outline: none; transition: .15s; }
+    .sa-enc select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
+    .sa-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px; border-top: 1px solid var(--border); background: var(--card); }
+    .sa-empty { padding: 32px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+    /* =========== Toast =========== */
+    .ze-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; max-width: 360px; }
+    .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* =========== Responsive =========== */
+    @media (max-width: 900px) {
+      .app-header .row { height: 60px !important; gap: 10px; }
+      .search-pill { display: none !important; }
+      .header-btn span { display: none !important; }
+      .header-btn { min-width: 40px !important; padding: 8px !important; }
+      .page-wrap { padding: 0 16px !important; }
+      .title-row h1 { font-size: 22px; }
+      .bulk-bar { top: 72px; padding: 10px 12px; }
+    }
+    @media (max-width: 600px) {
+      .line-card { grid-template-columns: 24px 1fr; gap: 10px; padding: 12px; }
+      .line-thumb { grid-column: 1 / -1; width: 100%; height: 160px; order: -1; }
+      .line-check { grid-column: 1; grid-row: 2; }
+      .line-body { grid-column: 2; grid-row: 2; }
+      .line-vendor-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .change-vendor-btn { align-self: flex-end; }
+      .vp-sheet { top: auto; right: 0; left: 0; bottom: 0; width: 100%; border-left: none; border-top: 1px solid var(--border); border-radius: 18px 18px 0 0; max-height: 85vh; transform: translateY(100%); }
+      .vp-sheet.open { transform: translateY(0); }
+      .sa-sheet { top: auto; right: 0; left: 0; bottom: 0; width: 100%; border-left: none; border-top: 1px solid var(--border); border-radius: 18px 18px 0 0; max-height: 85vh; transform: translateY(100%); }
+      .sa-sheet.open { transform: translateY(0); }
+      .bulk-bar { gap: 8px; }
+      .bulk-count { padding-left: 8px; margin-left: 0; }
+      .bulk-actions { width: 100%; }
+      .bulk-actions .btn { flex: 1; }
+      .summary-col { position: static; }
+      .empty-state { padding: 56px 20px; }
+      .title-row h1 { font-size: 20px !important; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark span:not(.logo-box) { display: none; }
+    }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="index_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <label class="search-pill">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <input type="text" placeholder="Search enrichments, species, materials…"/>
+        <span class="kbd">⌘K</span>
+      </label>
+
+      <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
+        <button class="header-btn" type="button" id="ordersBtn">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+          <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="savedBtn">
+          <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+          <span class="badge-dot" id="savedBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn active" type="button" id="cartBtn">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+          <span class="badge-dot" id="cartBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="headerApprovalsLink" data-approvals-header onclick="window.location.href='approvals_1.html'" style="display:none">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
+        <div id="userSlot"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== PAGE BODY =============== -->
+  <div class="page-wrap">
+    <!-- Breadcrumb -->
+    <div class="crumbs">
+      <a href="index_1.html">Home</a>
+      <span class="sep">·</span>
+      <span style="color:var(--text); font-weight:600">Cart</span>
+    </div>
+
+    <!-- Heading -->
+    <div class="title-row">
+      <h1>
+        Your cart
+        <span class="count-chip" id="titleCount">0 items</span>
+      </h1>
+      <div class="actions">
+        <button class="btn-destructive-ghost" id="clearCartBtn" type="button">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Clear cart
+        </button>
+      </div>
+    </div>
+
+    <!-- Main 2-column grid (populated by render) -->
+    <div id="pageBody">
+      <div class="cart-grid" id="cartGrid">
+        <div class="left-col">
+          <!-- Bulk bar -->
+          <div class="bulk-bar" id="bulkBar">
+            <label class="bulk-all">
+              <input type="checkbox" id="selectAllCheck"/>
+              <span>Select all</span>
+            </label>
+            <span class="bulk-count" id="bulkCountLabel">0 selected</span>
+            <div class="bulk-actions">
+              <button class="btn btn-ghost danger" id="bulkRemove" disabled>
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Line list -->
+          <div class="line-list" id="lineList"></div>
+        </div>
+
+        <aside class="summary-col" id="summaryCol">
+          <div class="card summary-card" id="summaryCard">
+            <div class="card-head">
+              <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+              <h2>Order summary</h2>
+            </div>
+            <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
+            <div class="sum-divider"></div>
+            <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+            <button class="btn btn-brand proceed-btn" id="proceedBtn">
+              <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
+            </button>
+            <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
+            <div id="v2OrderSplitNote" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--brand-soft);color:var(--brand-hover);font-size:12.5px;line-height:1.45;">
+              <strong>Heads up:</strong> this cart will become <strong><span id="v2OrderSplitCount">0</span> separate orders</strong> at checkout — one per product configuration.
+            </div>
+            <a class="continue-shop" href="../index_1.html">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
+            </a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- =============== VENDOR PICKER SHEET =============== -->
+<div class="vp-overlay" id="vpOverlay"></div>
+<aside class="vp-sheet" id="vpSheet" aria-hidden="true" role="dialog">
+  <div class="vp-head">
+    <div>
+      <h3 id="vpTitle">Change vendor</h3>
+    </div>
+    <button class="vp-close" id="vpClose" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div class="vp-sub" id="vpSub">Choose who fulfills this line.</div>
+  <div class="vp-search">
+    <i data-lucide="search" class="w-4 h-4"></i>
+    <input type="search" id="vpSearch" placeholder="Search vendors..."/>
+  </div>
+  <div class="vp-list" id="vpList"></div>
+  <div class="vp-foot">
+    <button class="btn btn-ghost" id="vpCancel">Cancel</button>
+    <button class="btn btn-brand" id="vpConfirm" disabled>Confirm</button>
+  </div>
+</aside>
+
+<!-- =============== SPECIES ASSIGN SHEET =============== -->
+<div class="sa-overlay" id="saOverlay"></div>
+<aside class="sa-sheet" id="speciesAssignSheet" aria-hidden="true" role="dialog">
+  <div class="sa-head">
+    <h3 id="saTitle">Select species</h3>
+    <button class="sa-close" id="saClose" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div class="sa-sub" id="saSub">Assign a species to this line.</div>
+
+  <div class="sa-search">
+    <i data-lucide="search" class="w-4 h-4"></i>
+    <input id="saSearch" type="search" placeholder="Search species by name or latin…" autocomplete="off"/>
+  </div>
+
+  <div class="sa-list" id="saList"></div>
+
+  <div class="sa-enc" id="saEncSection" hidden>
+    <label class="sa-enc-label">Enclosure (optional)</label>
+    <select id="saEnc"><option value="">— Not specified —</option></select>
+  </div>
+
+  <div class="sa-foot">
+    <button class="btn btn-ghost" id="saCancel" type="button">Cancel</button>
+    <button class="btn btn-brand" id="saConfirm" type="button" disabled><i data-lucide="check" class="w-4 h-4"></i> Save</button>
+  </div>
+</aside>
+
+<!-- =============== SCRIPTS =============== -->
+<script>
+(function(){
+  const DB = window.DB;
+  const ZE = window.ZE;
+
+  /* ---------- Sign-in guard (soft for buyer; redirect vendor) ---------- */
+  if (ZE.user.role() === 'vendor') {
+    window.location.replace('admin_dashboard_1.html');
+    return;
+  }
+
+  /* ---------- Page state ---------- */
+  const state = {
+    selected: new Set(),       // line IDs currently checked
+    vpScope: [],               // line IDs currently being edited in the vendor picker
+    vpPicked: null,            // selected vendor id in picker
+  };
+
+  /* ---------- Small toast ---------- */
+  function showToast(msg) {
+    let t = document.querySelector('.ze-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'ze-toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._hideTimer);
+    t._hideTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  /* ---------- Header: badges ---------- */
+  function renderBadges() {
+    const ob = document.getElementById('ordersBadge');
+    const ordN = ZE.orders.count();
+    if (ordN > 0) { ob.style.display = 'inline-flex'; ob.textContent = ordN; } else ob.style.display = 'none';
+
+    const sb = document.getElementById('savedBadge');
+    const savN = ZE.saved.count();
+    if (savN > 0) { sb.style.display = 'inline-flex'; sb.textContent = savN; } else sb.style.display = 'none';
+
+    const cb = document.getElementById('cartBadge');
+    const cartN = ZE.cart.count();
+    if (cartN > 0) { cb.style.display = 'inline-flex'; cb.textContent = cartN; } else cb.style.display = 'none';
+  }
+
+  /* ---------- Header: nav ---------- */
+  document.getElementById('ordersBtn').addEventListener('click', () => window.location.href = 'orders_1.html');
+  document.getElementById('savedBtn').addEventListener('click',  () => window.location.href = 'saved_1.html');
+  document.getElementById('cartBtn').addEventListener('click',   () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  /* ---------- Header: user slot ---------- */
+  function renderUserSlot() {
+    const slot = document.getElementById('userSlot');
+    if (!slot) return;
+    const signedIn = !!(ZE.user && ZE.user.isSignedIn && ZE.user.isSignedIn());
+    if (!signedIn) {
+      slot.innerHTML = `<a href="login_1.html" class="signin-pill">
+        <i data-lucide="log-in" class="w-4 h-4"></i> Sign in
+      </a>`;
+      ZE.refreshIcons();
+      return;
+    }
+    const user = ZE.user.resolve() || {};
+    const avatarUrl = user.avatar || user.photo
+      || (user.imgQ && DB.img ? DB.img(user.imgQ, 80, 80, user.seed || 0) : null)
+      || 'https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true';
+    const name = user.name || user.fullName || 'Account';
+    const email = user.email || '';
+
+    slot.innerHTML = `
+      <div class="avatar-wrap">
+        <img class="avatar" id="avatarTrigger" src="${avatarUrl}" alt="${name}" style="margin-left:0;"/>
+        <div class="avatar-menu" id="avatarMenu" role="menu">
+          <div class="menu-header">
+            <div class="name">${name}</div>
+            ${email ? `<div class="email">${email}</div>` : ''}
+          </div>
+          <a href="profile_1.html" role="menuitem"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
+          <a href="orders_1.html" role="menuitem"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
+          <a href="saved_1.html" role="menuitem"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
+          <a id="personaSwitchItem" data-persona-item role="menuitem" href="javascript:void(0)" data-mode-switch="to-other-persona" onclick="window.location.reload();return false;" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></a>
+          <a role="menuitem" href="admin_dashboard_1.html" id="adminNavItem" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</a>
+          <div class="menu-sep"></div>
+          <button type="button" class="sign-out" id="signOutBtn" role="menuitem">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Sign out
+          </button>
+        </div>
+      </div>`;
+
+    const trigger = document.getElementById('avatarTrigger');
+    const menu = document.getElementById('avatarMenu');
+    trigger.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
+    document.addEventListener('click', (e) => { if (!menu.contains(e.target) && e.target !== trigger) menu.classList.remove('open'); });
+    const so = document.getElementById('signOutBtn');
+    if (so) so.addEventListener('click', () => {
+      localStorage.removeItem('ze_user_v1');
+      window.location.href = 'login_1.html';
+    });
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Helpers ---------- */
+  function resolveVendor(line) {
+    const vid = ZE.cart.effectiveVendorId(line);
+    if (!vid) return null;
+    return DB.byId(DB.VENDORS, vid) || null;
+  }
+  function shippingEst(vendorCount) { return vendorCount * 80; }
+  function countLineQty(line) { return Number(line && line.qty) || 0; }
+
+  /* ---------- Render: empty state ---------- */
+  function renderEmpty() {
+    const body = document.getElementById('pageBody');
+    body.innerHTML = `
+      <div class="empty-state anim-in">
+        <span class="ico-wrap"><i data-lucide="shopping-bag" class="w-10 h-10"></i></span>
+        <h2>Your cart is empty</h2>
+        <p>Browse enrichments to get started. Your picks will show up here so you can check out with confidence.</p>
+        <a href="index_1.html" class="btn btn-brand"><i data-lucide="arrow-left" class="w-4 h-4"></i> Browse enrichments</a>
+      </div>`;
+    document.getElementById('clearCartBtn').disabled = true;
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Render: lines ---------- */
+  function renderLines(lines) {
+    const list = document.getElementById('lineList');
+    list.innerHTML = lines.map(line => {
+      const p = DB.byId(DB.PRODUCTS, line.productId);
+      if (!p) return '';
+      const sp = line.speciesId ? DB.byId(DB.SPECIES, line.speciesId) : null;
+      const enc = (line.enclosureId && DB.ENCLOSURES) ? DB.byId(DB.ENCLOSURES, line.enclosureId) : null;
+      const unit = (Number(p.price.material) || 0) + (Number(p.price.labor) || 0);
+      const vendor = resolveVendor(line);
+      const vendorHtml = vendor
+        ? `<span class="vendor-name"><img class="v-logo" src="${DB.vendorLogo(vendor)}" alt=""/> ${vendor.name}</span>`
+        : `<span class="vendor-name unknown-vendor"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Vendor unavailable</span>`;
+      const isSel = state.selected.has(line.id);
+      const speciesChip = sp
+        ? `<span class="line-species"><img src="${DB.img(sp.imgQ, 40, 40, sp.seed)}" alt=""/>${sp.name}</span>`
+        : `<span class="chip chip--muted chip--species-missing"><i data-lucide="alert-circle" class="w-3 h-3"></i> No species</span>
+           <button class="btn-select-species" data-select-species="${line.id}" type="button">
+             <i data-lucide="plus" class="w-3 h-3"></i> Select species
+           </button>`;
+      const encChip = enc ? `<span class="chip">📍 ${enc.name}</span>` : '';
+      const noteHtml = line.note ? `<div class="line-note">"${String(line.note).replace(/</g,'&lt;')}"</div>` : '';
+      return `
+        <article class="line-card ${isSel ? 'is-selected' : ''}" data-line="${line.id}">
+          <label class="line-check">
+            <input type="checkbox" class="line-cb" data-line="${line.id}" ${isSel ? 'checked' : ''} aria-label="Select line"/>
+          </label>
+          <a class="line-thumb img-frame" href="product_detail_1.html?id=${p.id}">
+            <img src="${p.imgSmall}" alt="${p.name}" loading="lazy"/>
+          </a>
+          <div class="line-body">
+            <div class="line-top">
+              <a class="line-name" href="product_detail_1.html?id=${p.id}">${p.name}</a>
+              <button class="line-remove" data-remove="${line.id}" aria-label="Remove">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div class="line-chips">
+              ${speciesChip}
+              ${encChip}
+            </div>
+            ${noteHtml}
+            <div class="line-bottom">
+              <div class="line-stepper" data-line="${line.id}">
+                <button data-step="-1" aria-label="Decrease"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
+                <span class="qty">${line.qty}</span>
+                <button data-step="1" aria-label="Increase"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
+              </div>
+              <div class="line-price">
+                <span class="unit-price">${DB.fmtINR(unit)} / unit</span>
+                <strong class="total-price">${DB.fmtINR(unit * line.qty)}</strong>
+              </div>
+            </div>
+          </div>
+        </article>`;
+    }).join('');
+
+    // Wire checkboxes
+    list.querySelectorAll('.line-cb').forEach(cb => {
+      cb.addEventListener('click', (e) => e.stopPropagation());
+      cb.addEventListener('change', () => {
+        const id = cb.dataset.line;
+        if (cb.checked) state.selected.add(id); else state.selected.delete(id);
+        updateBulkBar(lines);
+        // Toggle visual selected class on card
+        const card = cb.closest('.line-card');
+        if (card) card.classList.toggle('is-selected', cb.checked);
+      });
+    });
+
+    // Steppers
+    list.querySelectorAll('.line-stepper').forEach(st => {
+      const lineId = st.dataset.line;
+      st.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const step = parseInt(btn.dataset.step, 10);
+          ZE.cart.incLine(lineId, step);
+        });
+      });
+    });
+
+    // Remove
+    list.querySelectorAll('.line-remove[data-remove]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = b.dataset.remove;
+        state.selected.delete(id);
+        ZE.cart.removeLine(id);
+      });
+    });
+
+    // Per-line select species
+    list.querySelectorAll('.btn-select-species[data-select-species]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSpeciesAssignSheet(b.dataset.selectSpecies);
+      });
+    });
+
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Render: summary ---------- */
+  function renderSummary(lines) {
+    const count = lines.reduce((a, l) => a + countLineQty(l), 0);
+    const subtotal = ZE.cart.subtotal();
+    const groups = ZE.cart.groupByVendor();
+    const vendorCount = Object.keys(groups).length;
+    const total = subtotal;
+
+    document.getElementById('sumItemCount').textContent = String(count);
+    document.getElementById('sumSubtotal').textContent = DB.fmtINR(subtotal);
+    const shipEl = document.getElementById('sumShipping'); if (shipEl) shipEl.textContent = DB.fmtINR(0);
+    const venEl  = document.getElementById('sumVendors');  if (venEl)  venEl.textContent  = String(vendorCount);
+    document.getElementById('sumTotal').textContent = DB.fmtINR(total);
+
+    const note = document.getElementById('multiVendorNote');
+    if (note) note.style.display = 'none';
+
+    /* V2: every cart line becomes its own order. Show preview count. */
+    const v2Note = document.getElementById('v2OrderSplitNote');
+    const v2Count = document.getElementById('v2OrderSplitCount');
+    if (v2Note && v2Count) {
+      const n = lines.length;
+      v2Count.textContent = String(n);
+      v2Note.style.display = n > 0 ? 'block' : 'none';
+    }
+  }
+
+  /* ---------- Bulk bar updates ---------- */
+  function updateBulkBar(lines) {
+    const total = lines.length;
+    const sel = state.selected.size;
+    const selAll = document.getElementById('selectAllCheck');
+    selAll.checked = total > 0 && sel === total;
+    selAll.indeterminate = sel > 0 && sel < total;
+
+    document.getElementById('bulkCountLabel').textContent = `${sel} selected`;
+    // Cart-wide vendor dropdown is always enabled (not tied to selection).
+    document.getElementById('bulkRemove').disabled = sel === 0;
+    // Keep dropdown label fresh (shows current cart vendor)
+    try { wireCartVendorDropdown(); } catch (e) {}
+  }
+
+  /* ---------- Wire top-level actions ---------- */
+  document.getElementById('selectAllCheck').addEventListener('change', (e) => {
+    const lines = ZE.cart.lines();
+    if (e.target.checked) {
+      state.selected = new Set(lines.map(l => l.id));
+    } else {
+      state.selected.clear();
+    }
+    render();
+  });
+
+  /* ---------- Cart-wide vendor dropdown (single vendor per order) ---------- */
+  function wireCartVendorDropdown() {
+    const btn = document.getElementById('cartVendorBtn');
+    const dd  = document.getElementById('cartVendorDropdown');
+    const label = document.getElementById('cartVendorLabel');
+    if (!btn || !dd) return;
+    const vendors = DB.VENDORS || [];
+    const lines = ZE.cart.lines();
+    const effIds = new Set(lines.map(l => (ZE.cart.effectiveVendorId ? ZE.cart.effectiveVendorId(l) : (l.selectedVendorId || (DB.byId(DB.PRODUCTS, l.productId) || {}).vendorId))).filter(Boolean));
+    const curVendorId = effIds.size === 1 ? [...effIds][0] : null;
+    const curVendor = curVendorId ? DB.byId(DB.VENDORS, curVendorId) : null;
+    if (label) label.textContent = curVendor ? curVendor.name : (effIds.size > 1 ? `${effIds.size} vendors — pick one` : 'Change vendor');
+    dd.innerHTML = `<div class="dd-hint">One vendor per order — pick one to apply to every item.</div>` +
+      vendors.map(v => `
+        <div class="dd-item ${v.id === curVendorId ? 'active' : ''}" data-vendor-id="${v.id}" role="option" aria-selected="${v.id === curVendorId}">
+          <img src="${DB.vendorLogo ? DB.vendorLogo(v) : (v.logo || '')}" alt=""/>
+          <span class="dd-name">${v.name}</span>
+          <i data-lucide="check" class="w-4 h-4 dd-check"></i>
+        </div>`).join('');
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const open = dd.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    dd.querySelectorAll('.dd-item').forEach(item => item.addEventListener('click', () => {
+      const vid = item.dataset.vendorId;
+      ZE.cart.lines().forEach(l => ZE.cart.setLineVendor(l.id, vid));
+      dd.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      const v = DB.byId(DB.VENDORS, vid);
+      showToast(`Order now sold by ${v ? v.name : 'selected vendor'}`);
+    }));
+    if (ZE.refreshIcons) ZE.refreshIcons();
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('cartVendorDropdown');
+    const btn = document.getElementById('cartVendorBtn');
+    if (!dd || !btn) return;
+    if (!dd.contains(e.target) && !btn.contains(e.target)) {
+      dd.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  wireCartVendorDropdown();
+
+  document.getElementById('bulkRemove').addEventListener('click', () => {
+    const ids = Array.from(state.selected);
+    if (ids.length === 0) return;
+    const ok = window.confirm(`Remove ${ids.length} selected item${ids.length === 1 ? '' : 's'} from cart?`);
+    if (!ok) return;
+    ids.forEach(id => ZE.cart.removeLine(id));
+    state.selected.clear();
+    showToast(`Removed ${ids.length} item${ids.length === 1 ? '' : 's'}`);
+  });
+
+  document.getElementById('clearCartBtn').addEventListener('click', () => {
+    if (ZE.cart.count() === 0) return;
+    const ok = window.confirm('Clear your entire cart? This cannot be undone.');
+    if (!ok) return;
+    ZE.cart.clear();
+    state.selected.clear();
+    showToast('Cart cleared');
+  });
+
+  document.getElementById('proceedBtn').addEventListener('click', () => {
+    window.location.href = 'checkout_1.html';
+  });
+
+  /* ---------- Vendor picker ---------- */
+  const vpEls = {
+    overlay: document.getElementById('vpOverlay'),
+    sheet:   document.getElementById('vpSheet'),
+    title:   document.getElementById('vpTitle'),
+    sub:     document.getElementById('vpSub'),
+    close:   document.getElementById('vpClose'),
+    cancel:  document.getElementById('vpCancel'),
+    confirm: document.getElementById('vpConfirm'),
+    search:  document.getElementById('vpSearch'),
+    list:    document.getElementById('vpList'),
+  };
+
+  function openVendorPicker(lineIds) {
+    state.vpScope = Array.isArray(lineIds) ? lineIds.slice() : [];
+    if (!state.vpScope.length) return;
+    const lines = ZE.cart.lines().filter(l => state.vpScope.indexOf(l.id) !== -1);
+
+    // Title / sub
+    if (state.vpScope.length === 1) {
+      const ln = lines[0];
+      const p = ln ? DB.byId(DB.PRODUCTS, ln.productId) : null;
+      vpEls.title.textContent = `Change vendor for ${p ? p.name : 'item'}`;
+      vpEls.sub.textContent = 'Choose who fulfills this item.';
+    } else {
+      vpEls.title.textContent = `Change vendor for ${state.vpScope.length} item${state.vpScope.length === 1 ? '' : 's'}`;
+      vpEls.sub.textContent = 'All selected items will be reassigned.';
+    }
+
+    // Pre-select if all scoped lines share the same effective vendor
+    const effIds = lines.map(l => ZE.cart.effectiveVendorId(l));
+    const allSame = effIds.length > 0 && effIds.every(v => v === effIds[0]);
+    state.vpPicked = allSame ? effIds[0] : null;
+    vpEls.search.value = '';
+    renderVendorList('');
+    vpEls.confirm.disabled = state.vpPicked == null;
+
+    vpEls.overlay.classList.add('open');
+    vpEls.sheet.classList.add('open');
+    vpEls.sheet.setAttribute('aria-hidden', 'false');
+    setTimeout(() => { try { vpEls.search.focus(); } catch (e) {} }, 60);
+    ZE.refreshIcons();
+  }
+
+  function closeVendorPicker() {
+    vpEls.overlay.classList.remove('open');
+    vpEls.sheet.classList.remove('open');
+    vpEls.sheet.setAttribute('aria-hidden', 'true');
+    state.vpScope = [];
+    state.vpPicked = null;
+  }
+
+  function renderVendorList(query) {
+    const q = (query || '').trim().toLowerCase();
+    const vendors = DB.VENDORS.filter(v => {
+      if (!q) return true;
+      return (v.name && v.name.toLowerCase().indexOf(q) !== -1)
+          || (v.city && v.city.toLowerCase().indexOf(q) !== -1);
+    });
+    if (!vendors.length) {
+      vpEls.list.innerHTML = `<div class="vp-empty"><i data-lucide="search-x" class="w-6 h-6" style="margin-bottom:6px"></i><div>No vendors match "${q}"</div></div>`;
+      ZE.refreshIcons();
+      return;
+    }
+    vpEls.list.innerHTML = vendors.map(v => {
+      const selCls = (state.vpPicked === v.id) ? 'selected' : '';
+      return `
+        <div class="vp-row ${selCls}" data-vendor="${v.id}">
+          <img class="vp-logo img-frame img-frame-sm" src="${DB.vendorLogo(v)}" alt=""/>
+          <div class="vp-info">
+            <div class="vp-name">${v.name}</div>
+            <div class="vp-tagline">${v.tagline || ''}</div>
+            <div class="vp-meta">
+              <span class="vp-city"><i data-lucide="map-pin" class="w-3 h-3"></i> ${v.city || ''}</span>
+              <span class="vp-rating"><i data-lucide="star" class="w-3 h-3"></i> ${Number(v.rating || 0).toFixed(1)}</span>
+            </div>
+          </div>
+          <span class="vp-radio" aria-hidden="true"></span>
+        </div>`;
+    }).join('');
+
+    vpEls.list.querySelectorAll('.vp-row').forEach(row => {
+      row.addEventListener('click', () => {
+        state.vpPicked = row.dataset.vendor;
+        vpEls.list.querySelectorAll('.vp-row').forEach(r => r.classList.toggle('selected', r === row));
+        vpEls.confirm.disabled = false;
+      });
+    });
+    ZE.refreshIcons();
+  }
+
+  vpEls.overlay.addEventListener('click', closeVendorPicker);
+  vpEls.close.addEventListener('click', closeVendorPicker);
+  vpEls.cancel.addEventListener('click', closeVendorPicker);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && vpEls.sheet.classList.contains('open')) closeVendorPicker();
+  });
+  let vpSearchTimer = null;
+  vpEls.search.addEventListener('input', () => {
+    clearTimeout(vpSearchTimer);
+    const v = vpEls.search.value;
+    vpSearchTimer = setTimeout(() => renderVendorList(v), 100);
+  });
+  vpEls.confirm.addEventListener('click', () => {
+    if (!state.vpPicked || !state.vpScope.length) return;
+    const n = state.vpScope.length;
+    state.vpScope.forEach(id => ZE.cart.setLineVendor(id, state.vpPicked));
+    closeVendorPicker();
+    showToast(n === 1 ? 'Vendor updated' : `Vendor updated for ${n} items`);
+  });
+
+  /* ---------- Species assign sheet ---------- */
+  const saState = { lineId: null, selectedId: null };
+  const saEls = {
+    overlay:    document.getElementById('saOverlay'),
+    sheet:      document.getElementById('speciesAssignSheet'),
+    title:      document.getElementById('saTitle'),
+    sub:        document.getElementById('saSub'),
+    close:      document.getElementById('saClose'),
+    cancel:     document.getElementById('saCancel'),
+    confirm:    document.getElementById('saConfirm'),
+    search:     document.getElementById('saSearch'),
+    list:       document.getElementById('saList'),
+    encSection: document.getElementById('saEncSection'),
+    enc:        document.getElementById('saEnc'),
+  };
+
+  function openSpeciesAssignSheet(lineId) {
+    if (!lineId) return;
+    saState.lineId = lineId;
+    saState.selectedId = null;
+    saEls.search.value = '';
+    saEls.encSection.hidden = true;
+    saEls.enc.innerHTML = '<option value="">— Not specified —</option>';
+    saEls.confirm.disabled = true;
+    renderSpeciesList('');
+
+    saEls.overlay.classList.add('open');
+    saEls.sheet.classList.add('open');
+    saEls.sheet.setAttribute('aria-hidden', 'false');
+    setTimeout(() => { try { saEls.search.focus(); } catch (e) {} }, 60);
+    ZE.refreshIcons();
+  }
+
+  function closeSpeciesAssignSheet() {
+    saEls.overlay.classList.remove('open');
+    saEls.sheet.classList.remove('open');
+    saEls.sheet.setAttribute('aria-hidden', 'true');
+    saState.lineId = null;
+    saState.selectedId = null;
+  }
+
+  function renderSpeciesList(query) {
+    const q = (query || '').trim().toLowerCase();
+    const list = (DB.SPECIES || []).filter(s => {
+      if (!q) return true;
+      return (s.name && s.name.toLowerCase().indexOf(q) !== -1)
+          || (s.latin && s.latin.toLowerCase().indexOf(q) !== -1);
+    });
+    if (!list.length) {
+      saEls.list.innerHTML = `<div class="sa-empty"><i data-lucide="search-x" class="w-6 h-6" style="margin-bottom:6px"></i><div>No species match "${q}"</div></div>`;
+      ZE.refreshIcons();
+      return;
+    }
+    saEls.list.innerHTML = list.map(species => {
+      const selCls = (saState.selectedId === species.id) ? 'selected' : '';
+      const img = (DB.img ? DB.img(species.imgQ, 64, 64, species.seed) : '');
+      return `
+        <div class="sa-row ${selCls}" data-sid="${species.id}">
+          <img class="sa-row-img" src="${img}" alt=""/>
+          <div class="sa-row-name">
+            <div class="name">${species.name}</div>
+            <div class="latin">${species.latin || ''}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    saEls.list.querySelectorAll('.sa-row').forEach(row => {
+      row.addEventListener('click', () => {
+        saState.selectedId = row.dataset.sid;
+        saEls.list.querySelectorAll('.sa-row').forEach(r => r.classList.toggle('selected', r === row));
+        // Populate enclosures
+        saEls.enc.innerHTML = '<option value="">— Not specified —</option>';
+        if (DB.enclosuresForSpecies) {
+          const encs = DB.enclosuresForSpecies(saState.selectedId) || [];
+          encs.forEach(e => {
+            const opt = document.createElement('option');
+            opt.value = e.id;
+            opt.textContent = e.name;
+            saEls.enc.appendChild(opt);
+          });
+        }
+        saEls.encSection.hidden = false;
+        saEls.confirm.disabled = false;
+      });
+    });
+    ZE.refreshIcons();
+  }
+
+  saEls.overlay.addEventListener('click', closeSpeciesAssignSheet);
+  saEls.close.addEventListener('click', closeSpeciesAssignSheet);
+  saEls.cancel.addEventListener('click', closeSpeciesAssignSheet);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && saEls.sheet.classList.contains('open')) closeSpeciesAssignSheet();
+  });
+  let saSearchTimer = null;
+  saEls.search.addEventListener('input', () => {
+    clearTimeout(saSearchTimer);
+    const v = saEls.search.value;
+    saSearchTimer = setTimeout(() => renderSpeciesList(v), 120);
+  });
+  saEls.confirm.addEventListener('click', () => {
+    if (!saState.lineId || !saState.selectedId) return;
+    const lineId = saState.lineId;
+    const sid = saState.selectedId;
+    const encId = saEls.enc.value || '';
+    if (ZE.cart.setLineSpecies) ZE.cart.setLineSpecies(lineId, sid);
+    if (encId && ZE.cart.setLineEnclosure) ZE.cart.setLineEnclosure(lineId, encId);
+    closeSpeciesAssignSheet();
+    showToast('Species set');
+  });
+
+  /* ---------- Master render ---------- */
+  function render() {
+    renderBadges();
+    const lines = ZE.cart.lines();
+
+    // Prune stale selection ids
+    if (state.selected.size) {
+      const liveIds = new Set(lines.map(l => l.id));
+      state.selected.forEach(id => { if (!liveIds.has(id)) state.selected.delete(id); });
+    }
+
+    // Update title count chip
+    const count = lines.reduce((a, l) => a + countLineQty(l), 0);
+    document.getElementById('titleCount').textContent = `${count} item${count === 1 ? '' : 's'}`;
+
+    if (lines.length === 0) {
+      renderEmpty();
+      return;
+    }
+
+    // Ensure main grid container is present (might have been replaced by empty state)
+    const body = document.getElementById('pageBody');
+    if (!document.getElementById('cartGrid')) {
+      body.innerHTML = `
+        <div class="cart-grid" id="cartGrid">
+          <div class="left-col">
+            <div class="bulk-bar" id="bulkBar">
+              <label class="bulk-all">
+                <input type="checkbox" id="selectAllCheck"/>
+                <span>Select all</span>
+              </label>
+              <span class="bulk-count" id="bulkCountLabel">0 selected</span>
+              <div class="bulk-actions">
+                <button class="btn btn-ghost danger" id="bulkRemove" disabled>
+                  <i data-lucide="trash-2" class="w-4 h-4"></i> Remove
+                </button>
+              </div>
+            </div>
+            <div class="line-list" id="lineList"></div>
+          </div>
+          <aside class="summary-col" id="summaryCol">
+            <div class="card summary-card" id="summaryCard">
+              <div class="card-head">
+                <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+                <h2>Order summary</h2>
+              </div>
+              <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
+              <div class="sum-divider"></div>
+              <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+              <button class="btn btn-brand proceed-btn" id="proceedBtn">
+                <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
+              </button>
+              <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
+              <a class="continue-shop" href="index_1.html">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
+              </a>
+            </div>
+          </aside>
+        </div>`;
+      // Rebind the elements that were re-created
+      document.getElementById('selectAllCheck').addEventListener('change', (e) => {
+        const lines2 = ZE.cart.lines();
+        if (e.target.checked) state.selected = new Set(lines2.map(l => l.id));
+        else state.selected.clear();
+        render();
+      });
+      // Re-wire cart-wide vendor dropdown for rebuilt mobile bar
+      wireCartVendorDropdown();
+      document.getElementById('bulkRemove').addEventListener('click', () => {
+        const ids = Array.from(state.selected);
+        if (!ids.length) return;
+        const ok = window.confirm(`Remove ${ids.length} selected item${ids.length === 1 ? '' : 's'} from cart?`);
+        if (!ok) return;
+        ids.forEach(id => ZE.cart.removeLine(id));
+        state.selected.clear();
+        showToast(`Removed ${ids.length} item${ids.length === 1 ? '' : 's'}`);
+      });
+      document.getElementById('proceedBtn').addEventListener('click', () => {
+        window.location.href = 'checkout_1.html';
+      });
+    }
+
+    document.getElementById('clearCartBtn').disabled = false;
+    renderLines(lines);
+    updateBulkBar(lines);
+    renderSummary(lines);
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Event subscriptions ---------- */
+  ZE.on('cart:change',   render);
+  ZE.on('saved:change',  renderBadges);
+  ZE.on('orders:change', renderBadges);
+  ZE.on('user:change',   renderUserSlot);
+
+  /* ---------- Initial ---------- */
+  renderUserSlot();
+  render();
+  ZE.init();
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
+      var pop = document.getElementById('walletPillPop');
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+</body>
+</html>

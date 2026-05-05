@@ -1,0 +1,2025 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Order</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Header (cloned from index) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+
+    .search-pill { flex: 1; max-width: 560px; height: 48px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--text-muted); transition: .15s; border: 1.5px solid transparent; }
+    .search-pill:focus-within { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.12); }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { background: #fff; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; transition: .15s; background: transparent; border: none; position: relative; min-width: 64px; text-decoration: none; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
+
+    @media (max-width: 900px) {
+      .app-header .row, .site-header-inner { height: 60px !important; gap: 10px; }
+      .search-pill { display: none !important; }
+      .header-btn span { display: none !important; }
+      .header-btn { min-width: 40px !important; padding: 8px !important; }
+      .page-wrap { padding: 0 16px !important; }
+    }
+
+    /* =========== Breadcrumb =========== */
+    .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); padding: 16px 0 8px; }
+    .crumbs a { color: var(--text-muted); transition: .15s; }
+    .crumbs a:hover { color: var(--brand); }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .current { color: var(--text); font-weight: 600; }
+
+    /* =========== Top row =========== */
+    .top-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 8px 0 24px; flex-wrap: wrap; }
+    .top-row .eyebrow { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+    .top-row h1 { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
+    .top-row h1 .num { font-family: ui-monospace, Menlo, monospace; font-weight: 600; letter-spacing: -0.01em; }
+    .top-row-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* =========== Chips (status + priority) =========== */
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .chip .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+    .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-pending          { background: #F1F2F4;           color: #6B7280; }
+    .chip-pending_approval { background: #FFF9DB;           color: #A16207; }
+    .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
+    .chip-packed           { background: #FEF3C7;           color: #A16207; }
+    .chip-shipped          { background: #CFFAFE;           color: #0891B2; }
+    .chip-out_for_delivery { background: #A7F3D0;           color: #065F46; }
+    .chip-delivered        { background: var(--brand);      color: #fff;    }
+    .chip-cancelled        { background: var(--danger);     color: #fff;    }
+
+    /* Acceptance-decision banner (partial / all-cancelled) */
+    .acceptance-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      margin: 0 0 16px;
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xs);
+      animation: ze-fade-in .25s ease-out;
+    }
+    .acceptance-banner.danger { background: #FEE2E2; border-color: #FECACA; }
+    .acceptance-banner .ab-ico {
+      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 999px;
+      background: #FCD34D; color: #6D4B00;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .acceptance-banner.danger .ab-ico { background: #FECACA; color: #991B1B; }
+    .acceptance-banner .ab-body { flex: 1; min-width: 0; }
+    .acceptance-banner .ab-title { font-size: 14px; font-weight: 700; color: #6D4B00; margin-bottom: 2px; }
+    .acceptance-banner.danger .ab-title { color: #991B1B; }
+    .acceptance-banner .ab-text { font-size: 13px; color: #8A6D00; line-height: 1.5; }
+    .acceptance-banner.danger .ab-text { color: #B91C1C; }
+    @keyframes ze-fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    /* Per-line action links (Track / Return) */
+    .bls-action {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+      background: #F1F2F4; color: var(--text);
+      text-decoration: none; transition: .15s;
+      border: 1px solid var(--border);
+    }
+    .bls-action:hover { background: var(--brand-soft); color: var(--brand-hover); border-color: var(--brand); }
+    .bls-action.bls-action-return { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+    .bls-action.bls-action-return:hover { background: #047857; color: #fff; border-color: #047857; }
+    .bls-eta-copy {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 500; line-height: 1.4;
+      background: #FFF9DB; color: #6D4B00; white-space: nowrap;
+    }
+    .bls-eta-copy i { width: 12px; height: 12px; }
+
+    /* Per-line timeline rows */
+    .tl-step.line .tl-badge { background: #fff; border-color: var(--border); color: var(--text-muted); }
+    .tl-step.line.done .tl-badge { background: #CFFAFE; border-color: #67E8F9; color: #0891B2; }
+    .tl-step.line.delivered .tl-badge { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .tl-step.line.upcoming .tl-badge { background: #FFF9DB; border-color: #FCD34D; color: #6D4B00; }
+    .tl-step.line .tl-name { font-size: 14px; }
+    .tl-step.line .tl-line-tag {
+      display: inline-block; padding: 1px 7px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      background: #F1F2F4; color: var(--text-muted); margin-right: 6px;
+    }
+
+    /* Totals block (extends summary card) */
+    .sum-row.sum-locked .lbl, .sum-row.sum-locked .val { color: var(--brand-hover); font-weight: 700; }
+    .sum-row.sum-tobepaid .lbl, .sum-row.sum-tobepaid .val { color: var(--text-muted); font-style: italic; }
+    .sum-row.sum-tobepaid.is-paid .lbl, .sum-row.sum-tobepaid.is-paid .val { color: #047857; font-style: normal; font-weight: 700; }
+
+    /* Approval-related chip colour in details card */
+    .ap-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ap-chip.pending  { background: #FFF9DB; color: #A16207; }
+    .ap-chip.approved { background: var(--brand-soft); color: #006D35; }
+    .ap-chip.rejected { background: #FFE5EA; color: #B00020; }
+
+    .chip-priority-high     { background: #FEF3C7;       color: #A16207; }
+    .chip-priority-critical { background: var(--danger); color: #fff;    }
+
+    /* =========== Two-column grid =========== */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 60%) minmax(0, 40%);
+      gap: 24px;
+      padding-bottom: 60px;
+    }
+    @media (max-width: 900px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    /* =========== Card =========== */
+    .d-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-xs);
+    }
+    .d-card + .d-card { margin-top: 20px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .card-head h3 { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .card-head h3 i { color: var(--brand); }
+    .card-head .edit-ico { width: 30px; height: 30px; border-radius: 8px; background: transparent; color: var(--text-subtle); border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: .15s; }
+    .card-head .edit-ico:hover { background: #F1F2F4; color: var(--text); }
+
+    /* =========== Tracking timeline =========== */
+    .tl { position: relative; padding: 4px 0 4px 4px; }
+    .tl-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 14px;
+      padding-bottom: 26px;
+    }
+    .tl-step:last-child { padding-bottom: 0; }
+
+    .tl-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border);
+      background: #fff;
+      color: var(--text-subtle);
+      flex-shrink: 0;
+      transition: .25s;
+      z-index: 2;
+      position: relative;
+    }
+    .tl-step.done .tl-badge { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 2px 6px -1px rgba(55,189,105,.35); }
+    .tl-step.current .tl-badge { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-hover); animation: pulse-ring 1.6s ease-out infinite; }
+    .tl-step.future .tl-badge { background: #F9FAFB; border-color: var(--border); color: var(--text-subtle); }
+    .tl-step.cancelled .tl-badge { background: #FFE5EA; border-color: var(--danger); color: var(--danger); }
+    .tl-step.cancelled .tl-name { color: var(--danger); }
+    .tl-step.current.approval .tl-badge { background: #FFF9DB; border-color: #E4B819; color: #6D4B00; animation: pulse-ring-amber 1.6s ease-out infinite; }
+    @keyframes pulse-ring-amber {
+      0%   { box-shadow: 0 0 0 0 rgba(228,184,25,.55); }
+      70%  { box-shadow: 0 0 0 12px rgba(228,184,25,0); }
+      100% { box-shadow: 0 0 0 0 rgba(228,184,25,0); }
+    }
+    .tl-step.cancelled::before { background: var(--border) !important; }
+
+    /* Rejected banner */
+    .tl-rejected-banner {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #FFE5EA;
+      border: 1px solid rgba(233,51,83,.25);
+      color: #B00020;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .tl-rejected-banner i { color: var(--danger); flex-shrink: 0; margin-top: 2px; }
+
+    /* Approval details card */
+    .ap-card .ap-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; padding: 6px 0; }
+    .ap-card .ap-row .lbl { color: var(--text-muted); }
+    .ap-card .ap-row .val { color: var(--text); font-weight: 600; text-align: right; }
+    .ap-card .ap-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+    .ap-card .ap-note.approved { color: #006D35; font-style: normal; font-weight: 600; }
+    .ap-card .ap-note.rejected { color: #B00020; font-style: normal; font-weight: 600; }
+
+    /* Approver-action notice (shown to the Senior when viewing a pending request) */
+    .approver-notice {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      background: #FFF8CC;
+      border: 1px solid #FCD34D;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xs);
+    }
+    .approver-notice .an-ico {
+      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 999px;
+      background: #FCD34D; color: #6D4B00;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .approver-notice .an-body { flex: 1; min-width: 0; }
+    .approver-notice .an-title { font-size: 14px; font-weight: 700; color: #6D4B00; margin-bottom: 2px; }
+    .approver-notice .an-text  { font-size: 13px; color: #8A6D00; }
+    .approver-notice .an-cta {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 999px;
+      background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none;
+      transition: .15s;
+      align-self: center;
+    }
+    .approver-notice .an-cta:hover { background: var(--brand-hover); }
+    @media (max-width: 700px) {
+      .approver-notice { flex-direction: column; }
+      .approver-notice .an-cta { width: 100%; justify-content: center; }
+    }
+
+    /* Item row chips (species/enclosure) */
+    .item-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .item-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .item-chip.species { background: var(--brand-soft); color: var(--brand-hover); }
+    .item-chip.enclosure { background: #F1F2F4; color: var(--text); }
+    .item-note { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+
+    /* Buyer line-status row: pill + ETA chip (read-only) */
+    .bls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+    .bls-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+    .bls-pill-pending     { background: #F1F2F4; color: var(--text-muted); }
+    .bls-pill-in_progress { background: #FEF3C7; color: #A16207; }
+    .bls-pill-ready       { background: #DBEAFE; color: #1E40AF; }
+    .bls-pill-shipped     { background: #E0E7FF; color: #4338CA; }
+    .bls-pill-delivered   { background: #ECFDF5; color: #047857; }
+    .bls-pill-cancelled   { background: #FEE2E2; color: #B91C1C; }
+    .bls-eta { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; background: #F1F2F4; color: var(--text); white-space: nowrap; }
+    .bls-eta i { width: 12px; height: 12px; color: var(--text-muted); }
+    .bls-eta-overdue { background: #FEE2E2; color: #B91C1C; }
+    .bls-eta-overdue i { color: #B91C1C; }
+    .bls-qty { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.4; background: #F1F2F4; color: var(--text); white-space: nowrap; }
+    .bls-substatus { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+    .bls-reason { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+    .item-row.bls-cancelled .item-name,
+    .item-row.bls-cancelled .item-config,
+    .item-row.bls-cancelled .item-price { opacity: .7; }
+    .item-row.bls-line-cancelled { background: #FEF2F2; opacity: 0.7; }
+    .item-row.bls-line-cancelled:hover { background: #FEE7E7; }
+    .item-row.bls-line-cancelled .item-price span:not(.bls-no-charge),
+    .item-row.bls-line-cancelled .item-line-total {
+      text-decoration: line-through;
+      text-decoration-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+    .item-row.bls-line-cancelled .item-qty-chip { text-decoration: none; }
+    .bls-no-charge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #047857;
+      background: #ECFDF5;
+      border-radius: 999px;
+      text-decoration: none !important;
+      letter-spacing: .01em;
+    }
+    .item-right .bls-no-charge { display: block; margin: 4px 0 0; text-align: right; }
+    .sum-row.sum-cancelled .lbl,
+    .sum-row.sum-cancelled .val { color: var(--danger); font-weight: 500; }
+    .top-row .lf-summary { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+    .top-row .lf-summary .sep { color: var(--text-subtle); margin: 0 6px; }
+
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(55,189,105,.55); }
+      70%  { box-shadow: 0 0 0 12px rgba(55,189,105,0); }
+      100% { box-shadow: 0 0 0 0 rgba(55,189,105,0); }
+    }
+
+    /* connector line */
+    .tl-step::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: -2px;
+      width: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+    .tl-step:last-child::before { display: none; }
+    .tl-step.done::before, .tl-step.current::before { background: var(--brand); }
+
+    .tl-body { min-width: 0; padding-top: 8px; }
+    .tl-name { font-size: 15px; font-weight: 600; color: var(--text); text-transform: capitalize; }
+    .tl-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .tl-meta .dot { display: inline-block; margin: 0 6px; color: var(--text-subtle); }
+    .tl-note { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .tl-pending { font-size: 12px; color: var(--text-subtle); margin-top: 4px; font-style: italic; }
+    .tl-current-copy { font-size: 13px; color: var(--brand-hover); font-weight: 600; margin-top: 4px; }
+    .tl-step.future .tl-name { color: var(--text-subtle); font-weight: 500; }
+
+    .tl-cancelled-banner {
+      margin-top: 8px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #FFE5EA;
+      border: 1px solid rgba(233,51,83,.25);
+      color: #B00020;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tl-cancelled-banner i { color: var(--danger); }
+
+    /* =========== Shipment info card =========== */
+    .ship-info { display: flex; flex-direction: column; gap: 14px; }
+    .ship-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .ship-row .lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .ship-row .val { font-size: 14px; color: var(--text); font-weight: 600; }
+    .awb-box { display: inline-flex; align-items: center; gap: 6px; background: #F1F2F4; padding: 6px 10px 6px 12px; border-radius: 8px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+    .awb-box button { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 6px; display: inline-flex; align-items: center; transition: .15s; }
+    .awb-box button:hover { color: var(--brand); background: #fff; }
+    .carrier-link { display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 10px; background: var(--brand-soft); transition: .15s; }
+    .carrier-link:hover { background: var(--brand); color: #fff; }
+
+    /* =========== Address card =========== */
+    .addr-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .addr-site { font-size: 13px; color: var(--brand-hover); font-weight: 600; margin-top: 2px; }
+    .addr-lines { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-top: 8px; }
+    .addr-phone { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--text); font-weight: 500; }
+    .addr-phone i { color: var(--text-muted); }
+
+    /* =========== Items card =========== */
+    .item-row { display: flex; align-items: center; gap: 14px; padding: 12px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: .15s; }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background: #F9FAFB; }
+    .item-thumb { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: var(--card-subtle); }
+    .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .item-mid { flex: 1; min-width: 0; }
+    .item-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .item-config { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .item-qty-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #F1F2F4; color: var(--text); font-size: 11px; font-weight: 700; margin-right: 8px; }
+    .item-price { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .item-right { text-align: right; }
+    .item-line-total { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* =========== Summary card =========== */
+    .sum-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 8px 0; }
+    .sum-row .lbl { color: var(--text-muted); }
+    .sum-row .val { color: var(--text); font-weight: 600; }
+    .sum-divider { height: 1px; background: var(--border); margin: 8px 0; }
+    .sum-total { font-size: 18px; font-weight: 800; }
+    .sum-muted { font-size: 12px; color: var(--text-subtle); margin-top: 6px; }
+
+    /* =========== Actions card =========== */
+    .act-col { display: flex; flex-direction: column; gap: 10px; }
+    .act-btn { width: 100%; justify-content: center; }
+
+    /* =========== Demo controls =========== */
+    .demo-card {
+      background: #FFFBEB;
+      border: 1px dashed #F59E0B;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .demo-card .dm-title { font-size: 13px; font-weight: 700; color: #92400E; display: flex; align-items: center; gap: 8px; }
+    .demo-card .dm-note { font-size: 12px; color: #A16207; margin-top: 2px; }
+    .demo-btn { background: #fff; color: #92400E; border: 1px solid #F59E0B; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+    .demo-btn:hover { background: #F59E0B; color: #fff; }
+
+    /* =========== Vendor commitment card =========== */
+    .commit-card {
+      background: var(--brand-soft);
+      border-left: 3px solid var(--brand);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .commit-card .c-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text); }
+    .commit-card .c-head i { color: var(--brand); }
+    .commit-card .c-line { font-size: 14px; color: var(--text); margin-top: 6px; line-height: 1.5; }
+    .commit-card .c-line strong { font-weight: 700; color: var(--text); }
+    .commit-card .c-note { font-size: 13px; color: var(--text); margin-top: 6px; font-style: italic; }
+    .commit-card .c-note b { font-style: normal; font-weight: 700; }
+    .commit-card .c-resp { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+    /* =========== Awaiting vendor callout =========== */
+    .await-vendor {
+      background: #FFF9DB;
+      border-left: 3px solid #E4B819;
+      color: #6D4B00;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .await-vendor i { flex-shrink: 0; margin-top: 2px; }
+    .await-vendor strong { font-weight: 700; }
+
+    /* =========== Sold-by card =========== */
+    .sold-by { display: flex; flex-direction: column; gap: 10px; }
+    .sold-by-top { display: flex; align-items: center; gap: 12px; }
+    .sold-by-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); background: #fff; }
+    .sold-by-id { min-width: 0; flex: 1; }
+    .sold-by-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .sold-by-tag { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .sold-by-loc { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .sold-by-loc i { color: var(--text-subtle); }
+    .rating-pill { display: inline-flex; align-items: center; gap: 4px; background: #F1F2F4; color: var(--text); font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; align-self: flex-start; }
+    .rating-pill i { color: #F59E0B; fill: #F59E0B; }
+    .sold-by-links { display: flex; align-items: center; gap: 14px; padding-top: 6px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .sold-by-links a, .sold-by-links button {
+      font-size: 13px; font-weight: 600; color: var(--brand); background: transparent; border: none; padding: 0; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px; transition: .15s; text-decoration: none;
+    }
+    .sold-by-links a:hover, .sold-by-links button:hover { color: var(--brand-hover); }
+    .sold-by-links .secondary { color: var(--text-muted); }
+    .sold-by-links .secondary:hover { color: var(--text); }
+
+    /* =========== Avatar dropdown =========== */
+    .avatar-wrap { position: relative; display: inline-block; margin-left: 8px; }
+    .avatar-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow-lg); min-width: 240px; padding: 8px; z-index: 60;
+      display: none;
+    }
+    .avatar-menu.open { display: block; }
+    .avatar-menu .am-head { padding: 10px 12px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .avatar-menu .am-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .avatar-menu .am-email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .avatar-menu .am-role { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); }
+    .avatar-menu .am-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; color: var(--text); cursor: pointer; width: 100%; background: transparent; border: none; text-align: left; text-decoration: none; transition: .1s; }
+    .avatar-menu .am-item:hover { background: #F1F2F4; }
+    .avatar-menu .am-item.danger { color: var(--danger); }
+    .avatar-menu .am-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+    /* =========== Not found =========== */
+    .nf-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 72px 24px; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; margin: 40px 0; }
+    .nf-wrap .big-ico { width: 80px; height: 80px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+    .nf-wrap h3 { font-size: 20px; font-weight: 700; color: var(--text); }
+    .nf-wrap p { font-size: 14px; color: var(--text-muted); max-width: 360px; }
+
+    /* =========== Mobile-first responsive overrides =========== */
+    @media (max-width: 900px) {
+      .detail-grid { grid-template-columns: 1fr !important; gap: 16px; }
+      .top-row h1 { font-size: 24px; }
+      .top-row { margin: 8px 0 18px; }
+      .d-card { padding: 18px; }
+      .tl-step { grid-template-columns: 40px 1fr; gap: 12px; }
+      .tl-badge { width: 34px; height: 34px; }
+      .tl-step::before { left: 16px; top: 34px; }
+    }
+    @media (max-width: 640px) {
+      .top-row h1 { font-size: 22px; }
+      .top-row-right { width: 100%; justify-content: flex-start; }
+      .d-card { padding: 16px; }
+      .ship-row { gap: 8px; row-gap: 6px; }
+      .ship-row .val, .awb-box { font-size: 13px; flex-shrink: 1; min-width: 0; word-break: break-all; }
+      .awb-box { flex-wrap: wrap; }
+      .carrier-link { min-height: 40px; padding: 10px 14px; }
+      .tl-name { font-size: 14px; }
+      .tl-note { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .commit-card, .await-vendor { padding: 12px; }
+      .commit-card .c-line, .await-vendor { font-size: 13px; }
+      .demo-card { padding: 12px 14px; flex-direction: column; align-items: stretch; gap: 10px; }
+      .demo-card .demo-btn { width: 100%; justify-content: center; }
+      .act-btn { min-height: 44px; }
+    }
+    @media (max-width: 400px) {
+      .item-row { flex-wrap: wrap; gap: 10px; padding: 12px 8px; }
+      .item-thumb { width: 48px; height: 48px; }
+      .item-mid { flex-basis: calc(100% - 58px); }
+      .item-right { flex-basis: 100%; text-align: right; margin-top: -4px; }
+      .item-name { font-size: 13px; }
+      .top-row h1 { font-size: 20px; }
+      .top-row h1 .num { font-size: 16px; display: block; margin-top: 2px; }
+    }
+    /* =========== Wallet pill (header) — shared =========== */
+    .ze-wallet-pill { display: none; align-items: stretch; flex-direction: column; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s ease; box-shadow: var(--shadow-xs); margin-left: 4px; height: 44px; min-width: 110px; max-width: 220px; position: relative; text-align: left; font-family: inherit; }
+    .ze-wallet-pill.is-ready { display: inline-flex; }
+    .ze-wallet-pill:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .ze-wallet-pill .ze-wp-site { display: flex; align-items: center; gap: 4px; padding: 4px 10px 0; max-width: 100%; font-size: 10.5px; font-weight: 600; color: var(--text-muted); line-height: 1.1; cursor: pointer; border-radius: 11px 11px 0 0; }
+    .ze-wallet-pill .ze-wp-site-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .ze-wallet-pill .ze-wp-site-chev { flex-shrink: 0; opacity: .7; }
+    .ze-wallet-pill .ze-wp-site:hover { background: #F1F2F4; }
+    .ze-wallet-pill .ze-wp-amt { padding: 2px 12px 6px; font-size: 14px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--brand-hover); border-radius: 0 0 11px 11px; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-amber { color: #B45309; }
+    .ze-wallet-pill .ze-wp-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-pop { position: absolute; top: calc(100% + 6px); right: 0; min-width: 280px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 70; }
+    .ze-wp-pop.open { display: block; animation: zewpIn .18s ease-out; }
+    @keyframes zewpIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .ze-wp-pop .ze-wp-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 8px 10px 6px; }
+    .ze-wp-opt { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
+    .ze-wp-opt:hover { background: #F1F2F4; }
+    .ze-wp-opt.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .ze-wp-opt .ze-wp-opt-tick { margin-left: auto; color: var(--brand); opacity: 0; }
+    .ze-wp-opt.active .ze-wp-opt-tick { opacity: 1; }
+    .ze-wp-opt-name { flex: 1; min-width: 0; }
+    .ze-wp-opt-city { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    @media (max-width: 520px) {
+      .ze-wallet-pill .ze-wp-site { display: none; }
+      .ze-wallet-pill .ze-wp-amt { padding: 0 12px; height: 100%; display: flex; align-items: center; border-radius: 11px; }
+      .ze-wallet-pill { min-width: 70px; }
+    }
+    @media (max-width: 767px) {
+      .ze-wallet-pill { height: 40px; }
+    }
+    /* Mobile drawer wallet row */
+    .ze-wp-mobile-row { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; cursor: pointer; gap: 4px; text-decoration: none; color: inherit; }
+    .ze-wp-mobile-row:hover { background: #F1F2F4; }
+    .ze-wp-mobile-row .ze-wp-mob-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ze-wp-mobile-row .ze-wp-mob-name { font-weight: 600; color: var(--text); font-size: 13px; }
+    .ze-wp-mobile-row .ze-wp-mob-amt { font-weight: 700; font-size: 14px; color: var(--brand-hover); font-variant-numeric: tabular-nums; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-amber { color: #B45309; }
+    .ze-wp-mobile-row .ze-wp-mob-amt.ze-wp-red { color: var(--danger); }
+    .ze-wp-mobile-row .ze-wp-mob-sub { font-size: 12px; color: var(--text-muted); }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="index_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <label class="search-pill">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <input id="searchInput" type="text" placeholder="Search enrichments, species, materials…"/>
+        <span class="kbd">⌘K</span>
+      </label>
+
+      <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
+        <a class="header-btn" href="orders_1.html" id="ordersBtn">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+          <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
+        </a>
+        <a class="header-btn" href="saved_1.html" id="savedBtn">
+          <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+          <span class="badge-dot" id="savedBadge" style="display:none">0</span>
+        </a>
+        <a class="header-btn" href="cart_1.html" id="cartBtn">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+          <span class="badge-dot" id="cartBadge" style="display:none">0</span>
+        </a>
+        <a class="header-btn" href="approvals_1.html" id="headerApprovalsLink" data-approvals-header style="display:none; text-decoration:none;">
+          <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
+          <span class="badge-dot" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
+        </a>
+        <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
+        <button type="button" class="ze-wallet-pill" id="walletPill" data-wallet-pill aria-label="Wallet">
+          <span class="ze-wp-site" data-wallet-site-switch role="button" tabindex="0">
+            <span class="ze-wp-site-name" data-wallet-site-name>—</span>
+            <i data-lucide="chevron-down" class="ze-wp-site-chev w-3 h-3" data-wallet-site-chev style="display:none"></i>
+          </span>
+          <span class="ze-wp-amt" data-wallet-amount>—</span>
+          <div class="ze-wp-pop" id="walletPillPop" data-wallet-pop></div>
+        </button>
+        <div class="avatar-wrap" id="avatarWrap">
+          <img class="avatar" id="avatarImg" style="margin-left:0;" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt="Account" loading="eager"/>
+          <div class="avatar-menu" id="avatarMenu" role="menu" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== MAIN =============== -->
+  <main class="page-wrap">
+    <!-- Breadcrumb -->
+    <nav class="crumbs" id="crumbs">
+      <a href="index_1.html">Home</a>
+      <span class="sep">·</span>
+      <a href="orders_1.html">Orders</a>
+      <span class="sep">·</span>
+      <span class="current" id="crumbId">—</span>
+    </nav>
+
+    <!-- Content injected here -->
+    <div id="detailRoot"></div>
+  </main>
+
+</div></div>
+
+<!-- Toast -->
+<div class="ze-toast" id="toast"></div>
+
+<!-- =============== SCRIPTS =============== -->
+<script>
+(function(){
+  const DB = window.DB;
+  const ZE = window.ZE;
+
+  /* ---------- Status chain & icons ---------- */
+  const CHAIN = ['placed', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
+  const STATUS_META = {
+    pending_approval: { label: 'Awaiting approval', ico: 'hourglass' },
+    placed:           { label: 'Placed',           ico: 'file-text' },
+    confirmed:        { label: 'Confirmed',        ico: 'check' },
+    packed:           { label: 'Packed',           ico: 'box' },
+    shipped:          { label: 'Shipped',          ico: 'truck' },
+    out_for_delivery: { label: 'Out for delivery', ico: 'map-pin' },
+    delivered:        { label: 'Delivered',        ico: 'package-check' },
+    cancelled:        { label: 'Cancelled',        ico: 'x-circle' }
+  };
+
+  /* ---------- URL param ---------- */
+  function getOrderId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
+
+  /* ---------- Lookup order (user first, demo fallback, sessionStorage last) ---------- */
+  function lookupOrder(id) {
+    if (!id) return null;
+    let o = ZE.orders.byId(id);
+    if (o) return Object.assign({}, o, { _sourceKind: 'user' });
+    if (DB.DEMO_ORDERS) {
+      const demo = DB.DEMO_ORDERS.find(x => x.id === id);
+      if (demo) return Object.assign({}, demo, { _sourceKind: 'demo' });
+    }
+    // Listing pages (orders_1_2.html) stash the row's order payload here so
+    // seeded mock orders open without requiring a full data migration.
+    try {
+      const cached = sessionStorage.getItem('ze_view_order_' + id);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.id === id) return Object.assign({}, parsed, { _sourceKind: 'cached' });
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /* ---------- Helpers ---------- */
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    } catch (e) { return iso; }
+  }
+  function fmtDateTime(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    } catch (e) { return iso; }
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ---------- Chips ---------- */
+  // Header status pill — driven entirely by ZE.orders.deriveStatus() so per-line
+  // accept/reject/ship/deliver flips the pill (e.g. "Confirmed · 1 cancelled",
+  // "Partially shipped", "Partially delivered"). Falls back to the legacy chain
+  // labels when deriveStatus returns 'unknown' (no items / non-canonical state).
+  function _iconForCode(code) {
+    switch (code) {
+      case 'pending-acceptance': return 'hourglass';
+      case 'cancelled':          return 'x-circle';
+      case 'confirmed':
+      case 'confirmed-partial':  return 'check';
+      case 'shipped':
+      case 'partially-shipped':  return 'truck';
+      case 'partially-delivered':return 'package';
+      case 'delivered':
+      case 'delivered-partial':  return 'package-check';
+      default:                   return 'file-text';
+    }
+  }
+  function statusChipDerived(order) {
+    /* V2: skip deriveStatus (built around per-line state, not applicable to v2)
+       and use the simple status meta directly. */
+    const isV2 = order && typeof order.id === 'string' && order.id.indexOf('V2-') === 0;
+    if (!isV2 && window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+      const d = ZE.orders.deriveStatus(order);
+      if (d && d.code !== 'unknown') {
+        const ico = _iconForCode(d.code);
+        const cls = d.chipClass || 'chip-pending';
+        return `<span class="chip ${cls}" title="${escapeHtml(d.summary || '')}"><i data-lucide="${ico}" class="w-3.5 h-3.5"></i> ${escapeHtml((d.label || '').toUpperCase())}</span>`;
+      }
+    }
+    // Legacy fallback (pending_approval, placed, packed, etc.) — also v2 path.
+    const meta = STATUS_META[order.status] || STATUS_META.placed;
+    const cls = 'chip-' + order.status;
+    return `<span class="chip ${cls}"><i data-lucide="${meta.ico}" class="w-3.5 h-3.5"></i> ${meta.label.toUpperCase()}</span>`;
+  }
+  function priorityChip(p) {
+    if (!p || p === 'Normal') return '';
+    if (p === 'Critical') return `<span class="chip chip-priority-critical"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> CRITICAL</span>`;
+    if (p === 'High')     return `<span class="chip chip-priority-high"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> HIGH</span>`;
+    return '';
+  }
+
+  /* ---------- Render: Not found ---------- */
+  function renderNotFound(id) {
+    document.getElementById('crumbId').textContent = id || 'Order';
+    document.title = 'ZooEnrich · Order not found';
+    document.getElementById('detailRoot').innerHTML = `
+      <div class="nf-wrap anim-in">
+        <span class="big-ico"><i data-lucide="package-search" class="w-10 h-10"></i></span>
+        <h3>Order not found</h3>
+        <p>We couldn't find order <strong>${escapeHtml(id || '—')}</strong>. It may have been removed or the link is incorrect.</p>
+        <a href="orders_1.html" class="btn btn-brand" style="text-decoration:none">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to orders
+        </a>
+      </div>`;
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Render: Acceptance-decision banner ----------
+     Surfaces partial-acceptance and all-cancelled states on the buyer side.
+     Shows on: confirmed-partial, partially-shipped, partially-delivered,
+     delivered-partial, OR any state with at least one cancelled line.
+     Hides on: fully-delivered (no cancellations) and pure pending. */
+  function renderAcceptanceBanner(order) {
+    if (!window.ZE || !ZE.orders || typeof ZE.orders.deriveStatus !== 'function') return '';
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (!items.length) return '';
+    const lfMap = (ZE.orders.lineFulfilment) ? ZE.orders.lineFulfilment.forOrder(order.id) : {};
+
+    let cancelledCount = 0;
+    let cancelledSum = 0;
+    const cancelledNames = [];
+    items.forEach((it, i) => {
+      const rec = lfMap[i];
+      if (!rec || rec.status !== 'cancelled') return;
+      cancelledCount++;
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { name: it.p.name, price: it.p.price || { material:0, labor:0 } } : null);
+      const unit = (p && p.price) ? (Number(p.price.material) || 0) + (Number(p.price.labor) || 0) : (it.unit != null ? it.unit : 0);
+      cancelledSum += unit * (it.qty || 0);
+      if (p && p.name) cancelledNames.push(p.name);
+    });
+    if (!cancelledCount) return '';
+
+    const d = ZE.orders.deriveStatus(order);
+    const code = d && d.code;
+    // Hide once everything is delivered with no transparency need
+    if (code === 'delivered' && cancelledCount === 0) return '';
+    // All cancelled → red
+    if (code === 'cancelled') {
+      return `
+        <div class="acceptance-banner danger anim-in" role="status">
+          <span class="ab-ico"><i data-lucide="alert-triangle" class="w-4 h-4"></i></span>
+          <div class="ab-body">
+            <div class="ab-title">Order cancelled</div>
+            <div class="ab-text">None of the requested items could be fulfilled. Full refund of <strong>${escapeHtml(DB.fmtINR(cancelledSum))}</strong> has been credited to your wallet.</div>
+          </div>
+        </div>`;
+    }
+    // Otherwise partial
+    const otherCount = items.length - cancelledCount;
+    const firstName = cancelledNames[0] || 'Some items';
+    const moreSuffix = cancelledNames.length > 1 ? ` and ${cancelledNames.length - 1} other` : '';
+    const otherCopy = otherCount === 1 ? '1 other item is confirmed' : (otherCount + ' other items are confirmed');
+    return `
+      <div class="acceptance-banner anim-in" role="status">
+        <span class="ab-ico"><i data-lucide="info" class="w-4 h-4"></i></span>
+        <div class="ab-body">
+          <div class="ab-title">Order accepted with changes</div>
+          <div class="ab-text"><strong>${escapeHtml(firstName)}</strong>${escapeHtml(moreSuffix)} could not be fulfilled — refund of <strong>${escapeHtml(DB.fmtINR(cancelledSum))}</strong> has been credited to your wallet. ${escapeHtml(otherCopy)}.</div>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Vendor commitment ---------- */
+  function renderVendorCommitment(order) {
+    // Awaiting response callout
+    if (order.status === 'placed' && !order.vendorResponse) {
+      return `
+        <div class="await-vendor anim-in">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          <div>
+            <strong>Awaiting vendor response</strong> — the seller hasn't confirmed a timeline yet.
+            Typical response time: &lt;1 day.
+          </div>
+        </div>`;
+    }
+
+    const vr = order.vendorResponse;
+    if (!vr) return '';
+
+    const ready = vr.estimatedReadyBy ? fmtDate(vr.estimatedReadyBy) : '—';
+    const days  = (vr.daysToComplete != null) ? vr.daysToComplete : '—';
+    const noteHtml = vr.note
+      ? `<div class="c-note"><b>Vendor note:</b> ${escapeHtml(vr.note)}</div>`
+      : '';
+    const respHtml = vr.respondedAt
+      ? `<div class="c-resp">Responded on ${escapeHtml(fmtDateTime(vr.respondedAt))}</div>`
+      : '';
+
+    return `
+      <div class="commit-card anim-in">
+        <div class="c-head"><i data-lucide="handshake" class="w-4 h-4"></i> Vendor commitment</div>
+        <div class="c-line">Vendor will be ready by <strong>${escapeHtml(ready)}</strong> (${escapeHtml(String(days))} day${days === 1 ? '' : 's'} after order placed)</div>
+        ${noteHtml}
+        ${respHtml}
+      </div>`;
+  }
+
+  /* ---------- Render: Approver-action notice (Senior viewing pending request) ---------- */
+  function renderApproverNotice(order) {
+    if (order.requiresApproval !== true) return '';
+    if (order.approvalStatus !== 'pending') return '';
+    const viewer = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve()
+                : (ZE.user && typeof ZE.user.current === 'function') ? ZE.user.current()
+                : null;
+    if (!viewer || viewer.id !== order.approverId) return '';
+    const requester = DB.byId(DB.USERS, order.createdBy);
+    const rqName = (requester && requester.name) || 'a team member';
+    return `
+      <div class="approver-notice anim-in" role="status">
+        <span class="an-ico"><i data-lucide="hourglass" class="w-4 h-4"></i></span>
+        <div class="an-body">
+          <div class="an-title">This order is awaiting your approval</div>
+          <div class="an-text">${escapeHtml(rqName)} has requested this purchase. Approve or reject from the Approvals queue.</div>
+        </div>
+        <a class="an-cta" href="approvals_1.html">
+          Go to Approvals <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>`;
+  }
+
+  /* ---------- Render: Approval details ---------- */
+  function renderApproval(order) {
+    if (order.requiresApproval !== true) return '';
+    const approver = DB.byId(DB.USERS, order.approverId);
+    const buyer    = DB.byId(DB.USERS, order.createdBy);
+    const aName = (approver && approver.name) || '—';
+    const aTitle = (approver && approver.title) || '';
+    const bName = (buyer && buyer.name) || ((order.shippingAddress && order.shippingAddress.name) || '—');
+    const st = order.approvalStatus;
+    let chip = '';
+    let note = '';
+    if (st === 'pending') {
+      chip = `<span class="ap-chip pending"><i data-lucide="hourglass" class="w-3 h-3"></i> Pending</span>`;
+      note = `<div class="ap-note">Awaiting approver's decision.</div>`;
+    } else if (st === 'approved') {
+      chip = `<span class="ap-chip approved"><i data-lucide="check" class="w-3 h-3"></i> Approved</span>`;
+      const when = order.approvedAt ? fmtDateTime(order.approvedAt) : '';
+      note = `<div class="ap-note approved">Approved${when ? ' on ' + escapeHtml(when) : ''}.</div>`;
+    } else if (st === 'rejected') {
+      chip = `<span class="ap-chip rejected"><i data-lucide="x" class="w-3 h-3"></i> Rejected</span>`;
+      note = `<div class="ap-note rejected">Rejected${order.rejectReason ? ' — ' + escapeHtml(order.rejectReason) : ''}.</div>`;
+    }
+    return `
+      <div class="d-card ap-card">
+        <div class="card-head">
+          <h3><i data-lucide="shield-check" class="w-4 h-4"></i> Approval</h3>
+          ${chip}
+        </div>
+        <div>
+          <div class="ap-row"><span class="lbl">Requested by</span><span class="val">${escapeHtml(bName)}</span></div>
+          <div class="ap-row"><span class="lbl">Approver</span><span class="val">${escapeHtml(aName)}${aTitle ? ' <span style="color:var(--text-muted); font-weight:500;">(' + escapeHtml(aTitle) + ')</span>' : ''}</span></div>
+          ${note}
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Sold by (vendor) ---------- */
+  function renderSoldBy(order) {
+    if (!order.vendorId) return '';
+    const vendor = DB.byId(DB.VENDORS, order.vendorId);
+    if (!vendor) return '';
+
+    // Compute rating: average across vendor's products, fallback to vendor.rating
+    let rating = null;
+    const vProds = (DB.PRODUCTS || []).filter(p => p.vendorId === vendor.id && typeof p.rating === 'number');
+    if (vProds.length) {
+      const sum = vProds.reduce((acc, p) => acc + p.rating, 0);
+      rating = sum / vProds.length;
+    } else if (typeof vendor.rating === 'number') {
+      rating = vendor.rating;
+    }
+
+    const logoSrc = (typeof DB.vendorLogo === 'function') ? DB.vendorLogo(vendor) : (vendor.logo || '');
+    const tagline = vendor.tagline || vendor.description || '';
+    const city = vendor.city || (vendor.address && vendor.address.city) || '';
+    const state = vendor.state || (vendor.address && vendor.address.state) || '';
+    const loc = [city, state].filter(Boolean).join(' · ');
+
+    const ratingPill = (rating != null)
+      ? `<span class="rating-pill"><i data-lucide="star" class="w-3 h-3"></i> ${rating.toFixed(1)}</span>`
+      : '';
+
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="store" class="w-4 h-4"></i> Sold by</h3>
+        </div>
+        <div class="sold-by">
+          <div class="sold-by-top">
+            <img class="sold-by-logo" src="${escapeHtml(logoSrc)}" alt="${escapeHtml(vendor.name || '')}" loading="lazy"/>
+            <div class="sold-by-id">
+              <div class="sold-by-name">${escapeHtml(vendor.name || '—')}</div>
+              ${tagline ? `<div class="sold-by-tag">${escapeHtml(tagline)}</div>` : ''}
+              ${loc ? `<div class="sold-by-loc"><i data-lucide="map-pin" class="w-3 h-3"></i> ${escapeHtml(loc)}</div>` : ''}
+            </div>
+          </div>
+          ${ratingPill}
+          <div class="sold-by-links">
+            <a href="admin_dashboard_1.html?id=${encodeURIComponent(vendor.id)}">Visit store <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+            <button type="button" class="secondary" id="contactSellerBtn">Contact seller</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Tracking timeline ---------- */
+  function renderTimeline(order) {
+    const events = Array.isArray(order.tracking && order.tracking.events) ? order.tracking.events : [];
+    const isCancelled = order.status === 'cancelled';
+    const needsApproval = order.requiresApproval === true;
+    const apStatus = order.approvalStatus || null;
+    const isPendingApproval = order.status === 'pending_approval';
+    const isRejected = needsApproval && apStatus === 'rejected';
+
+    // Vendor-side events only (skip pending_approval events for the main chain mapping)
+    const vendorEventsByStatus = {};
+    events.forEach(e => { if (CHAIN.indexOf(e.status) !== -1) vendorEventsByStatus[e.status] = e; });
+
+    // Derive the current chain stage from per-line fulfilment (source of truth) PLUS
+    // the legacy `order.status` field as a fallback for old seed data.
+    // Rule: an order in DB exists → 'placed' is always reached.
+    const lfMapForChain = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? (ZE.orders.lineFulfilment.forOrder(order.id) || {}) : {};
+    const lineStatuses = (order.items || []).map((_, i) => (lfMapForChain[i] && lfMapForChain[i].status) || 'pending');
+    const activeLines = lineStatuses.filter(s => s !== 'cancelled');
+    let derivedStage = 'placed';
+    if (activeLines.length > 0) {
+      if (activeLines.every(s => s === 'delivered')) derivedStage = 'delivered';
+      else if (activeLines.some(s => s === 'delivered') || activeLines.some(s => s === 'shipped')) {
+        derivedStage = activeLines.some(s => s === 'delivered') ? 'out_for_delivery' : 'shipped';
+      }
+      else if (activeLines.some(s => s === 'ready')) derivedStage = 'packed';
+      else if (activeLines.some(s => s === 'in_progress')) derivedStage = 'confirmed';
+    }
+    // Legacy fallback: if seed data put a higher chain status on the order, respect it.
+    const legacyChainIdx = CHAIN.indexOf(order.status);
+    const derivedIdx = CHAIN.indexOf(derivedStage);
+    let reached = Math.max(derivedIdx, legacyChainIdx);
+    // Also pull events as a third source (e.g. seed orders with explicit shipped event).
+    events.forEach(e => {
+      const i = CHAIN.indexOf(e.status);
+      if (i > reached) reached = i;
+    });
+    // Floor: if any non-cancelled line is past 'pending', or order is not in pending-approval limbo,
+    // the order has been placed — reached must be at least 0.
+    if (reached < 0 && !isPendingApproval && !isRejected) reached = 0;
+    // Current step is one beyond reached (unless we've hit delivered/cancelled)
+    const curIdx = (reached < CHAIN.length - 1 && !isCancelled && !isRejected) ? reached + 1 : reached;
+
+    // Build approval steps (prepended)
+    let approvalRows = '';
+    if (needsApproval) {
+      const approver = DB.byId(DB.USERS, order.approverId);
+      const aName = (approver && approver.name) || '—';
+
+      // Step 0: Request submitted — reached when order was created (always done if we got here)
+      const createdAt = order.createdAt ? fmtDateTime(order.createdAt) : '';
+      approvalRows += `
+        <div class="tl-step done">
+          <span class="tl-badge"><i data-lucide="check" class="w-4 h-4"></i></span>
+          <div class="tl-body">
+            <div class="tl-name">Request submitted</div>
+            ${createdAt ? `<div class="tl-meta">${escapeHtml(createdAt)}</div>` : ''}
+            <div class="tl-note">Order created and sent for approval.</div>
+          </div>
+        </div>`;
+
+      // Step 1: Awaiting approval — based on approvalStatus
+      if (apStatus === 'pending') {
+        approvalRows += `
+          <div class="tl-step current approval">
+            <span class="tl-badge"><i data-lucide="user-check" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name">Awaiting approval</div>
+              <div class="tl-note">Awaiting ${escapeHtml(aName)}'s decision.</div>
+            </div>
+          </div>`;
+      } else if (apStatus === 'approved') {
+        const when = order.approvedAt ? fmtDateTime(order.approvedAt) : '';
+        approvalRows += `
+          <div class="tl-step done">
+            <span class="tl-badge"><i data-lucide="check" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name">Awaiting approval</div>
+              ${when ? `<div class="tl-meta">${escapeHtml(when)}</div>` : ''}
+              <div class="tl-note">Approved by ${escapeHtml(aName)}.</div>
+            </div>
+          </div>`;
+      } else if (apStatus === 'rejected') {
+        approvalRows += `
+          <div class="tl-step cancelled">
+            <span class="tl-badge"><i data-lucide="x" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name">Awaiting approval</div>
+              <div class="tl-note">Rejected by ${escapeHtml(aName)}.</div>
+            </div>
+          </div>`;
+      }
+    }
+
+    // Build vendor chain rows
+    // Rules:
+    //  - 'done' → solid green badge, tick icon, real timestamp
+    //  - 'current' → soft-green pulsing badge, status icon (truck / box / etc.), "In progress" copy
+    //  - 'future' → grey badge, status icon, NO "Pending" copy (the visual grey conveys it)
+    const rows = CHAIN.map((s, i) => {
+      let cls;
+      if (isRejected) {
+        cls = 'future';
+      } else if (isCancelled) {
+        cls = (i <= reached) ? 'done' : 'future';
+      } else if (i <= reached) {
+        cls = 'done';
+      } else if (i === curIdx) {
+        cls = 'current';
+      } else {
+        cls = 'future';
+      }
+
+      const meta = STATUS_META[s];
+      const ev = vendorEventsByStatus[s];
+      const ico = (cls === 'done') ? 'check' : meta.ico;
+
+      // Best-effort timestamp for done steps that have no explicit event.
+      // 'placed' falls back to order.createdAt; later steps stay quiet if no event recorded.
+      let bodyDetails = '';
+      if (cls === 'done') {
+        if (ev) {
+          const loc = ev.location ? `<span class="dot">·</span>${escapeHtml(ev.location)}` : '';
+          bodyDetails = `
+            <div class="tl-meta">${escapeHtml(fmtDateTime(ev.at))}${loc}</div>
+            ${ev.note ? `<div class="tl-note">${escapeHtml(ev.note)}</div>` : ''}`;
+        } else if (s === 'placed' && order.createdAt) {
+          bodyDetails = `<div class="tl-meta">${escapeHtml(fmtDateTime(order.createdAt))}</div>`;
+        } else {
+          bodyDetails = `<div class="tl-meta">Completed</div>`;
+        }
+      } else if (cls === 'current') {
+        const inProgressCopy = {
+          placed: 'Order received',
+          confirmed: 'Awaiting admin acceptance',
+          packed: 'Items being packed',
+          shipped: 'In transit',
+          out_for_delivery: 'Arriving soon',
+          delivered: ''
+        }[s] || 'In progress';
+        bodyDetails = `<div class="tl-note tl-current-copy">${escapeHtml(inProgressCopy)}</div>`;
+      }
+      // future: no body content — grey badge alone communicates the state
+
+      return `
+        <div class="tl-step ${cls}">
+          <span class="tl-badge"><i data-lucide="${ico}" class="w-4 h-4"></i></span>
+          <div class="tl-body">
+            <div class="tl-name">${meta.label}</div>
+            ${bodyDetails}
+          </div>
+        </div>`;
+    }).join('');
+
+    // Rejected banner
+    let rejectedBanner = '';
+    if (isRejected) {
+      const approver = DB.byId(DB.USERS, order.approverId);
+      const aName = (approver && approver.name) || '—';
+      rejectedBanner = `
+        <div class="tl-rejected-banner">
+          <i data-lucide="x-circle" class="w-4 h-4"></i>
+          <span>Rejected by ${escapeHtml(aName)}${order.rejectReason ? ' — ' + escapeHtml(order.rejectReason) : ''}</span>
+        </div>`;
+    }
+
+    const cancelledBanner = (isCancelled && !isRejected) ? `
+      <div class="tl-cancelled-banner">
+        <i data-lucide="x-circle" class="w-4 h-4"></i>
+        <span>This order was cancelled. Any later tracking steps were not completed.</span>
+      </div>` : '';
+
+    // ----- Per-line augmentation -----
+    // For each item, emit one or more line-tagged rows reflecting line.status:
+    //   shipped   → "done"      "Line <X> shipped"
+    //   delivered → "delivered"  "Line <X> delivered — ₹Y charged"
+    //   confirmed/in-flight/pending-with-eta → "upcoming" with deriveLineEtaCopy
+    // Cancelled lines are intentionally skipped here — the "Order accepted with
+    // changes" banner already communicates the per-product cancellation.
+    const lfMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id) : {};
+    const items = Array.isArray(order.items) ? order.items : [];
+    const lineLetter = (i) => String.fromCharCode(65 + (i % 26));
+    const lineRows = items.map((it, i) => {
+      const rec = lfMap[i];
+      if (!rec || !rec.status) return '';
+      if (rec.status === 'cancelled' || rec.status === 'pending') return '';
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { name: it.p.name, price: it.p.price || { material:0, labor:0 } } : null);
+      const lineName = (p && p.name) ? p.name : ('Line ' + lineLetter(i));
+      const tag = `Line ${lineLetter(i)}`;
+      if (rec.status === 'delivered') {
+        const dAt = deliveredAt(rec);
+        const unit = (p && p.price) ? (Number(p.price.material) || 0) + (Number(p.price.labor) || 0) : (it.unit != null ? it.unit : 0);
+        const charged = unit * (it.qty || 0);
+        return `
+          <div class="tl-step line delivered">
+            <span class="tl-badge"><i data-lucide="package-check" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)} delivered</div>
+              ${dAt ? `<div class="tl-meta">${escapeHtml(fmtDateTime(dAt))}</div>` : ''}
+              <div class="tl-note">${escapeHtml(DB.fmtINR(charged))} charged on delivery</div>
+            </div>
+          </div>`;
+      }
+      if (rec.status === 'shipped') {
+        // most recent shipped event timestamp from history
+        let shippedAt = null;
+        if (Array.isArray(rec.history)) {
+          for (let h = rec.history.length - 1; h >= 0; h--) {
+            if (rec.history[h] && rec.history[h].status === 'shipped') { shippedAt = rec.history[h].at; break; }
+          }
+        }
+        const trackNum = (order.tracking && order.tracking.number) || ('AWB-' + order.id + '-' + (i + 1));
+        return `
+          <div class="tl-step line done">
+            <span class="tl-badge"><i data-lucide="truck" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)} shipped</div>
+              ${shippedAt ? `<div class="tl-meta">${escapeHtml(fmtDateTime(shippedAt))}</div>` : ''}
+              <div class="tl-note">Track #${escapeHtml(trackNum)}</div>
+            </div>
+          </div>`;
+      }
+      // confirmed / in_progress / ready → upcoming if we have an ETA
+      const etaCopy = (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function')
+        ? ZE.orders.deriveLineEtaCopy(order.id, i) : '';
+      if (etaCopy) {
+        return `
+          <div class="tl-step line upcoming">
+            <span class="tl-badge"><i data-lucide="calendar-clock" class="w-4 h-4"></i></span>
+            <div class="tl-body">
+              <div class="tl-name"><span class="tl-line-tag">${escapeHtml(tag)}</span>${escapeHtml(lineName)}</div>
+              <div class="tl-note">${escapeHtml(etaCopy)}</div>
+              <div class="tl-pending">Expected (not yet shipped)</div>
+            </div>
+          </div>`;
+      }
+      return '';
+    }).filter(Boolean).join('');
+
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="route" class="w-4 h-4"></i> Tracking</h3>
+        </div>
+        <div class="tl">${approvalRows}${rows}${lineRows}</div>
+        ${rejectedBanner}
+        ${cancelledBanner}
+      </div>`;
+  }
+
+  /* ---------- Render: Shipment info ---------- */
+  function renderShipment(order) {
+    const t = order.tracking || {};
+    if (!t.carrier) return '';
+    const etaStr = t.eta ? fmtDate(t.eta) : '—';
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="truck" class="w-4 h-4"></i> Shipment</h3>
+        </div>
+        <div class="ship-info">
+          <div class="ship-row">
+            <span class="lbl">Carrier</span>
+            <span class="val">${escapeHtml(t.carrier)}</span>
+          </div>
+          <div class="ship-row">
+            <span class="lbl">AWB number</span>
+            <span class="awb-box">
+              <span>${escapeHtml(t.number || '—')}</span>
+              <button type="button" id="copyAwbBtn" title="Copy AWB number"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+            </span>
+          </div>
+          <div class="ship-row">
+            <span class="lbl">Estimated delivery</span>
+            <span class="val">${escapeHtml(etaStr)}</span>
+          </div>
+          ${t.url ? `
+          <div class="ship-row" style="justify-content:flex-start">
+            <a class="carrier-link" href="${escapeHtml(t.url)}" target="_blank" rel="noopener">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Track on ${escapeHtml(t.carrier)} website
+            </a>
+          </div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Address ---------- */
+  function renderAddress(order) {
+    const a = order.shippingAddress || {};
+    // Fallback to the signed-in user's site/identity when the order doesn't carry them
+    // (mock seed orders on orders_1_2.html omit siteId/createdBy).
+    const meUser = (window.ZE && ZE.user && typeof ZE.user.resolve === 'function') ? (ZE.user.resolve() || null) : null;
+    const siteIdEffective = order.siteId || (meUser && meUser.siteId) || null;
+    const createdByEffective = order.createdBy || (meUser && meUser.id) || null;
+    const site = siteIdEffective ? DB.byId(DB.SITES, siteIdEffective) : null;
+    const placedBy = createdByEffective ? DB.byId(DB.USERS, createdByEffective) : null;
+
+    // Site-based address half
+    const siteName = site ? site.name : (a.site || '—');
+    const line1   = site ? site.addressLine1 : (a.line1 || '');
+    const line2   = site ? '' : (a.line2 || '');
+    const city    = site ? site.city : (a.city || '');
+    const stateNm = site ? site.state : (a.state || '');
+    const pincode = site ? site.pincode : (a.pincode || '');
+    const recipientName  = (placedBy && placedBy.name) || a.name || '';
+    const recipientPhone = (placedBy && placedBy.phone) || a.phone || '';
+    const recipientEmail = (placedBy && placedBy.email) || '';
+
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="map-pin" class="w-4 h-4"></i> Shipping to</h3>
+          <button class="edit-ico" title="Edit address"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        </div>
+        <div>
+          <div class="addr-name">${escapeHtml(siteName)}</div>
+          <div class="addr-lines">
+            ${line1 ? escapeHtml(line1) + '<br/>' : ''}
+            ${line2 ? escapeHtml(line2) + '<br/>' : ''}
+            ${escapeHtml(city)}${city && stateNm ? ', ' : ''}${escapeHtml(stateNm)}${pincode ? ' – ' + escapeHtml(pincode) : ''}
+          </div>
+          ${recipientName ? `<div class="addr-phone" style="margin-top:12px;"><i data-lucide="user" class="w-3.5 h-3.5"></i> Placed by: ${escapeHtml(recipientName)}${recipientPhone ? ' · ' + escapeHtml(recipientPhone) : ''}${recipientEmail ? ' · ' + escapeHtml(recipientEmail) : ''}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Buyer line-status helpers ---------- */
+  const BLS_LABELS = {
+    pending: 'Awaiting fulfilment',
+    in_progress: 'In production',
+    ready: 'Ready to ship',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled by admin'
+  };
+  function isOverdue(eta) {
+    if (!eta) return false;
+    try {
+      const d = new Date(eta);
+      if (isNaN(d.getTime())) return false;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return d.getTime() < today.getTime();
+    } catch (_) { return false; }
+  }
+  function deliveredAt(rec) {
+    if (!rec || !Array.isArray(rec.history)) return null;
+    for (let i = rec.history.length - 1; i >= 0; i--) {
+      const h = rec.history[i];
+      if (h && h.status === 'delivered' && h.at) return h.at;
+    }
+    return null;
+  }
+  function renderLineStatus(rec, totalQty, orderId, lineIdx) {
+    if (!rec || !rec.status) return '';
+    const status = rec.status;
+    // Partial-shipment detection. shippedQty defaults to 0; treat 0 on a
+    // shipped/delivered line as "no per-unit split tracked" (i.e. full).
+    const tot = (typeof totalQty === 'number' && totalQty > 0) ? totalQty : 0;
+    const shipped = (typeof rec.shippedQty === 'number' && rec.shippedQty >= 0) ? rec.shippedQty : 0;
+    const isPartialShipped   = (status === 'shipped')   && tot > 0 && shipped > 0 && shipped < tot;
+    const isPartialDelivered = (status === 'delivered') && tot > 0 && shipped > 0 && shipped < tot;
+    const isPartial = isPartialShipped || isPartialDelivered;
+
+    // Status pill — sourced from derive APIs so labels stay consistent across surfaces.
+    const hasEta = !!rec.eta;
+    let label;
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveLineLabel === 'function') {
+      label = ZE.orders.deriveLineLabel(status, { hasEta });
+    } else {
+      label = BLS_LABELS[status] || status;
+    }
+    if (isPartialShipped) label = 'Partially shipped';
+    else if (isPartialDelivered) label = 'Delivered (partial)';
+    const pill = `<span class="bls-pill bls-pill-${status}">${escapeHtml(label)}</span>`;
+
+    // Pre-shipped ETA copy — driven by deriveLineEtaCopy when available
+    let etaCopyHtml = '';
+    if (window.ZE && ZE.orders && typeof ZE.orders.deriveLineEtaCopy === 'function' && orderId != null && lineIdx != null) {
+      const etaCopy = ZE.orders.deriveLineEtaCopy(orderId, lineIdx);
+      if (etaCopy) {
+        etaCopyHtml = `<span class="bls-eta-copy"><i data-lucide="calendar-clock"></i> ${escapeHtml(etaCopy)}</span>`;
+      }
+    }
+
+    let etaChip = '';
+    if (status === 'delivered') {
+      const dAt = deliveredAt(rec) || rec.eta;
+      if (dAt) {
+        etaChip = `<span class="bls-eta"><i data-lucide="calendar"></i> Delivered ${escapeHtml(fmtDate(dAt))}</span>`;
+      }
+    } else if (status === 'cancelled') {
+      // no ETA chip for cancelled
+    } else if (!etaCopyHtml && rec.eta && (status === 'in_progress' || status === 'ready' || status === 'shipped' || status === 'pending')) {
+      // Fall back to legacy "Delivers by …" only when derive copy isn't available
+      if (status === 'pending' && !rec.eta) {
+        etaChip = '';
+      } else {
+        const overdue = isOverdue(rec.eta) && status !== 'delivered';
+        const cls = overdue ? 'bls-eta bls-eta-overdue' : 'bls-eta';
+        const prefix = overdue ? 'Overdue · ' : 'Delivers by ';
+        etaChip = `<span class="${cls}"><i data-lucide="calendar"></i> ${escapeHtml(prefix + fmtDate(rec.eta))}</span>`;
+      }
+    }
+
+    const qtyChip = isPartial
+      ? `<span class="bls-qty">${shipped} of ${tot} units</span>`
+      : '';
+
+    // Per-line action: Track shipment (shipped) or Return / report issue (delivered)
+    let actionHtml = '';
+    if (status === 'shipped' && orderId != null && lineIdx != null) {
+      actionHtml = `<a href="#" class="bls-action" data-track-line="${lineIdx}" onclick="event.preventDefault();return false;"><i data-lucide="truck" class="w-3 h-3"></i> Track shipment</a>`;
+    } else if (status === 'delivered' && orderId != null && lineIdx != null) {
+      const href = 'returns_buyer_1.html?id=' + encodeURIComponent(orderId) + '&line=' + lineIdx;
+      actionHtml = `<a href="${href}" class="bls-action bls-action-return"><i data-lucide="undo-2" class="w-3 h-3"></i> Return / report issue</a>`;
+    }
+
+    let subStatus = '';
+    if (isPartialShipped) {
+      const back = tot - shipped;
+      subStatus = `<div class="bls-substatus">${back} backordered · admin will ship the rest</div>`;
+    }
+
+    const reasonHtml = (status === 'cancelled' && rec.cancelReason)
+      ? `<div class="bls-reason">Reason: ${escapeHtml(rec.cancelReason)}</div>`
+      : '';
+
+    return `<div class="bls-row">${pill}${etaCopyHtml}${etaChip}${qtyChip}${actionHtml}</div>${subStatus}${reasonHtml}`;
+  }
+  function lineFulfilmentSummary(map, order) {
+    const counts = { pending:0, in_progress:0, ready:0, shipped:0, delivered:0, cancelled:0 };
+    let total = 0;
+    let partial = 0;
+    const items = (order && Array.isArray(order.items)) ? order.items : [];
+    Object.keys(map || {}).forEach(k => {
+      const rec = map[k];
+      if (!rec || !rec.status) return;
+      total++;
+      if (counts[rec.status] != null) counts[rec.status]++;
+      // Partial: 0 < shippedQty < line qty, on a shipped or delivered line.
+      const lineQty = items[k] && typeof items[k].qty === 'number' ? items[k].qty : 0;
+      const shipped = (typeof rec.shippedQty === 'number' && rec.shippedQty >= 0) ? rec.shippedQty : 0;
+      if ((rec.status === 'shipped' || rec.status === 'delivered') && lineQty > 0 && shipped > 0 && shipped < lineQty) {
+        partial++;
+      }
+    });
+    if (!total) return '';
+    const parts = [];
+    if (counts.delivered) parts.push(`${counts.delivered} of ${total} delivered`);
+    if (counts.shipped)   parts.push(`${counts.shipped} shipped`);
+    if (counts.ready)     parts.push(`${counts.ready} ready`);
+    if (counts.in_progress) parts.push(`${counts.in_progress} in production`);
+    if (counts.pending)   parts.push(`${counts.pending} awaiting`);
+    if (partial)          parts.push(`${partial} partial`);
+    if (counts.cancelled) parts.push(`${counts.cancelled} cancelled`);
+    if (!parts.length) return '';
+    return `<div class="lf-summary">${parts.map(escapeHtml).join('<span class="sep">·</span>')}</div>`;
+  }
+
+  /* ---------- Render: Items ---------- */
+  function renderItems(order) {
+    const items = order.items || [];
+    const lineFulfilmentMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    const rows = items.map((it, i) => {
+      // Prefer real DB.PRODUCTS lookup; fall back to inline shape used by
+      // listing-page mocks ({p:{name,img}, qty}) so seeded orders still render.
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? {
+        id: it.p.id || it.productId || ('mock-' + Math.random().toString(36).slice(2,7)),
+        name: it.p.name || 'Item',
+        imgSmall: it.p.img || it.p.imgSmall || '',
+        price: it.p.price || { material: 0, labor: 0 }
+      } : null);
+      if (!p) return '';
+      const unit = (p.price && (p.price.material + p.price.labor)) || (it.unit != null ? it.unit : (order.total && items.length ? Math.round(order.total / items.length / Math.max(1, it.qty)) : 0));
+      const configStr = it.config
+        ? Object.entries(it.config).map(([k,v]) => `${k.charAt(0).toUpperCase()+k.slice(1)} ${v}`).join(' · ')
+        : '';
+      const sp = it.speciesId ? DB.byId(DB.SPECIES, it.speciesId) : null;
+      const enc = it.enclosureId ? DB.byId(DB.ENCLOSURES, it.enclosureId) : null;
+      const speciesMissing = (it.speciesId === null || it.speciesId === undefined) && !sp;
+      const chipsHtml = (sp || enc || speciesMissing)
+        ? `<div class="item-chips">
+            ${sp
+              ? `<span class="item-chip species"><i data-lucide="paw-print" class="w-3 h-3"></i> ${escapeHtml(sp.name)}</span>`
+              : (speciesMissing ? `<span class="item-chip species-missing" style="color:var(--text-muted);font-style:italic;background:transparent;border:none;padding-left:0;">Species: —</span>` : '')}
+            ${enc ? `<span class="item-chip enclosure"><i data-lucide="map-pin" class="w-3 h-3"></i> ${escapeHtml(enc.name)}</span>` : ''}
+          </div>`
+        : '';
+      const noteHtml = it.note ? `<div class="item-note">${escapeHtml(it.note)}</div>` : '';
+      const lineRec = lineFulfilmentMap[i] || null;
+      const lineStatusHtml = renderLineStatus(lineRec, it.qty, order.id, i);
+      const isLineCancelled = !!(lineRec && lineRec.status === 'cancelled');
+      const rowClass = isLineCancelled ? 'item-row bls-cancelled bls-line-cancelled' : 'item-row';
+      const noChargeInline = isLineCancelled ? `<span class="bls-no-charge">No charge</span>` : '';
+      const noChargeRight  = isLineCancelled ? `<span class="bls-no-charge">No charge</span>` : '';
+      return `
+        <div class="${rowClass}" data-prod="${p.id}">
+          <div class="item-thumb img-frame"><img src="${p.imgSmall}" alt="${escapeHtml(p.name)}" loading="lazy"/></div>
+          <div class="item-mid">
+            <div class="item-name">${escapeHtml(p.name)}</div>
+            ${chipsHtml}
+            ${configStr ? `<div class="item-config">${escapeHtml(configStr)}</div>` : ''}
+            ${noteHtml}
+            <div class="item-price">
+              <span class="item-qty-chip">Qty ${it.qty}</span>
+              <span>${DB.fmtINR(unit)} each</span>
+              ${noChargeInline}
+            </div>
+            ${lineStatusHtml}
+          </div>
+          <div class="item-right">
+            <div class="item-line-total">${DB.fmtINR(unit * it.qty)}</div>
+            ${noChargeRight}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="package-2" class="w-4 h-4"></i> Items <span style="color:var(--text-subtle); font-weight:500; font-size:13px; margin-left:4px;">(${items.length})</span></h3>
+        </div>
+        <div>${rows || '<div class="tl-pending">No items in this order</div>'}</div>
+      </div>`;
+  }
+
+  /* ---------- Render: Summary ---------- */
+  function renderSummary(order) {
+    const subtotal = order.subtotal || 0;
+    const fee = order.shippingFee || 0;
+    const total = (typeof order.total === 'number') ? order.total : (subtotal + fee);
+    // Transparency-only line: sum of cancelled item prices. Does NOT change subtotal/total math.
+    const lfMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    let cancelledSum = 0;
+    let allDelivered = true;
+    let anyLine = false;
+    (order.items || []).forEach((it, i) => {
+      const rec = lfMap[i];
+      const p = (it.productId ? DB.byId(DB.PRODUCTS, it.productId) : null) || (it.p ? { price: it.p.price || { material:0, labor:0 } } : null);
+      const unit = (p && p.price) ? (p.price.material + p.price.labor) : (it.unit != null ? it.unit : 0);
+      if (rec && rec.status === 'cancelled') {
+        cancelledSum += unit * (it.qty || 0);
+        return;
+      }
+      anyLine = true;
+      if (!rec || rec.status !== 'delivered') allDelivered = false;
+    });
+    if (!anyLine) allDelivered = false;
+    const cancelledRow = cancelledSum > 0
+      ? `<div class="sum-row sum-cancelled" title="Transparency note — these items will not be charged.">
+           <span class="lbl">Cancelled lines</span>
+           <span class="val">−${DB.fmtINR(cancelledSum)}</span>
+         </div>`
+      : '';
+    const lockedAmt = Math.max(0, total - cancelledSum);
+    const lockedRow = `
+      <div class="sum-row sum-locked">
+        <span class="lbl">Currently locked</span>
+        <span class="val">${DB.fmtINR(lockedAmt)}</span>
+      </div>`;
+    const tobepaidRow = allDelivered
+      ? `<div class="sum-row sum-tobepaid is-paid"><span class="lbl">Paid</span><span class="val">${DB.fmtINR(lockedAmt)}</span></div>`
+      : `<div class="sum-row sum-tobepaid"><span class="lbl">Will be paid on delivery</span><span class="val">${DB.fmtINR(lockedAmt)}</span></div>`;
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="receipt" class="w-4 h-4"></i> Order summary</h3>
+        </div>
+        <div>
+          <div class="sum-row"><span class="lbl">Subtotal</span><span class="val">${DB.fmtINR(subtotal)}</span></div>
+          ${cancelledRow}
+          <div class="sum-row">
+            <span class="lbl">Shipping${order.shippingMethod ? ' · ' + escapeHtml(order.shippingMethod) : ''}</span>
+            <span class="val">${DB.fmtINR(fee)}</span>
+          </div>
+          <div class="sum-divider"></div>
+          <div class="sum-row sum-total"><span>Total</span><span>${DB.fmtINR(total)}</span></div>
+          ${lockedRow}
+          ${tobepaidRow}
+          <div class="sum-muted">Funds locked from site wallet · settled on delivery</div>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Actions ---------- */
+  function renderActions(order) {
+    const canCancel = (order.status === 'placed' || order.status === 'confirmed' || order.status === 'pending_approval');
+    return `
+      <div class="d-card">
+        <div class="card-head">
+          <h3><i data-lucide="zap" class="w-4 h-4"></i> Actions</h3>
+        </div>
+        <div class="act-col">
+          <button class="btn btn-brand act-btn" id="reorderBtn" type="button">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reorder
+          </button>
+          ${canCancel ? `
+            <button class="btn btn-outline act-btn" id="cancelBtn" type="button" style="color:var(--danger); border-color:var(--danger);">
+              <i data-lucide="x" class="w-4 h-4"></i> Cancel order
+            </button>` : ''}
+          <button class="btn btn-ghost act-btn" id="supportBtn" type="button" style="border:1px solid var(--border);">
+            <i data-lucide="life-buoy" class="w-4 h-4"></i> Contact support
+          </button>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Render: Demo controls ---------- */
+  function renderDemoControls(order) {
+    const inDemo = !!(DB.DEMO_ORDERS && DB.DEMO_ORDERS.find(o => o.id === order.id));
+    if (!inDemo) return '';
+    // Hide advance button while approval is pending
+    if (order.approvalStatus === 'pending') return '';
+    return `
+      <div class="demo-card">
+        <div>
+          <div class="dm-title"><i data-lucide="flask-conical" class="w-4 h-4"></i> Demo controls</div>
+          <div class="dm-note">Dev helper — simulates the next tracking event.</div>
+        </div>
+        <button class="demo-btn" id="advanceBtn" type="button">
+          <i data-lucide="fast-forward" class="w-3.5 h-3.5"></i> Advance status (demo)
+        </button>
+      </div>`;
+  }
+
+  /* ---------- Master render ---------- */
+  function render(order) {
+    document.title = 'ZooEnrich · Order ' + order.id;
+    document.getElementById('crumbId').textContent = order.id;
+
+    const lfMapHeader = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
+      ? ZE.orders.lineFulfilment.forOrder(order.id)
+      : {};
+    const lfSummary = lineFulfilmentSummary(lfMapHeader, order);
+
+    const root = document.getElementById('detailRoot');
+    root.innerHTML = `
+      ${renderApproverNotice(order)}
+      <div class="top-row anim-in">
+        <div>
+          <div class="eyebrow">Placed on ${escapeHtml(fmtDateTime(order.createdAt))}</div>
+          <h1>Order <span class="num">${escapeHtml(order.id)}</span></h1>
+          ${lfSummary}
+        </div>
+        <div class="top-row-right">
+          ${statusChipDerived(order)}
+          ${priorityChip(order.priority)}
+        </div>
+      </div>
+
+      ${renderAcceptanceBanner(order)}
+
+      <div class="detail-grid">
+        <!-- LEFT -->
+        <div>
+          ${renderVendorCommitment(order)}
+          ${renderTimeline(order)}
+          ${renderShipment(order)}
+        </div>
+        <!-- RIGHT -->
+        <div>
+          ${renderApproval(order)}
+          ${renderAddress(order)}
+          ${renderSoldBy(order)}
+          ${renderItems(order)}
+          ${renderSummary(order)}
+          ${renderActions(order)}
+        </div>
+      </div>
+
+      ${renderDemoControls(order)}
+    `;
+
+    wireActions(order);
+    ZE.refreshIcons();
+  }
+
+  /* ---------- Wiring ---------- */
+  function wireActions(order) {
+    // Item rows -> product detail
+    document.querySelectorAll('.item-row[data-prod]').forEach(row => {
+      row.addEventListener('click', () => {
+        window.location.href = 'product_detail_1.html?id=' + row.dataset.prod;
+      });
+    });
+
+    // AWB copy
+    const copyBtn = document.getElementById('copyAwbBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const n = (order.tracking && order.tracking.number) || '';
+        if (!n) return;
+        const write = navigator.clipboard && navigator.clipboard.writeText
+          ? navigator.clipboard.writeText(n)
+          : Promise.reject();
+        write.then(() => showToast('AWB copied: ' + n))
+             .catch(() => {
+               // fallback
+               const ta = document.createElement('textarea');
+               ta.value = n; document.body.appendChild(ta); ta.select();
+               try { document.execCommand('copy'); showToast('AWB copied: ' + n); }
+               catch (err) { showToast('Copy failed'); }
+               document.body.removeChild(ta);
+             });
+      });
+    }
+
+    // Reorder
+    const reBtn = document.getElementById('reorderBtn');
+    if (reBtn) {
+      reBtn.addEventListener('click', () => {
+        const items = order.items || [];
+        const orderSpecies = order.speciesId || order.species || null;
+        let lines = 0;
+        items.forEach(it => {
+          if (!it.productId || !(it.qty > 0)) return;
+          const spId = it.speciesId || orderSpecies;
+          if (!spId) return;
+          ZE.cart.addLine({
+            productId: it.productId,
+            speciesId: spId,
+            enclosureId: it.enclosureId || order.enclosureId || null,
+            qty: it.qty,
+            note: it.note || null
+          });
+          lines++;
+        });
+        if (lines > 0) {
+          const msg = `Added ${lines} line${lines===1?'':'s'} to cart`;
+          const t = document.getElementById('toast');
+          t.innerHTML = escapeHtml(msg) + ' · <a href="index_1.html" style="color:#fff; text-decoration:underline; font-weight:600;">Go to cart</a>';
+          t.classList.add('show');
+          clearTimeout(t._t);
+          t._t = setTimeout(() => t.classList.remove('show'), 3800);
+          setTimeout(() => { window.location.href = 'index_1.html'; }, 1200);
+        } else {
+          showToast('Nothing to reorder');
+        }
+      });
+    }
+
+    // Cancel
+    const cBtn = document.getElementById('cancelBtn');
+    if (cBtn) {
+      cBtn.addEventListener('click', () => {
+        if (!confirm('Cancel this order? This cannot be undone.')) return;
+        // Only user orders can actually be cancelled in ZE.orders store
+        const inUserStore = !!ZE.orders.byId(order.id);
+        if (inUserStore) {
+          ZE.orders.cancel(order.id);
+          showToast('Order cancelled');
+          setTimeout(() => window.location.reload(), 600);
+        } else {
+          showToast('Demo orders are read-only — create a real order to cancel');
+        }
+      });
+    }
+
+    // Contact seller (stub)
+    const csBtn = document.getElementById('contactSellerBtn');
+    if (csBtn) {
+      csBtn.addEventListener('click', () => {
+        alert('Messaging the seller is coming soon. For now, reach us at support@zooenrich.example.');
+      });
+    }
+
+    // Support
+    const sBtn = document.getElementById('supportBtn');
+    if (sBtn) {
+      sBtn.addEventListener('click', () => {
+        alert('Support coming soon — email support@zooenrich.example');
+      });
+    }
+
+    // Advance (demo helper)
+    const adv = document.getElementById('advanceBtn');
+    if (adv) {
+      adv.addEventListener('click', () => {
+        const inUserStore = !!ZE.orders.byId(order.id);
+        if (inUserStore) {
+          ZE.orders.advanceStatus(order.id);
+          showToast('Tracking advanced');
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          showToast('Demo orders are read-only — create a real order to try progression');
+        }
+      });
+    }
+  }
+
+  /* ---------- Badges (cart / saved / orders count) ---------- */
+  function updateBadges() {
+    const cartN = ZE.cart.count();
+    const savedN = ZE.saved.count();
+    const ordersN = ZE.orders.count();
+    const cB = document.getElementById('cartBadge');
+    const sB = document.getElementById('savedBadge');
+    const oB = document.getElementById('ordersBadge');
+    if (cB) { cB.textContent = cartN; cB.style.display = cartN ? 'inline-flex' : 'none'; }
+    if (sB) { sB.textContent = savedN; sB.style.display = savedN ? 'inline-flex' : 'none'; }
+    if (oB) { oB.textContent = ordersN; oB.style.display = ordersN ? 'inline-flex' : 'none'; }
+  }
+
+  /* ---------- Avatar dropdown ---------- */
+  function renderAvatarMenu() {
+    const menu = document.getElementById('avatarMenu');
+    const imgEl = document.getElementById('avatarImg');
+    if (!menu || !imgEl) return;
+
+    const user = (ZE.user && typeof ZE.user.current === 'function') ? ZE.user.current() : null;
+    const role = (ZE.user && typeof ZE.user.role === 'function') ? ZE.user.role() : null;
+
+    if (user) {
+      if (user.avatar) imgEl.src = user.avatar;
+      imgEl.alt = user.name || 'Account';
+      menu.innerHTML = `
+        <div class="am-head">
+          <div class="am-name">${escapeHtml(user.name || 'Signed in')}</div>
+          <div class="am-email">${escapeHtml(user.email || '')}</div>
+          <span class="am-role">${escapeHtml(role || 'buyer')}</span>
+        </div>
+        <a class="am-item" href="account_1.html"><i data-lucide="user" class="w-4 h-4"></i> My account</a>
+        <a class="am-item" href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> My orders</a>
+        <a class="am-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved items</a>
+        <a class="am-item" id="personaSwitchItem" data-persona-item data-mode-switch="to-other-persona" onclick="window.location.reload();return false;"><i data-lucide="user-cog" class="w-4 h-4"></i> <span data-persona-label>Switch persona</span></a><a class="am-item" href="admin_dashboard_1.html" id="adminNavItem" data-mode-switch="to-admin" onclick="window.location.href='admin_dashboard_1.html';return false;"><i data-lucide="shield" class="w-4 h-4"></i> Switch to Admin view</a>
+        <div class="am-sep"></div>
+        <button type="button" class="am-item danger" id="signOutBtn"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+      `;
+    } else {
+      menu.innerHTML = `
+        <div class="am-head">
+          <div class="am-name">Not signed in</div>
+          <div class="am-email">Sign in to manage orders</div>
+        </div>
+        <a class="am-item" href="signin_1.html"><i data-lucide="log-in" class="w-4 h-4"></i> Sign in</a>
+        <a class="am-item" href="signup_1.html"><i data-lucide="user-plus" class="w-4 h-4"></i> Create account</a>
+      `;
+    }
+
+    const wrap = document.getElementById('avatarWrap');
+    imgEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+      menu.setAttribute('aria-hidden', menu.classList.contains('open') ? 'false' : 'true');
+      ZE.refreshIcons();
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) {
+        menu.classList.remove('open');
+        menu.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    const so = document.getElementById('signOutBtn');
+    if (so) {
+      so.addEventListener('click', () => {
+        if (ZE.user && typeof ZE.user.signOut === 'function') ZE.user.signOut();
+        window.location.href = 'signin_1.html';
+      });
+    }
+  }
+
+  /* ---------- Boot ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sign-in guard: vendors go to vendor order detail
+    try {
+      if (ZE.user && typeof ZE.user.role === 'function' && ZE.user.role() === 'vendor') {
+        const id = getOrderId();
+        window.location.replace('admin_order_detail_1.html?id=' + encodeURIComponent(id || ''));
+        return;
+      }
+    } catch (e) { /* ignore */ }
+
+    updateBadges();
+    renderAvatarMenu();
+    ZE.on('cart:change', updateBadges);
+    ZE.on('saved:change', updateBadges);
+    ZE.on('orders:change', updateBadges);
+
+    const id = getOrderId();
+    const order = lookupOrder(id);
+    if (!order) {
+      renderNotFound(id);
+    } else {
+      render(order);
+    }
+
+    // Re-render when line fulfilment / order status / wallet changes
+    // (admin advances a line, wallet refunds for a cancelled line, etc.)
+    const _rerender = () => {
+      const fresh = lookupOrder(getOrderId());
+      if (fresh) render(fresh);
+    };
+    ZE.on('orders:change', _rerender);
+    ZE.on('wallet:change', _rerender);
+
+    ZE.init();
+  });
+})();
+</script>
+<script>
+/* =========== Wallet pill renderer (shared inline) =========== */
+(function(){
+  if (window.__zeWalletPillInit) return;
+  window.__zeWalletPillInit = true;
+  function fmtCompactINR(n){
+    n = Number(n) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (n >= 1000)     return '₹' + Math.round(n / 1000) + 'K';
+    return '₹' + n;
+  }
+  function colorClass(avail, allotted){
+    if (!allotted) return '';
+    var ratio = avail / allotted;
+    if (ratio < 0.20) return 'ze-wp-red';
+    if (ratio < 0.50) return 'ze-wp-amber';
+    return '';
+  }
+  function closePop(){
+    var pop = document.getElementById('walletPillPop');
+    if (pop) pop.classList.remove('open');
+  }
+  function buildPop(siteIds, activeId){
+    var html = '<div class="ze-wp-head">Switch site</div>';
+    siteIds.forEach(function(sid){
+      var s = (window.DB && DB.byId) ? DB.byId(DB.SITES, sid) : null;
+      if (!s) return;
+      html += '<div class="ze-wp-opt' + (sid === activeId ? ' active' : '') + '" data-wp-site="' + sid + '">' +
+        '<div class="ze-wp-opt-name"><div>' + s.name + '</div><div class="ze-wp-opt-city">' + (s.city || '') + '</div></div>' +
+        '<i data-lucide="check" class="ze-wp-opt-tick w-4 h-4"></i>' +
+      '</div>';
+    });
+    return html;
+  }
+  function renderPill(){
+    var pill = document.getElementById('walletPill');
+    if (!pill) return;
+    if (typeof ZE === 'undefined' || !ZE.user || !ZE.activeSite || !ZE.wallet) return;
+    var u = ZE.user.read();
+    if (!u || u.role !== 'buyer') { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var sites = ZE.activeSite.availableFor(u.id) || [];
+    var activeId = ZE.activeSite.get();
+    if (!activeId && sites.length) activeId = sites[0];
+    if (!activeId) { pill.style.display = 'none'; pill.classList.remove('is-ready'); return; }
+    var siteObj = (window.DB && DB.byId) ? DB.byId(DB.SITES, activeId) : null;
+    var w = ZE.wallet.forSite(activeId);
+    var nameEl = pill.querySelector('[data-wallet-site-name]');
+    var amtEl  = pill.querySelector('[data-wallet-amount]');
+    var chev   = pill.querySelector('[data-wallet-site-chev]');
+    var siteWrap = pill.querySelector('[data-wallet-site-switch]');
+    if (nameEl) nameEl.textContent = siteObj ? siteObj.name : '—';
+    if (amtEl) {
+      amtEl.textContent = fmtCompactINR(w.available);
+      amtEl.classList.remove('ze-wp-red','ze-wp-amber');
+      var c = colorClass(w.available, w.allotted);
+      if (c) amtEl.classList.add(c);
+    }
+    var multi = sites.length > 1;
+    if (chev) chev.style.display = multi ? '' : 'none';
+    if (siteWrap) siteWrap.style.cursor = multi ? 'pointer' : 'default';
+    pill.classList.add('is-ready');
+    var pop = pill.querySelector('[data-wallet-pop]');
+    if (pop) pop.innerHTML = multi ? buildPop(sites, activeId) : '';
+    if (window.lucide && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} }
+    var mob = document.getElementById('mobileWalletRow');
+    if (mob) {
+      if (siteObj) {
+        mob.style.display = '';
+        var mn = mob.querySelector('[data-wallet-mob-name]');
+        var ma = mob.querySelector('[data-wallet-mob-amt]');
+        var ms = mob.querySelector('[data-wallet-mob-sub]');
+        if (mn) mn.textContent = siteObj.name;
+        if (ma) {
+          ma.textContent = fmtCompactINR(w.available);
+          ma.classList.remove('ze-wp-red','ze-wp-amber');
+          var mc = colorClass(w.available, w.allotted);
+          if (mc) ma.classList.add(mc);
+        }
+        if (ms) ms.textContent = (siteObj.city || '') + ' · Available · Open wallet →';
+      } else { mob.style.display = 'none'; }
+    }
+  }
+  function bind(){
+    document.addEventListener('click', function(e){
+      var pill = document.getElementById('walletPill');
+      if (!pill) return;
+      var siteSwitch = e.target.closest && e.target.closest('[data-wallet-site-switch]');
+      var pillTrigger = e.target.closest && e.target.closest('#walletPill');
+      var popClick = e.target.closest && e.target.closest('[data-wp-site]');
+      var pop = document.getElementById('walletPillPop');
+      if ((siteSwitch || (pillTrigger && pill.contains(pillTrigger) && !popClick)) ) {
+        var sites = (ZE.user.read && ZE.user.read()) ? (ZE.activeSite.availableFor(ZE.user.read().id) || []) : [];
+        if (sites.length > 1 && pop) {
+          e.preventDefault(); e.stopPropagation();
+          pop.classList.toggle('open');
+          return;
+        }
+      }
+      var opt = e.target.closest && e.target.closest('[data-wp-site]');
+      if (opt && pop && pop.contains(opt)) {
+        e.preventDefault(); e.stopPropagation();
+        var sid = opt.getAttribute('data-wp-site');
+        if (sid && ZE.activeSite.set(sid)) { closePop(); window.location.reload(); }
+        return;
+      }
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !pill.contains(e.target)) {
+        closePop(); return;
+      }
+      var pillTarget = e.target.closest && e.target.closest('#walletPill');
+      
+    });
+    document.addEventListener('click', function(e){
+      var mob = e.target.closest && e.target.closest('#mobileWalletRow');
+      if (mob) { window.location.href = 'wallet_1.html'; }
+    });
+    if (typeof ZE !== 'undefined' && ZE.on) {
+      ZE.on('activeSite:change', renderPill);
+      ZE.on('orders:change', renderPill);
+      ZE.on('topup:change', renderPill);
+      ZE.on('user:change', renderPill);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
+  } else { renderPill(); bind(); }
+})();
+</script>
+</body>
+</html>
