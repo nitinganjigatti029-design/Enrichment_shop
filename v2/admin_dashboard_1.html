@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    /* =========== Page layout =========== */
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Vendor header (UNIFIED) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+
+    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; animation: fadeUp .18s ease both; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+
+    @media (max-width: 900px) {
+      .v-avatar-btn .v-name { display: none; }
+      .v-nav { display: none !important; }
+      .app-header .row { gap: 12px !important; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark > span:not(.logo-box) { display: none; }
+    }
+
+    /* =========== Shared vendor mobile drawer =========== */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+    /* =========== Greeting =========== */
+    .greet-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 28px 0 20px; flex-wrap: wrap; }
+    .greet-row h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.15; }
+    .greet-row h1 .wave { display: inline-block; animation: wave 1.6s ease-in-out 1; transform-origin: 70% 70%; }
+    @keyframes wave { 0%,100% { transform: rotate(0); } 25% { transform: rotate(14deg); } 50% { transform: rotate(-8deg); } 75% { transform: rotate(14deg); } }
+    .greet-row .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+    .greet-row .cta-add { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); transition: .15s; }
+    .greet-row .cta-add:hover { background: var(--brand-hover); transform: translateY(-1px); }
+
+    /* =========== KPI cards =========== */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    @media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .kpi { padding: 16px; } .kpi-value { font-size: 22px; } }
+
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: .2s ease;
+    }
+    .kpi:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .kpi-head { display: flex; align-items: center; justify-content: space-between; }
+    .kpi-ico { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; }
+    .kpi-ico.rev  { background: var(--brand-soft); color: var(--brand-hover); }
+    .kpi-ico.pen  { background: #FEF3C7;           color: #A16207; }
+    .kpi-ico.prod { background: #CFFAFE;           color: #0891B2; }
+    .kpi-ico.rat  { background: #FFF8CC;           color: #6d4b00; }
+    .kpi-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1; }
+    .kpi-delta { font-size: 12px; font-weight: 500; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+    .kpi-delta.pos { color: #0e8c3a; }
+    .kpi-delta.neu { color: var(--text-muted); }
+    .kpi-delta.warn { color: #A16207; }
+    .kpi-sub { font-size: 12px; color: var(--text-muted); }
+
+    /* =========== Main grid =========== */
+    .main-grid { display: grid; grid-template-columns: minmax(0, 60%) minmax(0, 40%); gap: 20px; padding-bottom: 40px; }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+    /* =========== Card =========== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow-xs);
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+    .card-head h3 { font-size: 15px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 8px; }
+    .card-head h3 .head-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; font-size: 11px; font-weight: 700; background: var(--brand-soft); color: var(--brand-hover); border-radius: 999px; }
+    .card-head .action { font-size: 13px; color: var(--brand); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+    .card-head .action:hover { color: var(--brand-hover); }
+
+    /* Awaiting response rows */
+    .resp-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 14px 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; transition: .15s; }
+    .resp-row:last-child { margin-bottom: 0; }
+    .resp-row:hover { border-color: var(--brand); background: #F9FAFB; }
+    .resp-left { min-width: 0; }
+    .resp-id { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 700; color: var(--text); }
+    .resp-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+    .resp-meta .dot { color: var(--text-subtle); }
+    .resp-total { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px; }
+    .resp-btn { background: var(--brand); color: #fff; border: none; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.4); transition: .15s; white-space: nowrap; }
+    .resp-btn:hover { background: var(--brand-hover); transform: translateY(-1px); }
+
+    /* Active orders list */
+    .active-row { display: grid; grid-template-columns: 100px 1fr auto; gap: 14px; align-items: center; padding: 12px; border-radius: 10px; cursor: pointer; transition: .15s; }
+    .active-row:hover { background: #F9FAFB; }
+    .active-row + .active-row { border-top: 1px solid var(--border); border-radius: 0; }
+    .active-id { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+    .active-event { font-size: 12px; color: var(--text-muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Status chips */
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .chip-placed           { background: #F1F2F4;           color: #6B7280; }
+    .chip-confirmed        { background: var(--brand-soft); color: #006D35; }
+    .chip-packed           { background: #FEF3C7;           color: #A16207; }
+    .chip-shipped          { background: #CFFAFE;           color: #0891B2; }
+    .chip-out_for_delivery { background: #A7F3D0;           color: #065F46; }
+    .chip-delivered        { background: var(--brand);      color: #fff;    }
+    .chip-cancelled        { background: var(--danger);     color: #fff;    }
+
+    /* Low stock rows */
+    .stock-row { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 10px 8px; border-radius: 10px; transition: .15s; }
+    .stock-row + .stock-row { border-top: 1px solid var(--border); border-radius: 0; }
+    .stock-row:hover { background: #F9FAFB; }
+    .stock-thumb { width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .stock-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .stock-mid { min-width: 0; }
+    .stock-name { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stock-stock { font-size: 12px; font-weight: 600; margin-top: 2px; }
+    .stock-stock.zero { color: var(--danger); }
+    .stock-stock.low { color: #A16207; }
+    .stock-btn { font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--brand); color: var(--brand); font-weight: 600; cursor: pointer; transition: .15s; }
+    .stock-btn:hover { background: var(--brand-soft); }
+
+    /* Reviews */
+    .rv-row { padding: 12px 2px; border-bottom: 1px solid var(--border); }
+    .rv-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .rv-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .stars { display: inline-flex; gap: 2px; color: var(--warning); font-size: 12px; }
+    .stars .off { color: #E5E7EB; }
+    .rv-date { font-size: 11px; color: var(--text-subtle); }
+    .rv-text { font-size: 13px; color: var(--text); line-height: 1.45; }
+    .rv-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+    .rv-prod { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+    .rv-prod a { color: var(--brand); font-weight: 600; }
+    .rv-prod a:hover { text-decoration: underline; }
+    .rv-replied { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); }
+    .rv-reply-link { font-size: 12px; color: var(--brand); font-weight: 600; }
+    .rv-reply-link:hover { color: var(--brand-hover); }
+
+    /* Top products */
+    .top-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 10px 8px; border-radius: 10px; transition: .15s; cursor: pointer; }
+    .top-row + .top-row { border-top: 1px solid var(--border); border-radius: 0; }
+    .top-row:hover { background: #F9FAFB; }
+    .top-thumb { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .top-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .top-name { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: inline-flex; align-items: center; gap: 4px; }
+
+    /* Empty states */
+    .empty { padding: 28px 10px; text-align: center; color: var(--text-muted); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .empty .ico { width: 48px; height: 48px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Footer */
+    .foot { padding: 24px 0 40px; border-top: 1px solid var(--border); margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+    .foot .links { display: flex; align-items: center; gap: 14px; }
+    .foot .links a { color: var(--text-muted); }
+    .foot .links a:hover { color: var(--brand); }
+
+    /* Toast */
+    .ze-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; }
+    .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Card fade-in on load */
+    .anim-up { animation: fadeUp .45s cubic-bezier(.2,.8,.2,1) both; }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body data-device="desktop">
+<div class="device-shell"><div class="device-inner">
+
+  <!-- =============== HEADER =============== -->
+  <header class="app-header">
+    <div class="page-wrap row">
+      <a href="admin_dashboard_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </a>
+
+      <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <nav class="v-nav" id="vNav">
+        <a href="admin_dashboard_1.html" class="active" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+        <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge" id="navPendingBadge" style="display:none;">0</span></a>
+        <a href="admin_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+        <a href="admin_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+        <a href="admin_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+        <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+        <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+      </nav>
+
+      <div class="v-right">
+        <div class="v-avatar-wrap">
+          <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
+            <span class="v-name" id="vName">TeakCraft</span>
+            <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+          </button>
+          <div class="v-menu" id="vMenu" role="menu">
+            <div class="muted" id="vMenuEmail">Signed in</div>
+            <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+            <a href="admin_profile_1.html">
+              <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
+            </a>
+            <button id="btnSignOut">
+              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============== VENDOR MOBILE DRAWER =============== -->
+  <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
+    <div class="vd-head">
+      <span class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+        <span>ZooEnrich</span>
+      </span>
+      <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <nav class="vd-nav">
+      <a href="admin_dashboard_1.html" class="active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
+      <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+      <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+      <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+      <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+      <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+    </nav>
+    <div class="vd-foot">
+      <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- =============== BODY =============== -->
+  <main class="page-wrap">
+
+    <!-- Greeting -->
+    <section class="greet-row anim-up">
+      <div>
+        <h1 id="greetTitle">Hello</h1>
+        <div class="sub">Here's what's happening with your business.</div>
+      </div>
+      <a href="admin_add_product_1.html" class="cta-add">
+        <i data-lucide="plus" class="w-4 h-4"></i>Add product
+      </a>
+    </section>
+
+    <!-- KPI cards -->
+    <section class="kpi-grid">
+      <div class="kpi anim-up">
+        <div class="kpi-head">
+          <span class="kpi-label">Revenue this month</span>
+          <span class="kpi-ico rev"><i data-lucide="indian-rupee" class="w-5 h-5"></i></span>
+        </div>
+        <div class="kpi-value" id="kpiRevenue">₹0</div>
+        <div class="kpi-delta pos"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i>+12% vs last month</div>
+      </div>
+
+      <div class="kpi anim-up" style="animation-delay:.05s">
+        <div class="kpi-head">
+          <span class="kpi-label">Pending orders</span>
+          <span class="kpi-ico pen"><i data-lucide="clock" class="w-5 h-5"></i></span>
+        </div>
+        <div class="kpi-value" id="kpiPending">0</div>
+        <div class="kpi-delta warn" id="kpiPendingDelta"><i data-lucide="bell" class="w-3.5 h-3.5"></i>2 new today</div>
+      </div>
+
+      <div class="kpi anim-up" style="animation-delay:.1s">
+        <div class="kpi-head">
+          <span class="kpi-label">Products listed</span>
+          <span class="kpi-ico prod"><i data-lucide="package" class="w-5 h-5"></i></span>
+        </div>
+        <div class="kpi-value" id="kpiProducts">0</div>
+        <div class="kpi-delta neu" id="kpiProductsDelta"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>all published</div>
+      </div>
+
+      <div class="kpi anim-up" style="animation-delay:.15s">
+        <div class="kpi-head">
+          <span class="kpi-label">Average rating</span>
+          <span class="kpi-ico rat"><i data-lucide="star" class="w-5 h-5"></i></span>
+        </div>
+        <div class="kpi-value" id="kpiRating">0.0</div>
+        <div class="kpi-delta neu" id="kpiRatingSub"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>0 reviews</div>
+      </div>
+    </section>
+
+    <!-- Two column grid -->
+    <section class="main-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="col">
+        <!-- Awaiting your response -->
+        <div class="card anim-up" style="animation-delay:.2s">
+          <div class="card-head">
+            <h3>
+              <i data-lucide="alert-circle" class="w-4 h-4" style="color:var(--danger)"></i>
+              Awaiting your response
+              <span class="head-count" id="awaitingCount">0</span>
+            </h3>
+            <a class="action" href="admin_orders_1.html?filter=placed">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+          <div id="awaitingList"></div>
+        </div>
+
+        <!-- Active orders -->
+        <div class="card anim-up" style="animation-delay:.25s">
+          <div class="card-head">
+            <h3><i data-lucide="truck" class="w-4 h-4" style="color:var(--brand)"></i>Active orders</h3>
+            <a class="action" href="admin_orders_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+          <div id="activeList"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col">
+        <!-- Low stock alerts -->
+        <div class="card anim-up" style="animation-delay:.2s">
+          <div class="card-head">
+            <h3><i data-lucide="alert-triangle" class="w-4 h-4" style="color:#A16207"></i>Low stock alerts</h3>
+            <a class="action" href="admin_products_1.html?filter=low_stock">Manage <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+          <div id="lowStockList"></div>
+        </div>
+
+        <!-- Recent reviews -->
+        <div class="card anim-up" style="animation-delay:.25s">
+          <div class="card-head">
+            <h3><i data-lucide="message-square" class="w-4 h-4" style="color:var(--brand)"></i>Recent reviews</h3>
+            <a class="action" href="admin_dashboard_1.html">View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+          <div id="reviewsList"></div>
+        </div>
+
+        <!-- Top products -->
+        <div class="card anim-up" style="animation-delay:.3s">
+          <div class="card-head">
+            <h3><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--brand)"></i>Top products</h3>
+            <a class="action" href="admin_products_1.html?sort=top">All products <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+          </div>
+          <div id="topProductsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="foot">
+      <div>ZooEnrich &middot; Admin portal</div>
+      <div class="links">
+        <a href="#" data-stub>Support</a>
+        <a href="#" data-stub>Policies</a>
+        <a href="#" data-stub>What's new</a>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="ze-toast" role="status" aria-live="polite"></div>
+</div></div>
+
+<script>
+  (function () {
+    // ---------- Page guard ----------
+    if (!ZE.user.requireRole('admin')) return;
+
+    // ---------- Helpers ----------
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function relTime(iso) {
+      if (!iso) return '';
+      const t = new Date(iso).getTime();
+      if (!isFinite(t)) return '';
+      const diff = Date.now() - t;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      if (days < 30) return days + 'd ago';
+      const months = Math.floor(days / 30);
+      if (months < 12) return months + 'mo ago';
+      return Math.floor(months / 12) + 'y ago';
+    }
+    function greetingWord() {
+      const h = new Date().getHours();
+      if (h < 5)  return 'Good evening';
+      if (h < 12) return 'Good morning';
+      if (h < 17) return 'Good afternoon';
+      return 'Good evening';
+    }
+    function starsHtml(avg) {
+      const a = Math.round(avg);
+      let html = '<span class="stars">';
+      for (let i = 1; i <= 5; i++) {
+        html += '<i data-lucide="star" class="w-3 h-3 ' + (i <= a ? '' : 'off') + '" ' +
+                (i <= a ? 'style="fill:currentColor"' : '') + '></i>';
+      }
+      html += '</span>';
+      return html;
+    }
+
+    // ---------- Resolve vendor ----------
+    const vendor = ZE.user.resolve();
+    if (!vendor || !vendor.id) {
+      // Shouldn't happen since requireRole passed, but guard anyway
+      ZE.user.signOut();
+      location = 'login_1.html';
+      return;
+    }
+
+    // ---------- Header chrome ----------
+    document.getElementById('vAvatar').src = DB.vendorLogo(vendor);
+    document.getElementById('vName').textContent = vendor.name;
+    document.getElementById('vMenuEmail').textContent = 'Signed in as ' + vendor.name;
+    var _navSf = document.getElementById('navStorefront'); if (_navSf) _navSf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+    var _vps = document.getElementById('viewPublicStore'); if (_vps) _vps.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+
+    // Avatar menu toggle
+    const avatarBtn = document.getElementById('avatarBtn');
+    const vMenu = document.getElementById('vMenu');
+    avatarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      vMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!vMenu.contains(e.target) && !avatarBtn.contains(e.target)) vMenu.classList.remove('open');
+    });
+    document.getElementById('btnSignOut').addEventListener('click', () => {
+      ZE.user.signOut();
+      location = 'login_1.html';
+    });
+
+    // Greeting
+    document.getElementById('greetTitle').innerHTML =
+      escapeHtml(greetingWord()) + ', ' + escapeHtml(vendor.name) + ' <span class="wave">👋</span>';
+
+    // ---------- Data accessors ----------
+    function allOrdersForVendor() {
+      const demo = Array.isArray(DB.DEMO_ORDERS) ? DB.DEMO_ORDERS : [];
+      const user = Array.isArray(ZE.orders.read()) ? ZE.orders.read() : [];
+      const all = demo.concat(user);
+      return all.filter(o => o && o.vendorId === vendor.id);
+    }
+    function vendorProducts() {
+      return (DB.PRODUCTS || []).filter(p => p && p.vendorId === vendor.id);
+    }
+    function vendorReviewsAll() {
+      const pids = new Set(vendorProducts().map(p => p.id));
+      return (DB.REVIEWS || []).filter(r => r && pids.has(r.productId));
+    }
+
+    // ---------- KPIs ----------
+    function renderKpis() {
+      const orders = allOrdersForVendor();
+      const now = new Date();
+      const curMonth = now.getMonth();
+      const curYear = now.getFullYear();
+
+      // Revenue this month — delivered orders in current month
+      const revenue = orders
+        .filter(o => o.status === 'delivered')
+        .filter(o => {
+          const d = new Date(o.createdAt || 0);
+          return d.getMonth() === curMonth && d.getFullYear() === curYear;
+        })
+        .reduce((s, o) => s + DB.orderTotal(o), 0);
+      document.getElementById('kpiRevenue').textContent = DB.fmtINR(revenue);
+
+      // Pending — placed + confirmed + packed
+      const pendingStatuses = new Set(['placed','confirmed','packed']);
+      const pendingCount = orders.filter(o => pendingStatuses.has(o.status)).length;
+      document.getElementById('kpiPending').textContent = pendingCount;
+
+      // Just-placed count for delta
+      const placedToday = orders.filter(o => o.status === 'placed').length;
+      const deltaEl = document.getElementById('kpiPendingDelta');
+      deltaEl.innerHTML = '<i data-lucide="bell" class="w-3.5 h-3.5"></i>' +
+        (placedToday === 0 ? 'No new responses needed' :
+         placedToday + (placedToday === 1 ? ' needs response' : ' need response'));
+
+      // Products listed
+      const prods = vendorProducts();
+      document.getElementById('kpiProducts').textContent = prods.length;
+      const lowStockN = prods.filter(p => (p.stock || 0) <= 5).length;
+      document.getElementById('kpiProductsDelta').innerHTML =
+        '<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>' +
+        (prods.length === 0 ? 'No products yet' :
+         (lowStockN > 0 ? lowStockN + ' low / out of stock' : 'all in stock'));
+
+      // Average rating
+      let totalRating = 0, totalCount = 0;
+      prods.forEach(p => {
+        const r = DB.productRating(p.id);
+        if (r.count > 0) { totalRating += r.avg * r.count; totalCount += r.count; }
+      });
+      const avg = totalCount ? (totalRating / totalCount) : 0;
+      document.getElementById('kpiRating').textContent = avg ? avg.toFixed(1) : '—';
+      document.getElementById('kpiRatingSub').innerHTML =
+        '<i data-lucide="message-square" class="w-3.5 h-3.5"></i>' +
+        totalCount + (totalCount === 1 ? ' review' : ' reviews');
+
+      // Nav pending badge
+      const badge = document.getElementById('navPendingBadge');
+      const placedN = orders.filter(o => o.status === 'placed').length;
+      if (placedN > 0) { badge.textContent = placedN; badge.style.display = ''; }
+      else { badge.style.display = 'none'; }
+    }
+
+    // ---------- Awaiting response ----------
+    function renderAwaiting() {
+      const host = document.getElementById('awaitingList');
+      const orders = allOrdersForVendor()
+        .filter(o => o.status === 'placed')
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      document.getElementById('awaitingCount').textContent = orders.length;
+
+      if (orders.length === 0) {
+        host.innerHTML = '' +
+          '<div class="empty">' +
+            '<span class="ico"><i data-lucide="check-circle-2" class="w-5 h-5"></i></span>' +
+            '<div><strong>All caught up</strong> — no pending responses 🎉</div>' +
+          '</div>';
+        return;
+      }
+
+      host.innerHTML = orders.map(o => {
+        const buyer = DB.byId(DB.USERS, o.createdBy);
+        const buyerName = buyer ? buyer.name : 'Unknown buyer';
+        const items = DB.orderItemCount(o);
+        const total = DB.fmtINR(DB.orderTotal(o));
+        const rel = relTime(o.createdAt);
+        return '' +
+          '<div class="resp-row">' +
+            '<div class="resp-left">' +
+              '<div class="resp-id">' + escapeHtml(o.id) + '</div>' +
+              '<div class="resp-meta">' +
+                '<span><i data-lucide="user" class="w-3 h-3 inline-block align-middle"></i> ' + escapeHtml(buyerName) + '</span>' +
+                '<span class="dot">·</span>' +
+                '<span>' + items + (items === 1 ? ' item' : ' items') + '</span>' +
+                '<span class="dot">·</span>' +
+                '<span>' + escapeHtml(rel) + '</span>' +
+              '</div>' +
+              '<div class="resp-total">' + total + '</div>' +
+            '</div>' +
+            '<div>' +
+              '<a href="admin_order_detail_1.html?id=' + encodeURIComponent(o.id) + '" class="resp-btn">Respond <i data-lucide="arrow-right" class="w-4 h-4"></i></a>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // ---------- Active orders ----------
+    function renderActive() {
+      const host = document.getElementById('activeList');
+      const statuses = new Set(['confirmed','packed','shipped','out_for_delivery']);
+      const orders = allOrdersForVendor()
+        .filter(o => statuses.has(o.status))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 5);
+
+      if (orders.length === 0) {
+        host.innerHTML = '' +
+          '<div class="empty">' +
+            '<span class="ico"><i data-lucide="truck" class="w-5 h-5"></i></span>' +
+            '<div>No active shipments right now.</div>' +
+          '</div>';
+        return;
+      }
+
+      host.innerHTML = orders.map(o => {
+        const lastEvt = (o.tracking && Array.isArray(o.tracking.events) && o.tracking.events.length)
+          ? o.tracking.events[o.tracking.events.length - 1] : null;
+        const evtText = lastEvt ? (lastEvt.note + ' · ' + relTime(lastEvt.at)) : '';
+        const statusLabel = String(o.status).replace(/_/g, ' ');
+        return '' +
+          '<a class="active-row" href="admin_order_detail_1.html?id=' + encodeURIComponent(o.id) + '">' +
+            '<div>' +
+              '<div class="active-id">' + escapeHtml(o.id) + '</div>' +
+              '<div style="margin-top:4px"><span class="chip chip-' + o.status + '">' + escapeHtml(statusLabel) + '</span></div>' +
+            '</div>' +
+            '<div class="active-event">' + escapeHtml(evtText) + '</div>' +
+            '<div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;">' + DB.fmtINR(DB.orderTotal(o)) + '</div>' +
+          '</a>';
+      }).join('');
+    }
+
+    // ---------- Low stock ----------
+    function renderLowStock() {
+      const host = document.getElementById('lowStockList');
+      const prods = vendorProducts()
+        .filter(p => (p.stock || 0) <= 5)
+        .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+        .slice(0, 6);
+
+      if (prods.length === 0) {
+        host.innerHTML = '' +
+          '<div class="empty">' +
+            '<span class="ico"><i data-lucide="package-check" class="w-5 h-5"></i></span>' +
+            '<div>All products well stocked.</div>' +
+          '</div>';
+        return;
+      }
+
+      host.innerHTML = prods.map(p => {
+        const stock = p.stock || 0;
+        const sCls = stock === 0 ? 'zero' : 'low';
+        const sTxt = stock === 0 ? 'Out of stock' : (stock + ' left');
+        return '' +
+          '<div class="stock-row">' +
+            '<div class="stock-thumb img-frame"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></div>' +
+            '<div class="stock-mid">' +
+              '<div class="stock-name">' + escapeHtml(p.name) + '</div>' +
+              '<div class="stock-stock ' + sCls + '">' + sTxt + '</div>' +
+            '</div>' +
+            '<a class="stock-btn" href="admin_add_product_1.html?edit=' + encodeURIComponent(p.id) + '" data-restock="' + escapeHtml(p.id) + '">Restock</a>' +
+          '</div>';
+      }).join('');
+    }
+
+    // ---------- Recent reviews ----------
+    function renderReviews() {
+      const host = document.getElementById('reviewsList');
+      const reviews = vendorReviewsAll()
+        .slice()
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 3);
+
+      if (reviews.length === 0) {
+        host.innerHTML = '' +
+          '<div class="empty">' +
+            '<span class="ico"><i data-lucide="message-square" class="w-5 h-5"></i></span>' +
+            '<div>No reviews yet — keep shipping great products.</div>' +
+          '</div>';
+        return;
+      }
+
+      host.innerHTML = reviews.map(r => {
+        const product = DB.byId(DB.PRODUCTS, r.productId);
+        const pName = product ? product.name : 'Product';
+        const snippet = (r.text || '').length > 140 ? (r.text.slice(0, 140) + '…') : (r.text || '');
+        const replyTag = r.vendorReply
+          ? '<span class="rv-replied">Replied</span>'
+          : '<a class="rv-reply-link" href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '#reviews">Reply →</a>';
+        return '' +
+          '<div class="rv-row">' +
+            '<div class="rv-top">' + starsHtml(r.stars || 0) +
+              '<span class="rv-date">' + escapeHtml(relTime(r.createdAt)) + '</span>' +
+            '</div>' +
+            '<div class="rv-text">' + escapeHtml(snippet) + '</div>' +
+            '<div class="rv-foot">' +
+              '<span class="rv-prod">on <a href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '">' + escapeHtml(pName) + '</a></span>' +
+              replyTag +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // ---------- Top products ----------
+    function renderTopProducts() {
+      const host = document.getElementById('topProductsList');
+      const prods = vendorProducts()
+        .slice()
+        .sort((a, b) => {
+          const rA = DB.productRating(a.id).count;
+          const rB = DB.productRating(b.id).count;
+          if (rB !== rA) return rB - rA;
+          return (b.uses || 0) - (a.uses || 0);
+        })
+        .slice(0, 5);
+
+      if (prods.length === 0) {
+        host.innerHTML = '' +
+          '<div class="empty">' +
+            '<span class="ico"><i data-lucide="package" class="w-5 h-5"></i></span>' +
+            '<div>You haven\'t listed any products yet.<br/><a href="admin_add_product_1.html" style="color:var(--brand);font-weight:600">Add your first product →</a></div>' +
+          '</div>';
+        return;
+      }
+
+      host.innerHTML = prods.map(p => {
+        const r = DB.productRating(p.id);
+        const ratingTxt = r.count
+          ? (r.avg.toFixed(1) + ' ★ · ' + r.count + ' reviews')
+          : ((p.uses || 0) + ' uses');
+        return '' +
+          '<a class="top-row" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' +
+            '<div class="top-thumb img-frame"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></div>' +
+            '<div>' +
+              '<div class="top-name">' + escapeHtml(p.name) + '</div>' +
+              '<div class="top-sub"><i data-lucide="star" class="w-3 h-3" style="color:var(--warning);fill:currentColor"></i> ' + escapeHtml(ratingTxt) + '</div>' +
+            '</div>' +
+            '<i data-lucide="chevron-right" class="w-4 h-4" style="color:var(--text-subtle)"></i>' +
+          '</a>';
+      }).join('');
+    }
+
+    // ---------- Stub link toasts ----------
+    document.querySelectorAll('[data-stub]').forEach(a => {
+      a.addEventListener('click', (e) => { e.preventDefault(); toast('Coming soon'); });
+    });
+
+    // Restock link stub — if vendor_add_product page doesn't exist yet, show toast
+    document.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-restock]');
+      if (!el) return;
+      // Let navigation proceed normally, but also show a tiny hint so users see something
+      // even if the page isn't wired up yet.
+      setTimeout(() => toast('Opening restock for ' + el.dataset.restock + '…'), 10);
+    });
+
+    // ---------- Render all ----------
+    function renderAll() {
+      renderKpis();
+      renderAwaiting();
+      renderActive();
+      renderLowStock();
+      renderReviews();
+      renderTopProducts();
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+    }
+    renderAll();
+
+    // ---------- Live updates ----------
+    ZE.on('orders:change',  renderAll);
+    ZE.on('reviews:change', renderAll);
+
+    // ---------- Vendor mobile drawer ----------
+    (function initVendorDrawer(){
+      const btn = document.getElementById('vendorMenuBtn');
+      const dr  = document.getElementById('vDrawer');
+      const ov  = document.getElementById('vDrawerOverlay');
+      if (!btn || !dr || !ov) return;
+      const open  = () => { dr.classList.add('open'); ov.classList.add('open'); dr.setAttribute('aria-hidden','false'); };
+      const close = () => { dr.classList.remove('open'); ov.classList.remove('open'); dr.setAttribute('aria-hidden','true'); };
+      btn.addEventListener('click', open);
+      ov.addEventListener('click', close);
+      dr.querySelector('.vd-close').addEventListener('click', close);
+      const sf = document.getElementById('vDrawerStorefront');
+      if (sf && vendor && vendor.id) sf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
+      const so = document.getElementById('vDrawerSignOut');
+      if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
+    })();
+
+    // ---------- Init shared bits ----------
+    ZE.init();
+  })();
+</script>
+</body>
+</html>

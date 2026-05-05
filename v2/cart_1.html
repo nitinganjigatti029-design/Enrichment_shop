@@ -442,20 +442,21 @@
 
         <aside class="summary-col" id="summaryCol">
           <div class="card summary-card" id="summaryCard">
-            <div class="card-head">
-              <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
-              <h2>Order summary</h2>
+            <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="display:inline-flex;align-items:center;gap:8px;">
+                <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+                <h2 style="margin:0;">Order summary</h2>
+              </div>
+              <span id="sumItemPill" style="font-size:12px;font-weight:600;color:var(--text-muted);"><span id="sumItemCount">0</span> items</span>
             </div>
-            <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
-            <div class="sum-divider"></div>
-            <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+            <div class="sum-row total" style="margin-top:14px;"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
             <button class="btn btn-brand proceed-btn" id="proceedBtn">
               <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
             </button>
+            <span id="sumSubtotal" style="display:none;">₹0</span>
             <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
-            <div id="v2OrderSplitNote" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--brand-soft);color:var(--brand-hover);font-size:12.5px;line-height:1.45;">
-              <strong>Heads up:</strong> this cart will become <strong><span id="v2OrderSplitCount">0</span> separate orders</strong> at checkout — one per product configuration.
-            </div>
+            <div id="v2OrderSplitNote" style="display:none;"></div>
+            <span id="v2OrderSplitCount" style="display:none;"></span>
             <a class="continue-shop" href="../index_1.html">
               <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
             </a>
@@ -1126,18 +1127,20 @@
           </div>
           <aside class="summary-col" id="summaryCol">
             <div class="card summary-card" id="summaryCard">
-              <div class="card-head">
-                <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
-                <h2>Order summary</h2>
+              <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="display:inline-flex;align-items:center;gap:8px;">
+                  <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+                  <h2 style="margin:0;">Order summary</h2>
+                </div>
+                <span style="font-size:12px;font-weight:600;color:var(--text-muted);"><span id="sumItemCount">0</span> items</span>
               </div>
-              <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
-              <div class="sum-divider"></div>
-              <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+              <div class="sum-row total" style="margin-top:14px;"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
               <button class="btn btn-brand proceed-btn" id="proceedBtn">
                 <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
               </button>
+              <span id="sumSubtotal" style="display:none;">₹0</span>
               <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
-              <a class="continue-shop" href="index_1.html">
+              <a class="continue-shop" href="../index_1.html">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
               </a>
             </div>

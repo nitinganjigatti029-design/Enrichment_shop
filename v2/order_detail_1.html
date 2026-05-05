@@ -162,7 +162,12 @@
       padding: 24px;
       box-shadow: var(--shadow-xs);
     }
-    .d-card + .d-card { margin-top: 20px; }
+    .d-card + .d-card,
+    .d-card ~ .d-card,
+    .d-card + style + .d-card { margin-top: 20px; }
+    /* Ensure stacked cards always have spacing even when a <style> block sits between them. */
+    .detail-grid > div > .d-card + .d-card,
+    .detail-grid > div > style + .d-card { margin-top: 20px; }
     .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .card-head h3 { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .card-head h3 i { color: var(--brand); }
@@ -987,6 +992,77 @@
 
   /* ---------- Render: Tracking timeline ---------- */
   function renderTimeline(order) {
+    /* V2: simple horizontal stepper — no per-line state, no partial logic. */
+    if (order.id && order.id.indexOf('V2-') === 0) {
+      const STEPS = [
+        { code: 'placed',    label: 'Placed' },
+        { code: 'confirmed', label: 'Confirmed' },
+        { code: 'packed',    label: 'Packed' },
+        { code: 'shipped',   label: 'Shipped' },
+        { code: 'delivered', label: 'Delivered' }
+      ];
+      const eventsV2 = Array.isArray(order.tracking && order.tracking.events) ? order.tracking.events : [];
+      const eventByCode = {};
+      eventsV2.forEach(e => { if (e && e.status && !eventByCode[e.status]) eventByCode[e.status] = e; });
+      // Map current status to stage index. cancelled, pending_approval = special.
+      let curIdx = STEPS.findIndex(s => s.code === order.status);
+      if (curIdx < 0) curIdx = (order.status === 'out_for_delivery') ? 3 : 0;
+      const isCancelled = order.status === 'cancelled';
+      const isPending   = order.status === 'pending_approval';
+      const fmt = (iso) => {
+        if (!iso) return '';
+        try {
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return '';
+          return d.toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true });
+        } catch (_) { return ''; }
+      };
+      const stepsHtml = STEPS.map((s, i) => {
+        const stateCls = isCancelled ? 'cancelled' : (i < curIdx ? 'done' : (i === curIdx ? 'current' : 'future'));
+        const ev = eventByCode[s.code];
+        const ts = ev ? fmt(ev.at) : '';
+        return `<div class="hs-step ${stateCls}">
+          <div class="hs-dot"><i data-lucide="${stateCls === 'done' ? 'check' : (stateCls === 'cancelled' ? 'x' : 'circle')}"></i></div>
+          <div class="hs-label">${s.label}</div>
+          <div class="hs-ts">${ts}</div>
+        </div>`;
+      }).join('<div class="hs-bar"></div>');
+      const banner = isCancelled
+        ? `<div class="hs-banner cancelled"><i data-lucide="x-circle"></i> Order cancelled${order.rejectReason ? ' · ' + escapeHtml(order.rejectReason) : ''}</div>`
+        : (isPending ? `<div class="hs-banner pending"><i data-lucide="hourglass"></i> Awaiting approval</div>` : '');
+      return `
+        <div class="d-card">
+          <div class="card-head"><h3><i data-lucide="route" class="w-4 h-4"></i> Tracking</h3></div>
+          ${banner}
+          <div class="hs-track">${stepsHtml}</div>
+        </div>
+        <style>
+          .hs-track { display: flex; align-items: flex-start; padding: 18px 16px 12px; gap: 0; }
+          .hs-step { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 4px; text-align: center; min-width: 88px; }
+          .hs-dot { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #F9FAFB; border: 2px solid var(--border); color: var(--text-subtle); flex-shrink: 0; }
+          .hs-dot i, .hs-dot svg { width: 14px !important; height: 14px !important; stroke-width: 2.5; }
+          .hs-step.done .hs-dot     { background: var(--brand); border-color: var(--brand); color: #fff; }
+          .hs-step.current .hs-dot  { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-hover); box-shadow: 0 0 0 4px rgba(55,189,105,0.12); }
+          .hs-step.cancelled .hs-dot{ background: #FFE5EA; border-color: var(--danger); color: var(--danger); }
+          .hs-label { font-size: 12px; font-weight: 700; color: var(--text); }
+          .hs-step.future .hs-label { color: var(--text-subtle); font-weight: 500; }
+          .hs-step.cancelled .hs-label { color: var(--danger); }
+          .hs-ts { font-size: 10.5px; color: var(--text-muted); line-height: 1.3; min-height: 14px; }
+          .hs-bar { flex: 1 1 auto; min-width: 12px; height: 2px; background: var(--border); margin-top: 13px; align-self: flex-start; }
+          .hs-step.done + .hs-bar { background: var(--brand); }
+          .hs-banner { display: inline-flex; align-items: center; gap: 8px; margin: 12px 16px 0; padding: 8px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; }
+          .hs-banner.cancelled { background: #FFE5EA; color: var(--danger); }
+          .hs-banner.pending   { background: #FFF9DB; color: #6D4B00; }
+          .hs-banner i, .hs-banner svg { width: 14px !important; height: 14px !important; }
+          @media (max-width: 640px) {
+            .hs-track { flex-direction: column; gap: 4px; padding: 12px; align-items: stretch; }
+            .hs-bar { display: none; }
+            .hs-step { flex-direction: row; justify-content: flex-start; gap: 10px; text-align: left; padding: 4px 0; min-width: 0; }
+            .hs-ts { min-height: 0; }
+          }
+        </style>`;
+    }
+
     const events = Array.isArray(order.tracking && order.tracking.events) ? order.tracking.events : [];
     const isCancelled = order.status === 'cancelled';
     const needsApproval = order.requiresApproval === true;
@@ -1295,6 +1371,25 @@
     const recipientPhone = (placedBy && placedBy.phone) || a.phone || '';
     const recipientEmail = (placedBy && placedBy.email) || '';
 
+    /* V2: site name + placed-by user only — no street/city/state lines, no edit. */
+    const isV2 = order.id && order.id.indexOf('V2-') === 0;
+    if (isV2) {
+      return `
+        <div class="d-card">
+          <div class="card-head">
+            <h3><i data-lucide="map-pin" class="w-4 h-4"></i> Shipping to</h3>
+          </div>
+          <div style="text-align:left;">
+            <div class="addr-name" style="text-align:left;">${escapeHtml(siteName)}</div>
+            ${recipientName ? `<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;font-size:13px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;color:var(--text);font-weight:500;"><i data-lucide="user" class="w-3.5 h-3.5"></i> ${escapeHtml(recipientName)}</span>
+              ${recipientPhone ? `<span style="display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);"><i data-lucide="phone" class="w-3.5 h-3.5"></i> ${escapeHtml(recipientPhone)}</span>` : ''}
+              ${recipientEmail ? `<span style="display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);"><i data-lucide="mail" class="w-3.5 h-3.5"></i> ${escapeHtml(recipientEmail)}</span>` : ''}
+            </div>` : ''}
+          </div>
+        </div>`;
+    }
+
     return `
       <div class="d-card">
         <div class="card-head">
@@ -1518,9 +1613,11 @@
 
   /* ---------- Render: Summary ---------- */
   function renderSummary(order) {
+    const isV2 = order.id && order.id.indexOf('V2-') === 0;
     const subtotal = order.subtotal || 0;
-    const fee = order.shippingFee || 0;
-    const total = (typeof order.total === 'number') ? order.total : (subtotal + fee);
+    /* V2: no shipping anywhere, total = subtotal regardless of seed shippingFee. */
+    const fee = isV2 ? 0 : (order.shippingFee || 0);
+    const total = isV2 ? subtotal : ((typeof order.total === 'number') ? order.total : (subtotal + fee));
     // Transparency-only line: sum of cancelled item prices. Does NOT change subtotal/total math.
     const lfMap = (window.ZE && ZE.orders && ZE.orders.lineFulfilment)
       ? ZE.orders.lineFulfilment.forOrder(order.id)
@@ -1561,17 +1658,15 @@
           <h3><i data-lucide="receipt" class="w-4 h-4"></i> Order summary</h3>
         </div>
         <div>
-          <div class="sum-row"><span class="lbl">Subtotal</span><span class="val">${DB.fmtINR(subtotal)}</span></div>
+          ${isV2 ? '' : `<div class="sum-row"><span class="lbl">Subtotal</span><span class="val">${DB.fmtINR(subtotal)}</span></div>
           ${cancelledRow}
           <div class="sum-row">
             <span class="lbl">Shipping${order.shippingMethod ? ' · ' + escapeHtml(order.shippingMethod) : ''}</span>
             <span class="val">${DB.fmtINR(fee)}</span>
           </div>
-          <div class="sum-divider"></div>
+          <div class="sum-divider"></div>`}
           <div class="sum-row sum-total"><span>Total</span><span>${DB.fmtINR(total)}</span></div>
-          ${lockedRow}
-          ${tobepaidRow}
-          <div class="sum-muted">Funds locked from site wallet · settled on delivery</div>
+          ${isV2 ? '' : `${lockedRow}${tobepaidRow}<div class="sum-muted">Funds locked from site wallet · settled on delivery</div>`}
         </div>
       </div>`;
   }
@@ -1644,23 +1739,39 @@
 
       ${renderAcceptanceBanner(order)}
 
-      <div class="detail-grid">
-        <!-- LEFT -->
-        <div>
-          ${renderVendorCommitment(order)}
-          ${renderTimeline(order)}
-          ${renderShipment(order)}
-        </div>
-        <!-- RIGHT -->
-        <div>
-          ${renderApproval(order)}
-          ${renderAddress(order)}
-          ${renderSoldBy(order)}
-          ${renderItems(order)}
-          ${renderSummary(order)}
-          ${renderActions(order)}
-        </div>
-      </div>
+      ${(order.id && order.id.indexOf('V2-') === 0)
+        ? `<div class="detail-grid">
+            <!-- LEFT -->
+            <div>
+              ${renderTimeline(order)}
+              ${renderItems(order)}
+              ${renderShipment(order)}
+            </div>
+            <!-- RIGHT -->
+            <div>
+              ${renderApproval(order)}
+              ${renderAddress(order)}
+              ${renderSummary(order)}
+              ${renderActions(order)}
+            </div>
+          </div>`
+        : `<div class="detail-grid">
+            <!-- LEFT -->
+            <div>
+              ${renderVendorCommitment(order)}
+              ${renderTimeline(order)}
+              ${renderShipment(order)}
+            </div>
+            <!-- RIGHT -->
+            <div>
+              ${renderApproval(order)}
+              ${renderAddress(order)}
+              ${renderSoldBy(order)}
+              ${renderItems(order)}
+              ${renderSummary(order)}
+              ${renderActions(order)}
+            </div>
+          </div>`}
 
       ${renderDemoControls(order)}
     `;

@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Admin Analytics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <style>
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
+
+    /* =========== Vendor header (UNIFIED) =========== */
+    .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .v-nav::-webkit-scrollbar { display: none; }
+    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
+    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
+    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .v-avatar-wrap { position: relative; }
+    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
+    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
+    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
+    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; }
+    .v-menu.open { display: block; }
+    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
+    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
+    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+    @media (max-width: 900px) {
+      .v-nav { display: none !important; }
+      .v-avatar-btn .v-name { display: none; }
+      .app-header .row { gap: 12px !important; }
+    }
+    @media (max-width: 400px) { .brand-mark > span:not(.logo-box) { display: none; } }
+
+    /* Admin mobile drawer */
+    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
+    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
+    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
+    .vendor-drawer.open { transform: translateX(0); }
+    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+    .vd-head .brand-mark { font-size: 17px; }
+    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .vd-close:hover { background: #F1F2F4; color: var(--text); }
+    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
+    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .vd-nav a i { color: var(--text-muted); }
+    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
+    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
+    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
+    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+
+    /* Page head */
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px 0 22px; flex-wrap: wrap; }
+    .page-head h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .page-head .sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Time range */
+    .time-range { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 2px; }
+    .time-range button { padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; background: transparent; color: var(--text-muted); border: none; cursor: pointer; }
+    .time-range button.active { background: var(--card); color: var(--text); box-shadow: var(--shadow-xs); }
+    .compare-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--text-muted); background: var(--card); cursor: pointer; }
+    .compare-toggle:hover { border-color: var(--brand); color: var(--brand); }
+    .export-btn { padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .export-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+    .head-ctrls { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+
+    /* KPI row */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-xs); }
+    .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .kpi-lab { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .kpi-ico { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+    .kpi-ico.rev { background: var(--brand-soft); color: var(--brand-hover); }
+    .kpi-ico.ord { background: #FEF3C7; color: #A16207; }
+    .kpi-ico.aov { background: #E0F2FE; color: #0369A1; }
+    .kpi-ico.zoo { background: #FFE5EA; color: #B00020; }
+    .kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: var(--text); margin-bottom: 4px; }
+    .kpi-delta { font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .kpi-delta.pos { color: #0e8c3a; }
+    .kpi-delta.neg { color: var(--danger); }
+    .kpi-delta.neu { color: var(--text-muted); }
+    .kpi-spark { width: 100%; height: 28px; margin-top: 10px; }
+
+    /* Main charts grid */
+    .main-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1fr); gap: 18px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow-xs); }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 12px; }
+    .card-head h3 { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .card-head h3 .meta { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
+    .card-head .legend { display: inline-flex; gap: 12px; font-size: 12px; color: var(--text-muted); }
+    .legend-dot { display: inline-flex; align-items: center; gap: 4px; }
+    .legend-dot span.dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* Revenue line chart */
+    .line-chart-wrap { position: relative; width: 100%; height: 280px; }
+    .yaxis { position: absolute; left: 0; top: 0; bottom: 24px; width: 48px; display: flex; flex-direction: column; justify-content: space-between; font-size: 10px; color: var(--text-subtle); text-align: right; padding-right: 6px; }
+    .line-chart-svg { position: absolute; left: 48px; right: 0; top: 0; bottom: 24px; }
+    .xaxis { position: absolute; left: 48px; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 10px; color: var(--text-subtle); }
+
+    /* Funnel */
+    .funnel-list { display: flex; flex-direction: column; gap: 10px; }
+    .funnel-step { display: flex; align-items: center; gap: 12px; }
+    .funnel-bar-wrap { flex: 1; height: 36px; background: #F1F2F4; border-radius: 10px; overflow: hidden; position: relative; }
+    .funnel-bar { height: 100%; background: linear-gradient(90deg, var(--brand) 0%, var(--brand-container) 100%); border-radius: 10px; display: flex; align-items: center; padding: 0 12px; color: #fff; font-size: 13px; font-weight: 700; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+    .funnel-lab { width: 180px; font-size: 13px; color: var(--text); font-weight: 600; flex-shrink: 0; }
+    .funnel-lab i { color: var(--text-subtle); margin-right: 6px; }
+    .funnel-pct { width: 62px; font-size: 12px; color: var(--text-muted); font-weight: 700; text-align: right; flex-shrink: 0; }
+
+    /* Top products */
+    .tp-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F1F2F4; }
+    .tp-row:last-child { border-bottom: none; }
+    .tp-rank { width: 22px; height: 22px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tp-row:nth-child(1) .tp-rank { background: #FFE86E; color: #6D4B00; }
+    .tp-row:nth-child(2) .tp-rank { background: #DEF7E6; color: #006D35; }
+    .tp-row:nth-child(3) .tp-rank { background: #FFE5EA; color: #B00020; }
+    .tp-thumb { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: var(--card-subtle); flex-shrink: 0; }
+    .tp-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .tp-mid { flex: 1; min-width: 0; }
+    .tp-name { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tp-bar { height: 4px; background: #F1F2F4; border-radius: 999px; margin-top: 4px; overflow: hidden; }
+    .tp-bar-fill { height: 100%; background: var(--brand); border-radius: 999px; }
+    .tp-val { font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; white-space: nowrap; }
+
+    /* Zoo buyer table */
+    .buyer-table { width: 100%; border-collapse: collapse; }
+    .buyer-table th { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .buyer-table td { padding: 12px; border-bottom: 1px solid #F1F2F4; font-size: 13px; color: var(--text); vertical-align: middle; }
+    .buyer-table tr:last-child td { border-bottom: none; }
+    .buyer-table tr:hover td { background: #F9FAFB; cursor: pointer; }
+    .zoo-cell { display: flex; align-items: center; gap: 10px; }
+    .zoo-cell img { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; }
+    .zoo-cell .zc-name { font-weight: 700; }
+    .zoo-cell .zc-loc { font-size: 11px; color: var(--text-muted); }
+    .num-right { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .repeat-chip { background: var(--brand-soft); color: var(--brand-hover); padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+    .new-chip { background: #FFE86E; color: #6D4B00; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+
+    /* Donut */
+    .donut-wrap { display: flex; align-items: center; gap: 24px; justify-content: space-between; flex-wrap: wrap; }
+    .donut-svg { width: 180px; height: 180px; flex-shrink: 0; }
+    .donut-center { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut-center .big { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .donut-center .sub { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: .06em; }
+    .donut-holder { position: relative; width: 180px; height: 180px; display: inline-flex; align-items: center; justify-content: center; }
+
+    .donut-legend { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 8px; }
+    .dl-row { display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center; font-size: 13px; }
+    .dl-dot { width: 14px; height: 14px; border-radius: 4px; }
+    .dl-pct { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .dl-amt { font-weight: 700; color: var(--text); }
+
+    /* Quality/fulfillment stacked bar */
+    .fq-bar { display: flex; height: 28px; border-radius: 10px; overflow: hidden; background: #F1F2F4; margin-bottom: 12px; }
+    .fq-bar .seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+    .fq-bar .seg.ontime { background: var(--brand); }
+    .fq-bar .seg.delay  { background: #E4B819; color: #fff; }
+    .fq-bar .seg.retn   { background: var(--danger); }
+    .fq-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+    .fq-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+    .fq-legend .lg .dt { width: 10px; height: 10px; border-radius: 3px; }
+    .rating-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--card-subtle); border-radius: 12px; margin-top: 14px; }
+    .rating-row .big { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .rating-row .stars { display: inline-flex; gap: 2px; color: var(--warning); }
+
+    @media (max-width: 768px) {
+      .funnel-lab { width: 110px; font-size: 11px; }
+      .funnel-pct { width: 50px; font-size: 11px; }
+    }
+  </style>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="page-wrap row">
+    <a href="admin_dashboard_1.html" class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </a>
+
+    <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
+      <i data-lucide="menu" class="w-5 h-5"></i>
+    </button>
+
+    <nav class="v-nav" id="vNav">
+      <a href="admin_dashboard_1.html" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+      <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span><span class="nav-badge">14</span></a>
+      <a href="admin_products_1.html" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+      <a href="admin_analytics_1.html" class="active" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+      <a href="admin_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
+      <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+      <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
+    </nav>
+
+    <div class="v-right">
+      <div class="v-avatar-wrap">
+        <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
+          <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
+          <span class="v-name" id="vName">TeakCraft</span>
+          <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
+        </button>
+        <div class="v-menu" id="vMenu" role="menu">
+          <div class="muted" id="vMenuEmail">Signed in</div>
+          <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
+          <a href="admin_profile_1.html"><i data-lucide="briefcase" class="w-4 h-4"></i>Business profile</a>
+          <button id="btnSignOut"><i data-lucide="log-out" class="w-4 h-4"></i>Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Vendor mobile drawer -->
+<div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
+<aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
+  <div class="vd-head">
+    <span class="brand-mark">
+      <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+      <span>ZooEnrich</span>
+    </span>
+    <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+  <nav class="vd-nav">
+    <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+    <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders <span class="nav-badge">14</span></a>
+    <a href="admin_products_1.html"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
+    <a href="admin_analytics_1.html" class="active"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
+    <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
+    <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
+    <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
+  </nav>
+  <div class="vd-foot">
+    <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+  </div>
+</aside>
+
+<main class="page-wrap">
+
+  <!-- Page head -->
+  <div class="page-head">
+    <div>
+      <h1>Analytics</h1>
+      <div class="sub">How your storefront is performing with zoo buyers</div>
+    </div>
+    <div class="head-ctrls">
+      <div class="time-range" id="timeRange">
+        <button>Today</button>
+        <button>7d</button>
+        <button class="active">30d</button>
+        <button>90d</button>
+        <button>12m</button>
+      </div>
+      <button class="compare-toggle"><i data-lucide="git-compare" class="w-4 h-4"></i> Compare vs. prior 30d</button>
+      <button class="export-btn"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-lab">Revenue</span>
+        <span class="kpi-ico rev"><i data-lucide="indian-rupee" class="w-5 h-5"></i></span>
+      </div>
+      <div class="kpi-val">₹8,42,300</div>
+      <div class="kpi-delta pos"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i>+18% vs prior 30d</div>
+      <svg class="kpi-spark" viewBox="0 0 200 30" preserveAspectRatio="none">
+        <path d="M0 22 L14 20 L28 18 L42 21 L56 17 L70 15 L84 18 L98 14 L112 16 L126 12 L140 11 L154 13 L168 9 L182 7 L196 5" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M0 22 L14 20 L28 18 L42 21 L56 17 L70 15 L84 18 L98 14 L112 16 L126 12 L140 11 L154 13 L168 9 L182 7 L196 5 L196 30 L0 30 Z" fill="var(--brand-soft)"/>
+      </svg>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-lab">Orders</span>
+        <span class="kpi-ico ord"><i data-lucide="package" class="w-5 h-5"></i></span>
+      </div>
+      <div class="kpi-val">47</div>
+      <div class="kpi-delta pos"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i>+9 vs prior 30d</div>
+      <svg class="kpi-spark" viewBox="0 0 200 30" preserveAspectRatio="none">
+        <path d="M0 18 L14 20 L28 15 L42 17 L56 13 L70 15 L84 10 L98 14 L112 8 L126 10 L140 7 L154 9 L168 6 L182 8 L196 4" fill="none" stroke="#A16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-lab">Avg order value</span>
+        <span class="kpi-ico aov"><i data-lucide="trending-up" class="w-5 h-5"></i></span>
+      </div>
+      <div class="kpi-val">₹17,920</div>
+      <div class="kpi-delta neu"><i data-lucide="minus" class="w-3.5 h-3.5"></i>Flat vs prior 30d</div>
+      <svg class="kpi-spark" viewBox="0 0 200 30" preserveAspectRatio="none">
+        <path d="M0 15 L14 13 L28 17 L42 14 L56 16 L70 12 L84 15 L98 13 L112 16 L126 14 L140 13 L154 15 L168 12 L182 14 L196 13" fill="none" stroke="#0369A1" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-lab">Active zoo accounts</span>
+        <span class="kpi-ico zoo"><i data-lucide="users" class="w-5 h-5"></i></span>
+      </div>
+      <div class="kpi-val">14 <span style="font-size:13px;color:var(--text-muted);font-weight:600">/ 47 total</span></div>
+      <div class="kpi-delta pos"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i>+2 new zoos</div>
+      <svg class="kpi-spark" viewBox="0 0 200 30" preserveAspectRatio="none">
+        <path d="M0 22 L14 22 L28 20 L42 20 L56 18 L70 16 L84 16 L98 14 L112 12 L126 11 L140 11 L154 9 L168 8 L182 8 L196 6" fill="none" stroke="#B00020" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Revenue + Funnel row -->
+  <section class="main-grid">
+    <div class="card">
+      <div class="card-head">
+        <h3>
+          <i data-lucide="line-chart" class="w-4 h-4" style="color:var(--brand)"></i>
+          Revenue trend
+          <span class="meta">Last 30 days</span>
+        </h3>
+        <div class="legend">
+          <span class="legend-dot"><span class="dot" style="background:var(--brand)"></span>This period</span>
+          <span class="legend-dot"><span class="dot" style="background:#CBD5E1"></span>Prior period</span>
+        </div>
+      </div>
+      <div class="line-chart-wrap">
+        <div class="yaxis">
+          <div>₹80k</div><div>₹60k</div><div>₹40k</div><div>₹20k</div><div>₹0</div>
+        </div>
+        <svg class="line-chart-svg" viewBox="0 0 500 240" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" y1="60"  x2="500" y2="60"  stroke="#F1F2F4" stroke-width="1"/>
+          <line x1="0" y1="120" x2="500" y2="120" stroke="#F1F2F4" stroke-width="1"/>
+          <line x1="0" y1="180" x2="500" y2="180" stroke="#F1F2F4" stroke-width="1"/>
+          <line x1="0" y1="240" x2="500" y2="240" stroke="#E5E7EB" stroke-width="1"/>
+
+          <!-- Prior period (dashed grey) -->
+          <path d="M0 180 L50 170 L100 175 L150 160 L200 165 L250 155 L300 150 L350 140 L400 145 L450 135 L500 130"
+                fill="none" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="4,4"/>
+
+          <!-- Current period area -->
+          <path d="M0 170 L50 155 L100 160 L150 140 L200 130 L250 115 L300 105 L350 90 L400 70 L450 60 L500 50 L500 240 L0 240 Z"
+                fill="url(#gradArea)"/>
+
+          <!-- Current period line -->
+          <path d="M0 170 L50 155 L100 160 L150 140 L200 130 L250 115 L300 105 L350 90 L400 70 L450 60 L500 50"
+                fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Data points -->
+          <g fill="var(--brand)">
+            <circle cx="0"   cy="170" r="3"/><circle cx="50"  cy="155" r="3"/>
+            <circle cx="100" cy="160" r="3"/><circle cx="150" cy="140" r="3"/>
+            <circle cx="200" cy="130" r="3"/><circle cx="250" cy="115" r="3"/>
+            <circle cx="300" cy="105" r="3"/><circle cx="350" cy="90"  r="3"/>
+            <circle cx="400" cy="70"  r="3"/><circle cx="450" cy="60"  r="4" stroke="#fff" stroke-width="2"/>
+            <circle cx="500" cy="50"  r="3"/>
+          </g>
+
+          <defs>
+            <linearGradient id="gradArea" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%"   stop-color="var(--brand)" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="var(--brand)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="xaxis">
+          <span>Mar 26</span><span>Apr 1</span><span>Apr 7</span><span>Apr 13</span><span>Apr 19</span><span>Apr 24</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3><i data-lucide="filter" class="w-4 h-4" style="color:var(--brand)"></i> Order funnel</h3>
+        <span style="font-size:11px;color:var(--text-muted)">Conversion ↓</span>
+      </div>
+      <div class="funnel-list">
+        <div class="funnel-step">
+          <div class="funnel-lab"><i data-lucide="eye" class="w-3.5 h-3.5 inline-block"></i>Listing views</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%">3,284</div></div>
+          <div class="funnel-pct">100%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-lab"><i data-lucide="message-square" class="w-3.5 h-3.5 inline-block"></i>Chat started</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:24%">798</div></div>
+          <div class="funnel-pct">24%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-lab"><i data-lucide="sparkles" class="w-3.5 h-3.5 inline-block"></i>Quotes sent</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:14%">461</div></div>
+          <div class="funnel-pct">14%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-lab"><i data-lucide="check-circle" class="w-3.5 h-3.5 inline-block"></i>Orders won</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:6%">181</div></div>
+          <div class="funnel-pct">6%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-lab"><i data-lucide="truck" class="w-3.5 h-3.5 inline-block"></i>Fulfilled</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:5%; background: linear-gradient(90deg, var(--brand-hover), var(--brand));">142</div></div>
+          <div class="funnel-pct">4.3%</div>
+        </div>
+      </div>
+      <div style="margin-top: 16px; padding: 12px 14px; background: var(--brand-soft); border-radius: 12px; font-size: 12px; color: var(--brand-hover); line-height:1.45;">
+        <strong>Biggest drop-off:</strong> Chat → Quote (24% → 14%). Buyers ask for specs but vendors take &gt;18h to reply. Target: reply within 4h.
+      </div>
+    </div>
+  </section>
+
+  <!-- Top products + Species donut row -->
+  <section class="main-grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-head">
+        <h3><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--brand)"></i> Top products by revenue</h3>
+        <a style="font-size:12px;color:var(--brand);font-weight:700;cursor:pointer;">All products →</a>
+      </div>
+      <div>
+        <div class="tp-row">
+          <div class="tp-rank">1</div>
+          <div class="tp-thumb img-frame"><img src="https://image.pollinations.ai/prompt/custom%20teak%20climbing%20structure%20primate%20zoo?width=140&height=140&seed=103&nologo=true" alt=""/></div>
+          <div class="tp-mid">
+            <div class="tp-name">Custom Teak Climbing Structure</div>
+            <div class="tp-bar"><div class="tp-bar-fill" style="width:100%"></div></div>
+          </div>
+          <div class="tp-val">₹2,84,000</div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-rank">2</div>
+          <div class="tp-thumb img-frame"><img src="https://image.pollinations.ai/prompt/reinforced%20lion%20scratch%20tower%20zoo?width=140&height=140&seed=110&nologo=true" alt=""/></div>
+          <div class="tp-mid">
+            <div class="tp-name">Reinforced Lion Scratch Tower</div>
+            <div class="tp-bar"><div class="tp-bar-fill" style="width:82%"></div></div>
+          </div>
+          <div class="tp-val">₹2,34,000</div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-rank">3</div>
+          <div class="tp-thumb img-frame"><img src="https://image.pollinations.ai/prompt/mud%20wallow%20liner%20rhino%20zoo%20heavy?width=140&height=140&seed=109&nologo=true" alt=""/></div>
+          <div class="tp-mid">
+            <div class="tp-name">Mud-Wallow Liner Heavy-Gauge</div>
+            <div class="tp-bar"><div class="tp-bar-fill" style="width:48%"></div></div>
+          </div>
+          <div class="tp-val">₹1,35,600</div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-rank">4</div>
+          <div class="tp-thumb img-frame"><img src="https://image.pollinations.ai/prompt/swing%20log%20enrichment%20tiger%20zoo?width=140&height=140&seed=112&nologo=true" alt=""/></div>
+          <div class="tp-mid">
+            <div class="tp-name">Swing-Log Enrichment</div>
+            <div class="tp-bar"><div class="tp-bar-fill" style="width:33%"></div></div>
+          </div>
+          <div class="tp-val">₹93,600</div>
+        </div>
+        <div class="tp-row">
+          <div class="tp-rank">5</div>
+          <div class="tp-thumb img-frame"><img src="https://image.pollinations.ai/prompt/stainless%20scent%20diffuser%20zoo?width=140&height=140&seed=111&nologo=true" alt=""/></div>
+          <div class="tp-mid">
+            <div class="tp-name">Stainless Scent Diffuser</div>
+            <div class="tp-bar"><div class="tp-bar-fill" style="width:21%"></div></div>
+          </div>
+          <div class="tp-val">₹58,800</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3><i data-lucide="pie-chart" class="w-4 h-4" style="color:var(--brand)"></i> Revenue by species</h3>
+        <span style="font-size:11px;color:var(--text-muted)">Last 30 days</span>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut-holder">
+          <svg class="donut-svg" viewBox="0 0 42 42">
+            <!-- Donut segments: circumference = 100 (2πr when r=15.9155) -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#F1F2F4" stroke-width="4.5"/>
+            <!-- Macaque: 34% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#37BD69" stroke-width="4.5" stroke-dasharray="34 66" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+            <!-- Tiger: 24% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#E4B819" stroke-width="4.5" stroke-dasharray="24 76" stroke-dashoffset="-9" transform="rotate(-90 21 21)"/>
+            <!-- Lion: 18% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#0891B2" stroke-width="4.5" stroke-dasharray="18 82" stroke-dashoffset="-33" transform="rotate(-90 21 21)"/>
+            <!-- Otter: 12% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#A16207" stroke-width="4.5" stroke-dasharray="12 88" stroke-dashoffset="-51" transform="rotate(-90 21 21)"/>
+            <!-- Rhino: 8% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#B00020" stroke-width="4.5" stroke-dasharray="8 92" stroke-dashoffset="-63" transform="rotate(-90 21 21)"/>
+            <!-- Hornbill: 4% -->
+            <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="#6B7280" stroke-width="4.5" stroke-dasharray="4 96" stroke-dashoffset="-71" transform="rotate(-90 21 21)"/>
+          </svg>
+          <div class="donut-center">
+            <span class="big">₹8.4L</span>
+            <span class="sub">Total</span>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><span class="dl-dot" style="background:#37BD69"></span><span>Macaque</span><span class="dl-pct">34%</span><span class="dl-amt">₹2,86k</span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#E4B819"></span><span>Tiger</span><span class="dl-pct">24%</span><span class="dl-amt">₹2,02k</span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#0891B2"></span><span>Lion</span><span class="dl-pct">18%</span><span class="dl-amt">₹1,51k</span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#A16207"></span><span>Otter</span><span class="dl-pct">12%</span><span class="dl-amt">₹1,01k</span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#B00020"></span><span>Rhino</span><span class="dl-pct">8%</span><span class="dl-amt">₹67k</span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#6B7280"></span><span>Hornbill</span><span class="dl-pct">4%</span><span class="dl-amt">₹34k</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zoo buyers + Quality row -->
+  <section class="main-grid" style="grid-template-columns: 1.4fr 1fr;">
+    <div class="card">
+      <div class="card-head">
+        <h3><i data-lucide="users" class="w-4 h-4" style="color:var(--brand)"></i> Zoo buyers <span class="meta">14 active · 47 total</span></h3>
+        <a style="font-size:12px;color:var(--brand);font-weight:700;cursor:pointer;">Full list →</a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="buyer-table">
+          <thead>
+            <tr>
+              <th>Zoo</th>
+              <th class="num-right">Orders</th>
+              <th class="num-right">GMV</th>
+              <th>Last order</th>
+              <th>Tag</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/minimal%20zoo%20park%20logo%20paw?width=60&height=60&seed=502&nologo=true" alt=""/><div><div class="zc-name">Bannerghatta Biological Park</div><div class="zc-loc">Bengaluru · 560083</div></div></div></td>
+              <td class="num-right">12</td>
+              <td class="num-right">₹2,84,000</td>
+              <td>Today</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 12</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/minimal%20zoo%20logo%20leaf%20green?width=60&height=60&seed=501&nologo=true" alt=""/><div><div class="zc-name">Mysuru Zoo</div><div class="zc-loc">Mysuru · 570002</div></div></div></td>
+              <td class="num-right">8</td>
+              <td class="num-right">₹1,92,500</td>
+              <td>3d ago</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 8</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/minimal%20safari%20logo%20lion?width=60&height=60&seed=503&nologo=true" alt=""/><div><div class="zc-name">Gir Reserve</div><div class="zc-loc">Junagadh · 362150</div></div></div></td>
+              <td class="num-right">6</td>
+              <td class="num-right">₹1,56,200</td>
+              <td>1 wk ago</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 6</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/minimal%20conservation%20logo%20bird?width=60&height=60&seed=504&nologo=true" alt=""/><div><div class="zc-name">Alipore Zoological Gardens</div><div class="zc-loc">Kolkata · 700027</div></div></div></td>
+              <td class="num-right">5</td>
+              <td class="num-right">₹98,400</td>
+              <td>2 wk ago</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 5</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/minimal%20sanctuary%20logo%20tree?width=60&height=60&seed=505&nologo=true" alt=""/><div><div class="zc-name">Nehru Zoological Park</div><div class="zc-loc">Hyderabad · 500253</div></div></div></td>
+              <td class="num-right">3</td>
+              <td class="num-right">₹68,400</td>
+              <td>Yesterday</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 3</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/nature%20park%20logo%20minimal?width=60&height=60&seed=506&nologo=true" alt=""/><div><div class="zc-name">Sakkarbaug Zoological Garden</div><div class="zc-loc">Junagadh · 362001</div></div></div></td>
+              <td class="num-right">2</td>
+              <td class="num-right">₹37,800</td>
+              <td>3d ago</td>
+              <td><span class="repeat-chip"><i data-lucide="repeat" class="w-3 h-3"></i> Repeat · 2</span></td>
+            </tr>
+            <tr>
+              <td><div class="zoo-cell"><img src="https://image.pollinations.ai/prompt/rainforest%20park%20logo%20green?width=60&height=60&seed=507&nologo=true" alt=""/><div><div class="zc-name">Vandalur Zoo</div><div class="zc-loc">Chennai · 600048</div></div></div></td>
+              <td class="num-right">1</td>
+              <td class="num-right">₹24,500</td>
+              <td>5d ago</td>
+              <td><span class="new-chip">New</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3><i data-lucide="badge-check" class="w-4 h-4" style="color:var(--brand)"></i> Fulfillment &amp; quality</h3>
+        <span style="font-size:11px;color:var(--text-muted)">Last 90d</span>
+      </div>
+
+      <div style="font-size:11px; color:var(--text-muted); font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em;">Orders by outcome</div>
+      <div class="fq-bar">
+        <div class="seg ontime" style="width: 82%"><span>On-time · 82%</span></div>
+        <div class="seg delay" style="width: 14%"><span>Late</span></div>
+        <div class="seg retn" style="width: 4%">R</div>
+      </div>
+      <div class="fq-legend">
+        <span class="lg"><span class="dt" style="background:var(--brand)"></span>On-time 116</span>
+        <span class="lg"><span class="dt" style="background:#E4B819"></span>Late 20</span>
+        <span class="lg"><span class="dt" style="background:var(--danger)"></span>Returned 6</span>
+      </div>
+
+      <div class="rating-row">
+        <div class="big">4.6</div>
+        <div>
+          <div class="stars">
+            <i data-lucide="star" class="w-4 h-4" style="fill:currentColor"></i>
+            <i data-lucide="star" class="w-4 h-4" style="fill:currentColor"></i>
+            <i data-lucide="star" class="w-4 h-4" style="fill:currentColor"></i>
+            <i data-lucide="star" class="w-4 h-4" style="fill:currentColor"></i>
+            <i data-lucide="star" class="w-4 h-4" style="fill:currentColor;opacity:.5"></i>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Avg review across 84 verified reviews</div>
+        </div>
+        <div style="margin-left:auto; text-align:right;">
+          <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Response rate</div>
+          <div style="font-size:18px;font-weight:800;color:var(--brand-hover);letter-spacing:-0.02em;">92%</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px 14px; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; font-size: 12px; color: #6D4B00; display: flex; gap: 8px; align-items: flex-start;">
+        <i data-lucide="alert-triangle" class="w-4 h-4" style="flex-shrink:0;margin-top:1px;color:#A16207;"></i>
+        <div><strong>Late-dispatch rate 14%</strong> — trending up vs. last quarter. Top cause: teak batch delays. Consider updating lead-time defaults on listings.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  if (window.lucide?.createIcons) window.lucide.createIcons();
+  document.querySelectorAll('.time-range button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.time-range button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+
+  /* Unified header wiring: drawer + avatar menu */
+  (function(){
+    var menuBtn = document.getElementById('vendorMenuBtn');
+    var drawer  = document.getElementById('vDrawer');
+    var overlay = document.getElementById('vDrawerOverlay');
+    if (menuBtn && drawer && overlay) {
+      var closeBtn = drawer.querySelector('.vd-close');
+      function openDr(){ drawer.classList.add('open'); overlay.classList.add('open'); drawer.setAttribute('aria-hidden','false'); }
+      function closeDr(){ drawer.classList.remove('open'); overlay.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+      menuBtn.addEventListener('click', openDr);
+      overlay.addEventListener('click', closeDr);
+      if (closeBtn) closeBtn.addEventListener('click', closeDr);
+    }
+    var avatarBtn = document.getElementById('avatarBtn');
+    var vMenu = document.getElementById('vMenu');
+    if (avatarBtn && vMenu) {
+      avatarBtn.addEventListener('click', function(e){ e.stopPropagation(); vMenu.classList.toggle('open'); });
+      document.addEventListener('click', function(e){ if (!vMenu.contains(e.target) && e.target !== avatarBtn && !avatarBtn.contains(e.target)) vMenu.classList.remove('open'); });
+    }
+  })();
+</script>
+</body>
+</html>

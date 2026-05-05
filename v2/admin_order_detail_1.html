@@ -712,6 +712,34 @@ const ORDERS = [
   }
 ];
 
+/* =========== V2: append V2 orders so detail page resolves V2-* IDs =========== */
+(function appendV2OrdersToAdminDetail(){
+  if (!window.DB || !Array.isArray(DB.DEMO_ORDERS_V2)) return;
+  function prodFor(pid){
+    var p = (DB.byId && DB.byId(DB.PRODUCTS, pid)) || null;
+    if (!p) return { name: pid || 'Item', img: '', price: 0 };
+    var unit = (p.price && (Number(p.price.material)||0) + (Number(p.price.labor)||0)) || 0;
+    var img = (p.images && p.images[0]) || (typeof DB.img === 'function' && p.imgQ ? DB.img(p.imgQ, 200, 200, p.seed||0) : '');
+    return { name: p.name || pid, img: img, price: unit };
+  }
+  DB.DEMO_ORDERS_V2.forEach(function(o){
+    var p = prodFor(o.productId);
+    ORDERS.push({
+      id: o.id,
+      status: o.status === 'pending_approval' ? 'placed' : o.status,
+      priority: o.priority || 'Normal',
+      species: 'macaque',
+      buyer: 0,
+      createdAt: o.createdAt,
+      total: o.total,
+      items: [{ p: p, qty: o.qty }],
+      chat: [],
+      unread: 0,
+      _v2: true
+    });
+  });
+})();
+
 /* ============ Helpers ============ */
 const STATUS_LABEL = { placed:'New Request', confirmed:'Approved', in_production:'In Production', packed:'Ready for Shipment', shipped:'Shipped', out_for_delivery:'Out for Delivery', delivered:'Delivered', cancelled:'Cancelled', returned:'Return in Progress' };
 const STATUS_ICON = { placed:'inbox', confirmed:'check-circle', in_production:'hammer', packed:'package-check', shipped:'truck', out_for_delivery:'navigation', delivered:'check-check', cancelled:'x', returned:'rotate-ccw' };

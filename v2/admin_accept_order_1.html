@@ -367,6 +367,33 @@ const ORDERS = [
     ] }
 ];
 
+/* =========== V2: append V2 orders that are awaiting acceptance =========== */
+(function appendV2OrdersToAccept(){
+  if (!window.DB || !Array.isArray(DB.DEMO_ORDERS_V2)) return;
+  function prodFor(pid){
+    var p = (DB.byId && DB.byId(DB.PRODUCTS, pid)) || null;
+    if (!p) return { name: pid || 'Item', img: '', price: 0 };
+    var unit = (p.price && (Number(p.price.material)||0) + (Number(p.price.labor)||0)) || 0;
+    var img = (p.images && p.images[0]) || (typeof DB.img === 'function' && p.imgQ ? DB.img(p.imgQ, 200, 200, p.seed||0) : '');
+    return { name: p.name || pid, img: img, price: unit };
+  }
+  DB.DEMO_ORDERS_V2.forEach(function(o){
+    var p = prodFor(o.productId);
+    var unitPrice = o.unitPrice || (p.price || 0);
+    ORDERS.push({
+      id: o.id,
+      status: o.status === 'pending_approval' ? 'placed' : o.status,
+      priority: o.priority || 'Normal',
+      species: 'macaque',
+      buyer: 0,
+      createdAt: o.createdAt,
+      total: o.total,
+      items: [{ p: p, qty: o.qty, unit: unitPrice, note: o.notes || '' }],
+      _v2: true
+    });
+  });
+})();
+
 /* ============ Helpers ============ */
 const inINR = n => '₹' + Number(n).toLocaleString('en-IN');
 const fmtDateLong = iso => new Date(iso).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});

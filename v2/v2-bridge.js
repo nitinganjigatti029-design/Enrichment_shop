@@ -48,27 +48,10 @@
     rejectRequest: function (id, reason) { return v1Shape(window.ZE.ordersV2.reject(id, reason)); }
   });
 
-  // 3. Rewrite auto-injected header links on /v2/ pages.
-  var V2_PAGES = ['cart_1.html','checkout_1.html','order_confirmation_1.html','orders_1_2.html','order_detail_1.html','approvals_1.html','admin_orders_1.html','admin_accept_order_1.html','admin_order_detail_1.html','v2-bridge.js'];
-  function rewriteHeaderLinks() {
-    document.querySelectorAll('header a[href], nav a[href]').forEach(function (a) {
-      var h = a.getAttribute('href');
-      if (!h || h.startsWith('http') || h.startsWith('/') || h.startsWith('../') || h.startsWith('#') || h.startsWith('javascript:')) return;
-      var fname = h.split('?')[0].split('#')[0];
-      if (V2_PAGES.indexOf(fname) === -1) {
-        a.setAttribute('href', '../' + h);
-      }
-    });
-  }
-  // Run once on DOMContentLoaded and once after a short delay (header injection is async).
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { rewriteHeaderLinks(); setTimeout(rewriteHeaderLinks, 350); });
-  } else {
-    rewriteHeaderLinks(); setTimeout(rewriteHeaderLinks, 350);
-  }
-  // Also run when ZE emits site/persona/header refresh events.
-  if (typeof window.ZE.on === 'function') {
-    window.ZE.on('user:change', function () { setTimeout(rewriteHeaderLinks, 100); });
-    window.ZE.on('activeSite:change', function () { setTimeout(rewriteHeaderLinks, 100); });
-  }
+  /* 3. Link rewrite: NO LONGER NEEDED.
+     Every referenced page now exists inside /v2/, so relative links resolve
+     correctly within the V2 ecosystem on their own. The earlier `../` prepender
+     was causing some clicks to land on V1 root pages — it's intentionally gone.
+     If a future page is referenced but not yet copied into /v2/, the link will
+     404 — that's louder/safer than silently escaping to the V1 prototype. */
 })();

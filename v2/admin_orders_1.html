@@ -1279,6 +1279,43 @@ const ORDERS = [
     unread:0 }
 ];
 
+/* =========== V2: prepend V2 orders to ORDERS for the admin queue =========== */
+(function prependV2OrdersToAdmin(){
+  if (!window.DB || !Array.isArray(DB.DEMO_ORDERS_V2)) return;
+  function prodFor(pid){
+    var p = (DB.byId && DB.byId(DB.PRODUCTS, pid)) || null;
+    if (!p) return { name: pid || 'Item', img: '', price: 0 };
+    var unit = (p.price && (Number(p.price.material)||0) + (Number(p.price.labor)||0)) || 0;
+    var img = (p.images && p.images[0]) || (typeof DB.img === 'function' && p.imgQ ? DB.img(p.imgQ, 200, 200, p.seed||0) : '');
+    return { name: p.name || pid, img: img, price: unit };
+  }
+  function speciesKey(spId){
+    if (!spId) return 'macaque';
+    var map = { sp_tiger:'tiger', sp_orang:'macaque', sp_chimp:'macaque', sp_lion:'tiger', sp_macaw:'parrot', sp_pengu:'penguin', sp_eleph:'elephant', sp_otter:'otter', sp_gibbon:'macaque', sp_gorilla:'macaque' };
+    return map[spId] || 'macaque';
+  }
+  var v2Rows = DB.DEMO_ORDERS_V2.map(function(o){
+    var p = prodFor(o.productId);
+    var statusForAdmin = o.status === 'pending_approval' ? 'placed' : o.status;
+    return {
+      id: o.id,
+      status: statusForAdmin,
+      priority: o.priority || 'Normal',
+      species: speciesKey(o.speciesId),
+      buyer: 0,
+      createdAt: o.createdAt,
+      total: o.total,
+      items: [{ p: p, qty: o.qty }],
+      chatTag: '',
+      chat: [],
+      unread: 0,
+      _v2: true
+    };
+  });
+  // Prepend so V2 orders appear first in newest-first sort
+  ORDERS.unshift.apply(ORDERS, v2Rows);
+})();
+
 /* =========== Render helpers =========== */
 const STATUS = { placed:'New Request', quoted:'Offer Sent', queued:'Queued', confirmed:'Approved', in_production:'In Production', packed:'Ready for Shipment', shipped:'Shipped', out_for_delivery:'Out for Delivery', delivered:'Delivered', cancelled:'Cancelled', returned:'Return in Progress' };
 const STATUS_ICON = { placed:'inbox', quoted:'sparkles', queued:'timer', confirmed:'check-circle', in_production:'hammer', packed:'package-check', shipped:'truck', out_for_delivery:'navigation', delivered:'check-check', cancelled:'x', returned:'rotate-ccw' };

@@ -85,7 +85,14 @@
       .summary-col { position: static !important; }
     }
     .forms-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-    .summary-col { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; }
+    .summary-col { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - 96px); align-self: start; }
+    /* Cap card height so the Place-order button stays visible above the fold even
+       when the summary column is at its natural position (below page-head) and
+       sticky hasn't engaged yet. */
+    .summary-col #summaryCard { display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 240px); }
+    .summary-col #summaryBody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    .summary-col #summaryBody #sumGroups { overflow-y: auto; min-height: 0; flex: 1; }
+    .summary-col .place-btn { flex-shrink: 0; margin-top: auto; }
 
     /* =========== Cards =========== */
     .card {
@@ -182,6 +189,49 @@
       color: var(--text-muted);
       margin-top: 6px;
       line-height: 1.4;
+    }
+    .recipient-info {
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 4px 0 0; border: 0; background: transparent;
+    }
+    /* V2 combined card sections */
+    .combo-section { padding: 18px 20px; }
+    .combo-section-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; color: var(--text);
+      margin-bottom: 12px; text-transform: none;
+    }
+    .combo-section-head i, .combo-section-head svg {
+      width: 14px !important; height: 14px !important; color: var(--brand); flex-shrink: 0;
+    }
+    .combo-section-head .combo-hint {
+      margin-left: auto; font-weight: 500; font-size: 11.5px; color: var(--text-subtle);
+    }
+    .combo-divider { display: none; }
+    .combo-wallet {
+      background: #F3F4F6; border-radius: 10px;
+      margin: 4px 20px 20px; padding: 14px 16px;
+    }
+    .combo-wallet .combo-section-head { margin-bottom: 8px; }
+    .wc-compact { display: flex; flex-direction: column; gap: 8px; }
+    .wc-compact-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .wc-compact-row .wc-c-label { color: var(--text-muted); }
+    .wc-compact-row .wc-c-value { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .wc-compact-pill {
+      display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+      padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+      margin-top: 2px;
+    }
+    .wc-compact-pill i, .wc-compact-pill svg { width: 12px !important; height: 12px !important; }
+    .wc-compact-pill.ok   { background: var(--brand-soft); color: var(--brand-hover); }
+    .wc-compact-pill.warn { background: rgba(220,69,69,.08); color: var(--danger); }
+    .recipient-info .ri-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13.5px; color: var(--text); line-height: 1.4;
+    }
+    .recipient-info .ri-row i, .recipient-info .ri-row svg {
+      width: 14px !important; height: 14px !important;
+      color: var(--text-muted); flex-shrink: 0;
     }
     .field .site-address {
       font-size: 12px;
@@ -297,7 +347,7 @@
     .vendor-subtotal {
       display: flex; justify-content: space-between; align-items: center;
       font-size: 12px; font-weight: 600; color: var(--text);
-      padding: 8px 0 2px; border-top: 1px dashed var(--border); margin-top: 4px;
+      padding: 8px 0 2px; margin-top: 4px;
     }
     .vendor-subtotal .label { color: var(--text-muted); }
 
@@ -403,7 +453,7 @@
     .sum-divider { height: 1px; background: var(--border); margin: 8px 0; }
     .sum-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text); padding: 6px 0; }
     .sum-row .label-muted { color: var(--text-muted); }
-    .sum-row.total { font-size: 18px; font-weight: 700; padding-top: 12px; margin-top: 4px; border-top: 1px dashed var(--border); }
+    .sum-row.total { font-size: 18px; font-weight: 700; padding-top: 12px; margin-top: 4px; }
 
     .place-btn {
       width: 100%;
@@ -643,16 +693,13 @@
       <!-- ================= LEFT COLUMN ================= -->
       <div class="forms-col">
 
-        <!-- Shipping address -->
-        <section class="card anim-in">
-          <div class="card-head">
-            <span class="ico"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
-            <h2>Shipping address</h2>
-          </div>
+        <!-- V2: single combined card — Site · Notes · Wallet (wallet as gray callout) -->
+        <section class="card anim-in wallet-check" id="walletCheckCard" style="overflow:hidden;">
           <form id="addrForm" autocomplete="on" novalidate>
-            <div class="field-grid">
-              <div class="field">
-                <label>Site<span class="req">*</span></label>
+            <!-- 1. Shipping site -->
+            <div class="combo-section">
+              <div class="combo-section-head"><i data-lucide="map-pin"></i> Shipping site</div>
+              <div class="field" style="margin:0;">
                 <div class="ez-dd" id="siteDd" data-required>
                   <button type="button" class="ez-dd-btn placeholder" id="siteDdBtn" aria-haspopup="listbox">
                     <span class="ez-dd-label-main"><span class="m" id="siteDdLabel">Select a site</span><span class="s" id="siteDdSub"></span></span>
@@ -668,72 +715,40 @@
                 </div>
                 <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Please pick a site</span>
               </div>
-              <div class="field">
-                <label>Enclosure <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
+              <!-- Hidden enclosure dropdown — preserved for JS that wires it -->
+              <div class="field" style="display:none">
                 <div class="ez-dd" id="encDd">
                   <button type="button" class="ez-dd-btn placeholder" id="encDdBtn" aria-haspopup="listbox">
                     <span class="ez-dd-label-main"><span class="m" id="encDdLabel">Not specified</span><span class="s" id="encDdSub"></span></span>
                     <i data-lucide="chevron-down" class="caret w-4 h-4"></i>
                   </button>
                   <div class="ez-dd-pop" role="listbox">
-                    <div class="ez-dd-search">
-                      <i data-lucide="search" class="w-4 h-4"></i>
-                      <input type="search" id="encDdSearch" placeholder="Search enclosures…" autocomplete="off"/>
-                    </div>
+                    <div class="ez-dd-search"><i data-lucide="search" class="w-4 h-4"></i><input type="search" id="encDdSearch" autocomplete="off"/></div>
                     <div class="ez-dd-list" id="encDdList"></div>
                   </div>
                 </div>
               </div>
-              <div class="field full">
-                <div class="site-address" id="siteAddress">
-                  <span class="ship-ico"><i data-lucide="truck" class="w-3 h-3"></i></span>
-                  <span id="siteAddressText">Shipping to: —</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="f-name">Recipient name<span class="req">*</span></label>
-                <input id="f-name" name="name" type="text" data-required/>
-                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Field required</span>
-              </div>
-              <div class="field">
-                <label for="f-phone">Phone<span class="req">*</span></label>
-                <input id="f-phone" name="phone" type="tel" data-required/>
-                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Must be at least 10 digits</span>
-              </div>
-              <div class="field full">
-                <label for="f-email">Contact email <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
-                <input id="f-email" name="email" type="email" autocomplete="email"/>
-                <span class="err-msg"><i data-lucide="alert-circle" class="w-3 h-3"></i> Enter a valid email</span>
-              </div>
-              <div class="field full">
-                <label for="f-line2">Address line 2 <span style="color:var(--text-subtle); font-weight:500">(optional)</span></label>
-                <input id="f-line2" name="line2" type="text" placeholder="Gate, block, landmark…"/>
+              <input id="f-name" type="hidden"/>
+              <input id="f-phone" type="hidden"/>
+              <input id="f-email" type="hidden"/>
+              <input id="f-line2" type="hidden"/>
+            </div>
+
+            <!-- 2. Notes -->
+            <div class="combo-section">
+              <div class="combo-section-head"><i data-lucide="message-square-text"></i> Notes <span class="combo-hint">Optional</span></div>
+              <div class="field" style="margin:0;">
+                <textarea id="f-notes" rows="3" maxlength="240" placeholder="Special handling, delivery window, etc."></textarea>
+                <div class="char-count"><span id="notesCount">0</span> / 240</div>
               </div>
             </div>
+
+            <!-- 3. Wallet check (gray-filled callout, last) -->
+            <div class="combo-section combo-wallet">
+              <div class="combo-section-head"><i data-lucide="wallet"></i> Wallet check</div>
+              <div id="walletCheckBody"><!-- populated by JS --></div>
+            </div>
           </form>
-        </section>
-
-        <!-- Wallet check -->
-        <section class="card anim-in wallet-check" id="walletCheckCard">
-          <div class="card-head">
-            <span class="ico"><i data-lucide="wallet" class="w-4 h-4"></i></span>
-            <h2>Wallet check</h2>
-            <span class="hint">For this site</span>
-          </div>
-          <div id="walletCheckBody"><!-- populated by JS --></div>
-        </section>
-
-        <!-- Notes -->
-        <section class="card anim-in">
-          <div class="card-head">
-            <span class="ico"><i data-lucide="message-square-text" class="w-4 h-4"></i></span>
-            <h2>Notes for the seller</h2>
-            <span class="hint">Optional</span>
-          </div>
-          <div class="field">
-            <textarea id="f-notes" rows="3" maxlength="240" placeholder="Any special handling instructions, enclosure access details, delivery window preferences…"></textarea>
-            <div class="char-count"><span id="notesCount">0</span> / 240</div>
-          </div>
         </section>
 
       </div>
@@ -929,12 +944,9 @@
   let _encDd = null;
 
   function siteOptions() {
+    /* V2: site name only — no city/state sub-line. */
     const sites = Array.isArray(DB.SITES) ? DB.SITES : [];
-    return sites.map(s => ({
-      id: s.id,
-      main: s.name,
-      sub: (s.city || '') + (s.state ? ', ' + s.state : '')
-    }));
+    return sites.map(s => ({ id: s.id, main: s.name, sub: '' }));
   }
 
   function encOptions() {
@@ -987,27 +999,29 @@
   }
 
   function updateSiteAddressLine() {
+    /* V2: render site address into the read-only info block (no input field). */
     const site = currentSite();
-    const el = document.getElementById('siteAddressText');
-    if (!el) return;
-    if (!site) {
-      el.textContent = 'Shipping to: —';
-      return;
-    }
-    const parts = [site.addressLine1, site.city + ', ' + site.state + ' – ' + site.pincode];
-    el.textContent = 'Shipping to: ' + parts.filter(Boolean).join(', ');
+    const addrEl = document.getElementById('riAddress');
+    if (!addrEl) return;
+    if (!site) { addrEl.textContent = '—'; return; }
+    const parts = [site.addressLine1, site.city + ', ' + site.state + ' – ' + site.pincode].filter(Boolean);
+    addrEl.textContent = parts.join(', ');
   }
 
-  /* ---------- Pre-fill from signed-in user (Task 1) ---------- */
+  /* ---------- Pre-fill from signed-in user (Task 1) ----------
+     V2: name/phone/email are read-only info — pulled from the signed-in user,
+     mirrored into the hidden inputs that the place-order code reads. */
   function prefillFromUser() {
     const u = state.user;
     if (!u) return;
-    const nameEl  = document.getElementById('f-name');
-    const phoneEl = document.getElementById('f-phone');
-    const emailEl = document.getElementById('f-email');
-    if (nameEl  && !nameEl.value  && u.name)  nameEl.value  = u.name;
-    if (phoneEl && !phoneEl.value && u.phone) phoneEl.value = u.phone;
-    if (emailEl && !emailEl.value && u.email) emailEl.value = u.email;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+    set('f-name',  u.name);
+    set('f-phone', u.phone);
+    set('f-email', u.email);
+    setText('riName',  u.name);
+    setText('riPhone', u.phone);
+    setText('riEmail', u.email);
   }
 
   /* ---------- Render order summary (Task 5) ---------- */
@@ -1040,9 +1054,10 @@
     const vendorCount = vendorIds.length;
 
     const grandSubtotal = ZE.cart.subtotal();
-    const perVendorFee = shippingFeeFor(state.shippingMethod);
-    const totalShipping = perVendorFee * vendorCount;
-    const grandTotal = grandSubtotal + totalShipping;
+    /* V2: no shipping added — total equals product subtotal. */
+    const perVendorFee = 0;
+    const totalShipping = 0;
+    const grandTotal = grandSubtotal;
 
     const groupsHtml = vendorIds.map(vid => {
       const list = grouped[vid] || [];
@@ -1114,35 +1129,23 @@
       `;
     }).join('');
 
-    const shippingRowHtml = vendorCount > 1
-      ? `<div class="sum-row">
-           <span class="label-muted">Shipping <span style="color:var(--text-subtle); font-size:11px">(${state.shippingMethod}) — ${DB.fmtINR(perVendorFee)} × ${vendorCount} vendors</span></span>
-           <span>${DB.fmtINR(totalShipping)}</span>
-         </div>`
-      : `<div class="sum-row">
-           <span class="label-muted">Shipping fee <span style="color:var(--text-subtle); font-size:11px">(${state.shippingMethod})</span></span>
-           <span>${DB.fmtINR(perVendorFee)}</span>
-         </div>`;
+    /* V2: drop the shipping row from the visible summary. */
+    const shippingRowHtml = '';
 
-    const multiBannerHtml = vendorCount > 1
-      ? `<div class="multi-vendor-banner">
-           <span class="b-ico"><i data-lucide="info" class="w-4 h-4"></i></span>
-           <span>This cart ships from <strong>${vendorCount} vendors</strong> — you'll get ${vendorCount} orders with separate tracking.</span>
-         </div>`
-      : '';
+    /* V2: drop the "you'll get N orders" banner — confuses buyers who think the
+       count means quantities rather than SKUs. */
+    const multiBannerHtml = '';
 
     const canPurchase = !state.user || state.user.canPurchase !== false;
-    const placeLabel = canPurchase
-      ? (vendorCount > 1 ? `Place ${vendorCount} orders` : 'Place order')
-      : 'Send for approval';
+    /* V2: keep CTA copy stable — no "N orders" count to avoid confusing buyers
+       who add multi-quantity of the same product. */
+    const placeLabel = canPurchase ? 'Place order' : 'Send for approval';
     const placeIcon = canPurchase ? 'shield-check' : 'send';
 
     body.innerHTML = `
       <div id="sumGroups">${groupsHtml}</div>
-      <div class="sum-divider"></div>
-      <div class="sum-row"><span class="label-muted">${vendorCount > 1 ? 'Grand subtotal' : 'Subtotal'}</span><span>${DB.fmtINR(grandSubtotal)}</span></div>
       ${shippingRowHtml}
-      <div class="sum-row total"><span>${vendorCount > 1 ? 'Grand total' : 'Total'}</span><span>${DB.fmtINR(grandTotal)}</span></div>
+      <div class="sum-row total"><span>Total</span><span>${DB.fmtINR(grandTotal)}</span></div>
       ${multiBannerHtml}
       <div class="po-warn-ribbon" id="placeWarnRibbon" style="display:none">
         <i data-lucide="alert-triangle" class="w-4 h-4 po-warn-ico"></i>
@@ -1151,12 +1154,6 @@
       <button class="place-btn" id="placeBtn" type="button" data-default-label="${escapeHtml(placeLabel)}" data-default-icon="${placeIcon}">
         <i data-lucide="${placeIcon}" class="w-4 h-4"></i> <span class="place-btn-label">${escapeHtml(placeLabel)}</span>
       </button>
-      <div class="place-help">
-        <i data-lucide="info" class="w-3 h-3"></i>
-        ${canPurchase
-          ? `You'll be able to track your ${vendorCount > 1 ? 'orders' : 'order'} after placing ${vendorCount > 1 ? 'them' : 'it'}.`
-          : `Approval required before this ${vendorCount > 1 ? 'reaches the vendors' : 'reaches the vendor'}.`}
-      </div>
     `;
 
     document.getElementById('placeBtn').addEventListener('click', onPlaceOrder);
@@ -1188,8 +1185,9 @@
     const grouped = ZE.cart.groupByVendor();
     const vendorCount = Object.keys(grouped).length || 0;
     const subtotal = ZE.cart.subtotal() || 0;
-    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
-    const orderTotal = subtotal + totalShipping;
+    /* V2: no shipping added in wallet math — order amount = product subtotal. */
+    const totalShipping = 0;
+    const orderTotal = subtotal;
 
     const after = available - orderTotal;
     const ok = available >= orderTotal && orderTotal > 0;
@@ -1197,31 +1195,20 @@
 
     const shortfall = ok || empty ? 0 : Math.ceil(orderTotal - available);
 
+    /* V2: compact wallet check — single line "Balance · Order amount" with status pill,
+       no separate "After delivery" row, no fund-availability banner under the grid. */
     body.innerHTML = `
-      <div class="wc-site">${escapeHtml(site.name || 'Site')}</div>
-      <div class="wc-grid">
-        <div class="wc-row">
-          <span class="wc-label">Available now</span>
-          <span class="wc-value">${DB.fmtINR(available)}</span>
-        </div>
-        <div class="wc-row">
-          <span class="wc-label">This order will lock</span>
-          <span class="wc-value">${DB.fmtINR(orderTotal)}</span>
-        </div>
-        <div class="wc-row ${after < 0 ? 'danger' : 'highlight'}">
-          <span class="wc-label">After delivery</span>
-          <span class="wc-value">${DB.fmtINR(after)}</span>
-        </div>
+      <div class="wc-compact">
+        <div class="wc-compact-row"><span class="wc-c-label">Balance</span><span class="wc-c-value">${DB.fmtINR(available)}</span></div>
+        <div class="wc-compact-row"><span class="wc-c-label">Order amount</span><span class="wc-c-value">${DB.fmtINR(orderTotal)}</span></div>
+        ${empty ? '' : (ok
+          ? ''
+          : `<div class="wc-compact-pill warn"><i data-lucide="alert-triangle"></i> Short by ${DB.fmtINR(shortfall)}</div>
+             <div class="wc-topup-row">
+               <button type="button" class="wc-topup-btn wc-topup-btn-fill" id="checkoutTopupPrefillBtn" data-topup-trigger data-topup-amount="${shortfall}"><i data-lucide="zap" class="w-4 h-4"></i> Top-up ${DB.fmtINR(shortfall)}</button>
+               <button type="button" class="wc-topup-btn" id="checkoutTopupBtn"><i data-lucide="plus-circle" class="w-4 h-4"></i> Request top-up</button>
+             </div>`)}
       </div>
-      ${empty
-        ? ''
-        : (ok
-            ? `<div class="wc-status ok"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Funds available</div>`
-            : `<div class="wc-status warn"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Insufficient funds — short by ${DB.fmtINR(shortfall)}</div>
-               <div class="wc-topup-row">
-                 <button type="button" class="wc-topup-btn wc-topup-btn-fill" id="checkoutTopupPrefillBtn" data-topup-trigger data-topup-amount="${shortfall}"><i data-lucide="zap" class="w-4 h-4"></i> Top-up ${DB.fmtINR(shortfall)} to enable Place Order</button>
-                 <button type="button" class="wc-topup-btn" id="checkoutTopupBtn"><i data-lucide="plus-circle" class="w-4 h-4"></i> Request top-up</button>
-               </div>`)}
     `;
 
     const tBtn = document.getElementById('checkoutTopupBtn');
@@ -1246,8 +1233,9 @@
     const grouped = ZE.cart.groupByVendor();
     const vendorCount = Object.keys(grouped).length || 0;
     const subtotal = ZE.cart.subtotal() || 0;
-    const totalShipping = (lines.length && vendorCount) ? shippingFeeFor(state.shippingMethod) * vendorCount : 0;
-    const orderTotal = subtotal + totalShipping;
+    /* V2: no shipping in guard math either. */
+    const totalShipping = 0;
+    const orderTotal = subtotal;
     if (orderTotal <= 0) return { blocked: false, shortfall: 0, orderTotal: 0 };
     const blocked = available < orderTotal;
     const shortfall = blocked ? Math.ceil(orderTotal - available) : 0;

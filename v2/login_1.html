@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ZooEnrich · Sign in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../tokens.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../data.js?v=20260504c"></script>
+  <script src="../app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
+  <link rel="preload" as="image" href="https://image.pollinations.ai/prompt/zookeeper%20giving%20enrichment%20toy%20to%20big%20cat%20warm%20light%20professional%20wildlife%20photography?width=900&height=600&seed=801&nologo=true"/>
+  <style>
+    /* ================= Page shell ================= */
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; width: 100%; }
+
+    /* ================= Thin top bar ================= */
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      height: 64px;
+      display: flex; align-items: center;
+    }
+    .topbar .row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; }
+    .brand-mark .logo-box {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: var(--brand); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.5);
+    }
+    .help-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      padding: 8px 12px; border-radius: var(--radius-md);
+      transition: .15s ease;
+    }
+    .help-link:hover { color: var(--brand-hover); background: #F1F2F4; }
+
+    /* ================= Hero (2-col) ================= */
+    .hero-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      min-height: calc(100vh - 64px);
+    }
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; min-height: auto; }
+    }
+
+    /* ========== Left brand column ========== */
+    .brand-side {
+      position: relative;
+      padding: 56px 72px;
+      background: linear-gradient(135deg, rgba(55,189,105,0.12), rgba(0,214,201,0.08));
+      display: flex; flex-direction: column; justify-content: space-between;
+      overflow: hidden;
+    }
+    .brand-side::before {
+      content: "";
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle at 85% 15%, rgba(55,189,105,.10) 0, transparent 40%),
+                        radial-gradient(circle at 10% 95%, rgba(0,214,201,.10) 0, transparent 45%);
+      pointer-events: none;
+    }
+    .brand-side > * { position: relative; z-index: 1; }
+
+    .brand-head { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 22px; color: var(--text); letter-spacing: -0.01em; }
+    .brand-head .logo-box-lg {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: var(--brand); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 18px -5px rgba(55,189,105,.5);
+    }
+
+    .brand-copy h1 {
+      font-size: 44px !important;
+      font-weight: 800 !important;
+      line-height: 1.08 !important;
+      letter-spacing: -0.025em !important;
+      color: var(--text) !important;
+      margin: 36px 0 14px !important;
+      max-width: 520px;
+    }
+    .brand-copy .brand-accent { color: var(--brand); }
+    .brand-copy p.lead {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--text-muted);
+      max-width: 460px;
+      margin-bottom: 32px;
+    }
+
+    .value-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+    .value-row { display: flex; align-items: center; gap: 14px; }
+    .value-row .v-ico {
+      width: 40px; height: 40px; border-radius: var(--radius-md);
+      background: #fff; border: 1px solid var(--border);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--brand);
+      box-shadow: var(--shadow-xs);
+      flex-shrink: 0;
+    }
+    .value-row .v-text { font-size: 14px; font-weight: 500; color: var(--text); }
+
+    .hero-photo-wrap {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      max-width: 560px;
+      box-shadow: var(--shadow-lg);
+      background: var(--card-subtle);
+    }
+    .hero-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-photo-badge {
+      position: absolute; left: 16px; bottom: 16px;
+      background: #fff; border-radius: var(--radius-pill);
+      padding: 8px 14px 8px 8px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-md);
+      font-size: 13px; font-weight: 600; color: var(--text);
+    }
+    .hero-photo-badge .dot { width: 28px; height: 28px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+
+    /* ========== Right sign-in panel ========== */
+    .panel-side {
+      padding: 56px 72px;
+      display: flex; flex-direction: column; justify-content: center;
+      background: var(--page);
+    }
+    .panel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-md);
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex; flex-direction: column;
+      min-height: 0;
+    }
+    .panel-card h2 {
+      font-size: 26px !important;
+      font-weight: 700 !important;
+      color: var(--text) !important;
+      letter-spacing: -0.01em !important;
+      margin-bottom: 6px !important;
+    }
+    .panel-card .sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    /* Segmented role tabs */
+    .role-tabs {
+      display: flex;
+      background: #F1F2F4;
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      gap: 4px;
+      margin-bottom: 18px;
+    }
+    .role-tabs button {
+      flex: 1; padding: 10px 14px;
+      border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-muted);
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      transition: .2s ease;
+    }
+    .role-tabs button:hover { color: var(--text); }
+    .role-tabs button.active {
+      background: var(--brand); color: #fff;
+      box-shadow: 0 4px 10px -3px rgba(55,189,105,.45);
+    }
+    .role-tabs button i { width: 15px; height: 15px; }
+
+    /* Search */
+    .acct-search {
+      display: flex; align-items: center; gap: 8px;
+      background: #F9FAFB;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 12px;
+      margin-bottom: 12px;
+      transition: .15s ease;
+    }
+    .acct-search:focus-within { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
+    .acct-search input { flex: 1; background: transparent; border: none; outline: none; font-size: 13px; color: var(--text); }
+    .acct-search i { width: 16px; height: 16px; color: var(--text-subtle); }
+
+    /* Account list */
+    .acct-list {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 4px 4px 2px;
+      overscroll-behavior: contain;
+    }
+    .acct-list::-webkit-scrollbar { width: 6px; }
+    .acct-list::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 999px; }
+    .acct-list::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+
+    .acct-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--card);
+      cursor: pointer;
+      transition: .15s ease;
+      position: relative;
+    }
+    .acct-row:hover {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+    .acct-row:hover .arrow { transform: translateX(0); opacity: 1; }
+
+    .acct-avatar {
+      width: 40px; height: 40px; border-radius: 999px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      background: #F1F2F4;
+    }
+    .acct-info { flex: 1; min-width: 0; }
+    .acct-name { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.25; }
+    .acct-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .rating-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 3px 8px; border-radius: 999px;
+      background: #FFF8CC; color: #6d4b00;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .rating-chip i { width: 11px; height: 11px; }
+    .arrow {
+      color: var(--brand);
+      transform: translateX(-6px);
+      opacity: 0;
+      transition: .2s ease;
+      flex-shrink: 0;
+      display: inline-flex;
+    }
+    .arrow i { width: 18px; height: 18px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Disabled fake form */
+    .fake-form {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      background: #FAFBFC;
+      opacity: 0.65;
+    }
+    .fake-form .ff-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .fake-form label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .fake-form input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #F1F2F4;
+      font-size: 13px; color: var(--text-subtle);
+      font-family: var(--font);
+    }
+    .fake-form button {
+      width: 100%; padding: 10px;
+      border-radius: var(--radius-md);
+      background: #E5E7EB; color: var(--text-subtle);
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: not-allowed;
+    }
+    .fake-note { font-size: 11px; color: var(--text-subtle); margin-top: 8px; text-align: center; font-style: italic; }
+
+    .guest-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .guest-link a { color: var(--brand); font-weight: 600; }
+    .guest-link a:hover { color: var(--brand-hover); text-decoration: underline; }
+
+    /* ================= Responsive ================= */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr !important; min-height: auto; }
+      .brand-side { padding: 32px 24px; }
+      .panel-side { padding: 24px 20px; }
+      .brand-copy h1 { font-size: 32px !important; margin: 20px 0 10px !important; }
+      .brand-copy p.lead { font-size: 14px; margin-bottom: 20px; }
+      .hero-photo-wrap { max-width: 100%; aspect-ratio: 16 / 9; }
+      .value-list { margin-bottom: 20px; gap: 10px; }
+      .topbar { height: 56px; }
+      .help-link span, .help-link { font-size: 12px; }
+      .page-wrap { padding: 0 16px !important; }
+    }
+    @media (max-width: 600px) {
+      .brand-side { padding: 24px 16px; }
+      .panel-side { padding: 16px; }
+      .brand-copy h1 { font-size: 26px !important; line-height: 1.12 !important; margin: 14px 0 8px !important; }
+      .brand-copy p.lead { font-size: 13px; margin-bottom: 14px; }
+      .value-list { display: none; }
+      .hero-photo-wrap { display: none; }
+      .panel-card { padding: 20px !important; max-width: 100%; width: 100%; margin: 0; border-radius: 14px; }
+      .panel-card h2 { font-size: 22px !important; }
+      .panel-card .sub { font-size: 12px; margin-bottom: 16px !important; }
+      .brand-head { font-size: 18px; }
+      .brand-head .logo-box-lg { width: 36px; height: 36px; border-radius: 10px; }
+      .role-tabs button { padding: 9px 10px; font-size: 12px; }
+      .acct-list { max-height: 260px; }
+      .topbar { height: 52px; }
+      .help-link { padding: 6px 8px; }
+      .help-link span, .help-link { font-size: 11px; }
+    }
+    @media (max-width: 400px) {
+      .brand-mark { font-size: 16px; }
+      .help-link i { display: none; }
+    }
+
+    /* Fade in animation */
+    @keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .row-anim { animation: rowIn .28s cubic-bezier(.2,.8,.2,1) both; }
+  </style>
+</head>
+<body>
+
+  <!-- ============ Thin top bar ============ -->
+  <header class="topbar">
+    <div class="page-wrap row">
+      <a href="index_1.html" class="brand-mark">
+        <span class="logo-box"><i data-lucide="paw-print" style="width:18px;height:18px;"></i></span>
+        ZooEnrich
+      </a>
+      <a href="#" class="help-link">
+        <i data-lucide="life-buoy" style="width:15px;height:15px;"></i>
+        Need help? Contact support
+      </a>
+    </div>
+  </header>
+
+  <!-- ============ Hero 2-col ============ -->
+  <main class="hero-grid">
+
+    <!-- Left brand column -->
+    <section class="brand-side">
+      <div>
+        <div class="brand-head">
+          <span class="logo-box-lg"><i data-lucide="paw-print" style="width:24px;height:24px;"></i></span>
+          ZooEnrich
+        </div>
+
+        <div class="brand-copy">
+          <h1>Enrichment, <span class="brand-accent">delivered.</span></h1>
+          <p class="lead">The marketplace for zoo-animal enrichment — buyers and vendors in one place. Source safe, vetted gear with one click.</p>
+        </div>
+
+        <div class="value-list">
+          <div class="value-row">
+            <span class="v-ico"><i data-lucide="paw-print" style="width:18px;height:18px;"></i></span>
+            <span class="v-text">Curated for 12+ species</span>
+          </div>
+          <div class="value-row">
+            <span class="v-ico"><i data-lucide="shield-check" style="width:18px;height:18px;"></i></span>
+            <span class="v-text">Reviewed by biologists</span>
+          </div>
+          <div class="value-row">
+            <span class="v-ico"><i data-lucide="truck" style="width:18px;height:18px;"></i></span>
+            <span class="v-text">Trackable delivery</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-photo-wrap img-frame">
+        <img id="heroPhoto" alt="Keeper with enrichment"/>
+        <div class="hero-photo-badge">
+          <span class="dot"><i data-lucide="heart" style="width:15px;height:15px;"></i></span>
+          Loved by 30+ zoos
+        </div>
+      </div>
+    </section>
+
+    <!-- Right sign-in panel -->
+    <section class="panel-side">
+      <div class="panel-card">
+        <h2>Sign in</h2>
+        <p class="sub">Pick a demo account to get started. Role is detected automatically.</p>
+
+        <!-- Role tabs -->
+        <div class="role-tabs" role="tablist">
+          <button type="button" id="tabBuyer" class="active" data-role="buyer" role="tab" aria-selected="true">
+            <i data-lucide="shopping-bag"></i> I'm a Buyer
+          </button>
+          <button type="button" id="tabVendor" data-role="vendor" role="tab" aria-selected="false">
+            <i data-lucide="store"></i> I'm a Vendor
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="acct-search">
+          <i data-lucide="search"></i>
+          <input type="text" id="acctSearch" placeholder="Search accounts by name"/>
+        </div>
+
+        <!-- Account list -->
+        <div class="acct-list" id="acctList" role="list"></div>
+
+        <!-- Disabled real-login form -->
+        <div class="fake-form" aria-disabled="true">
+          <div class="ff-row">
+            <label for="fEmail">Email</label>
+            <input id="fEmail" type="email" placeholder="you@zoo.org" disabled/>
+          </div>
+          <div class="ff-row">
+            <label for="fPwd">Password</label>
+            <input id="fPwd" type="password" placeholder="••••••••" disabled/>
+          </div>
+          <button type="button" disabled>Sign in with email</button>
+          <p class="fake-note">Real login coming soon.</p>
+        </div>
+
+        <p class="guest-link">
+          <a href="index_1.html" id="guestLink">Browse as guest</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Inline logic ============ -->
+  <script>
+    (function () {
+      // ---------- Parse ?force=1 ----------
+      const params = new URLSearchParams(window.location.search || '');
+      const force = params.get('force') === '1';
+
+      // ---------- Auto-redirect if already signed in ----------
+      if (!force && window.ZE && ZE.user && ZE.user.isSignedIn && ZE.user.isSignedIn()) {
+        const role = ZE.user.role();
+        const dest = role === 'vendor' ? 'vendor_dashboard_1.html' : 'index_1.html';
+        window.location.replace(dest);
+        return;
+      }
+
+      // ---------- Hero photo ----------
+      (function setHero() {
+        const el = document.getElementById('heroPhoto');
+        if (!el || !window.DB || !DB.img) return;
+        const url = DB.img(
+          'zookeeper giving enrichment toy to big cat warm light professional wildlife photography',
+          900, 600, 801
+        );
+        el.src = url;
+        el.addEventListener('load', () => {
+          el.classList.add('is-loaded');
+          const wrap = el.closest('.img-frame');
+          if (wrap) wrap.classList.add('img-loaded');
+        });
+      })();
+
+      // ---------- Role-role title map ----------
+      const ROLE_TITLE = {
+        biologist:   'Biologist',
+        keeper:      'Keeper',
+        vet:         'Veterinarian',
+        curator:     'Curator',
+        lab_manager: 'Lab Manager',
+        lab_tech:    'Lab Technician',
+        admin:       'Administrator'
+      };
+
+      // ---------- State ----------
+      let activeRole = 'buyer';
+      let searchQuery = '';
+      let searchTimer = null;
+
+      // ---------- Build user meta line ----------
+      function buyerSpeciesTags(user) {
+        if (!window.DB || !Array.isArray(user.species) || user.species.length === 0) return '';
+        return user.species
+          .map(sid => (DB.byId(DB.SPECIES, sid) || {}).name)
+          .filter(Boolean)
+          .slice(0, 3)
+          .join(' · ');
+      }
+
+      // ---------- Avatar URL ----------
+      function buyerAvatar(user) {
+        if (!window.DB || !DB.img) return '';
+        const q = 'professional zoo ' + (user.role || 'staff').replace('_', ' ')
+          + ' portrait headshot smile, warm light, neutral background';
+        return DB.img(q, 80, 80, user.seed || 400);
+      }
+      function vendorLogo(v) {
+        if (!window.DB || !DB.img) return '';
+        return DB.img(v.logoQ || ('vendor logo ' + v.name), 80, 80, v.seed || 600);
+      }
+
+      // ---------- Filter ----------
+      function filterByQuery(arr, q) {
+        if (!q) return arr;
+        const needle = q.toLowerCase();
+        return arr.filter(x => (x.name || '').toLowerCase().includes(needle));
+      }
+
+      // ---------- Render list ----------
+      function render() {
+        const list = document.getElementById('acctList');
+        if (!list) return;
+        list.innerHTML = '';
+        const isBuyer = activeRole === 'buyer';
+        const source = isBuyer ? (DB.USERS || []) : (DB.VENDORS || []);
+        const items = filterByQuery(source, searchQuery);
+
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.textContent = 'No accounts match “' + searchQuery + '”.';
+          list.appendChild(empty);
+          return;
+        }
+
+        items.forEach((it, idx) => {
+          const row = document.createElement('div');
+          row.className = 'acct-row row-anim';
+          row.setAttribute('role', 'listitem');
+          row.style.animationDelay = (idx * 25) + 'ms';
+
+          const imgFrame = document.createElement('div');
+          imgFrame.className = 'img-frame img-frame-sm';
+          imgFrame.style.width = '40px';
+          imgFrame.style.height = '40px';
+          imgFrame.style.borderRadius = '999px';
+          imgFrame.style.overflow = 'hidden';
+          imgFrame.style.flexShrink = '0';
+
+          const avatar = document.createElement('img');
+          avatar.className = 'acct-avatar';
+          avatar.alt = it.name || '';
+          avatar.src = isBuyer ? buyerAvatar(it) : vendorLogo(it);
+          avatar.addEventListener('load', () => {
+            avatar.classList.add('is-loaded');
+            imgFrame.classList.add('img-loaded');
+          });
+          imgFrame.appendChild(avatar);
+
+          const info = document.createElement('div');
+          info.className = 'acct-info';
+
+          const name = document.createElement('div');
+          name.className = 'acct-name';
+          name.textContent = it.name || '';
+
+          const meta = document.createElement('div');
+          meta.className = 'acct-meta';
+          if (isBuyer) {
+            const title = it.title || ROLE_TITLE[it.role] || 'Staff';
+            const species = buyerSpeciesTags(it);
+            meta.textContent = species ? title + ' · ' + species : title;
+          } else {
+            meta.textContent = (it.tagline || '') + (it.city ? ' · ' + it.city : '');
+          }
+
+          info.appendChild(name);
+          info.appendChild(meta);
+
+          row.appendChild(imgFrame);
+          row.appendChild(info);
+
+          if (!isBuyer && typeof it.rating === 'number') {
+            const chip = document.createElement('span');
+            chip.className = 'rating-chip';
+            chip.innerHTML = '<i data-lucide="star"></i>' + it.rating.toFixed(1);
+            row.appendChild(chip);
+          }
+
+          const arrow = document.createElement('span');
+          arrow.className = 'arrow';
+          arrow.innerHTML = '<i data-lucide="arrow-right"></i>';
+          row.appendChild(arrow);
+
+          row.addEventListener('click', () => onPickAccount(it, isBuyer ? 'buyer' : 'vendor'));
+          list.appendChild(row);
+        });
+
+        // Refresh lucide icons for any newly injected nodes
+        if (window.ZE && ZE.refreshIcons) ZE.refreshIcons();
+      }
+
+      // ---------- Click handler ----------
+      function onPickAccount(entity, role) {
+        if (!entity || !entity.id) return;
+        try {
+          if (window.ZE && ZE.user && ZE.user.signIn) {
+            ZE.user.signIn(entity.id, role);
+          }
+        } catch (e) { /* ignore */ }
+        const dest = role === 'vendor' ? 'vendor_dashboard_1.html' : 'index_1.html';
+        window.location.assign(dest);
+      }
+
+      // ---------- Tab switching ----------
+      function setActiveRole(role) {
+        activeRole = (role === 'vendor') ? 'vendor' : 'buyer';
+        const btnB = document.getElementById('tabBuyer');
+        const btnV = document.getElementById('tabVendor');
+        if (btnB && btnV) {
+          const isB = activeRole === 'buyer';
+          btnB.classList.toggle('active', isB);
+          btnV.classList.toggle('active', !isB);
+          btnB.setAttribute('aria-selected', isB ? 'true' : 'false');
+          btnV.setAttribute('aria-selected', !isB ? 'true' : 'false');
+        }
+        const input = document.getElementById('acctSearch');
+        if (input) {
+          input.value = '';
+          input.placeholder = (activeRole === 'buyer')
+            ? 'Search buyers by name'
+            : 'Search vendors by name';
+        }
+        searchQuery = '';
+        render();
+      }
+
+      // ---------- Bind events ----------
+      document.getElementById('tabBuyer').addEventListener('click', () => setActiveRole('buyer'));
+      document.getElementById('tabVendor').addEventListener('click', () => setActiveRole('vendor'));
+
+      const searchEl = document.getElementById('acctSearch');
+      searchEl.addEventListener('input', (e) => {
+        const v = e.target.value || '';
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          searchQuery = v.trim();
+          render();
+        }, 160);
+      });
+
+      // Guest link: clear any stale session on click (don't sign in)
+      const guestLink = document.getElementById('guestLink');
+      if (guestLink) {
+        guestLink.addEventListener('click', () => {
+          // No-op: just navigate. Keep any existing user if present.
+        });
+      }
+
+      // ---------- First render ----------
+      render();
+
+      // ---------- Init shared bits ----------
+      if (window.ZE && ZE.init) ZE.init();
+    })();
+  </script>
+</body>
+</html>
