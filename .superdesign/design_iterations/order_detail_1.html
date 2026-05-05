@@ -1283,16 +1283,10 @@
       <div class="d-card">
         <div class="card-head">
           <h3><i data-lucide="map-pin" class="w-4 h-4"></i> Shipping to</h3>
-          <button class="edit-ico" title="Edit address"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
         </div>
         <div>
           <div class="addr-name">${escapeHtml(siteName)}</div>
-          <div class="addr-lines">
-            ${line1 ? escapeHtml(line1) + '<br/>' : ''}
-            ${line2 ? escapeHtml(line2) + '<br/>' : ''}
-            ${escapeHtml(city)}${city && stateNm ? ', ' : ''}${escapeHtml(stateNm)}${pincode ? ' – ' + escapeHtml(pincode) : ''}
-          </div>
-          ${recipientName ? `<div class="addr-phone" style="margin-top:12px;"><i data-lucide="user" class="w-3.5 h-3.5"></i> Placed by: ${escapeHtml(recipientName)}${recipientPhone ? ' · ' + escapeHtml(recipientPhone) : ''}${recipientEmail ? ' · ' + escapeHtml(recipientEmail) : ''}</div>` : ''}
+          ${recipientName ? `<div class="addr-phone" style="margin-top:8px;"><i data-lucide="user" class="w-3.5 h-3.5"></i> ${escapeHtml(recipientName)}${recipientPhone ? ' · ' + escapeHtml(recipientPhone) : ''}${recipientEmail ? ' · ' + escapeHtml(recipientEmail) : ''}</div>` : ''}
         </div>
       </div>`;
   }
@@ -1626,10 +1620,8 @@
       <div class="detail-grid">
         <!-- LEFT -->
         <div>
-          ${renderVendorCommitment(order)}
           ${renderTimeline(order)}
           ${renderItems(order)}
-          ${renderShipment(order)}
         </div>
         <!-- RIGHT -->
         <div>
