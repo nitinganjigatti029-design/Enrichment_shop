@@ -348,6 +348,23 @@
     .tl-current-copy { font-size: 13px; color: var(--brand-hover); font-weight: 600; margin-top: 4px; }
     .tl-step.future .tl-name { color: var(--text-subtle); font-weight: 500; }
 
+    /* Horizontal main-chain tracker (compact) */
+    .track-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 14px 4px 18px; }
+    .track-step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; position: relative; }
+    .track-step .dot { width: 32px; height: 32px; border-radius: 999px; background: #F1F2F4; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--border); font-weight: 700; font-size: 12px; z-index: 2; position: relative; transition: .3s; }
+    .track-step.done .dot { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+    .track-step.current .dot { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.18); }
+    .track-step .lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); line-height: 1.25; }
+    .track-step.done .lbl, .track-step.current .lbl { color: var(--text); }
+    .track-step .when { font-size: 10px; color: var(--text-subtle); }
+    .track-step:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: var(--border); z-index: 1; }
+    .track-step.done:not(:last-child)::after { background: var(--brand); }
+    @media (max-width: 720px) {
+      .track-grid { grid-template-columns: 1fr; gap: 14px; padding: 12px 4px; }
+      .track-step { flex-direction: row; align-items: flex-start; text-align: left; gap: 10px; }
+      .track-step:not(:last-child)::after { left: 15px; top: 32px; bottom: -14px; right: auto; width: 2px; height: auto; }
+    }
+
     .tl-cancelled-banner {
       margin-top: 8px;
       padding: 12px 14px;
@@ -1081,60 +1098,31 @@
     //  - 'done' → solid green badge, tick icon, real timestamp
     //  - 'current' → soft-green pulsing badge, status icon (truck / box / etc.), "In progress" copy
     //  - 'future' → grey badge, status icon, NO "Pending" copy (the visual grey conveys it)
-    const rows = CHAIN.map((s, i) => {
+    const rows = '<div class="track-grid">' + CHAIN.map((s, i) => {
       let cls;
-      if (isRejected) {
-        cls = 'future';
-      } else if (isCancelled) {
-        cls = (i <= reached) ? 'done' : 'future';
-      } else if (i <= reached) {
-        cls = 'done';
-      } else if (i === curIdx) {
-        cls = 'current';
-      } else {
-        cls = 'future';
-      }
+      if (isRejected) cls = '';
+      else if (isCancelled) cls = (i <= reached) ? 'done' : '';
+      else if (i <= reached) cls = 'done';
+      else if (i === curIdx) cls = 'current';
+      else cls = '';
 
       const meta = STATUS_META[s];
       const ev = vendorEventsByStatus[s];
-      const ico = (cls === 'done') ? 'check' : meta.ico;
-
-      // Best-effort timestamp for done steps that have no explicit event.
-      // 'placed' falls back to order.createdAt; later steps stay quiet if no event recorded.
-      let bodyDetails = '';
+      let when = '';
       if (cls === 'done') {
-        if (ev) {
-          const loc = ev.location ? `<span class="dot">·</span>${escapeHtml(ev.location)}` : '';
-          bodyDetails = `
-            <div class="tl-meta">${escapeHtml(fmtDateTime(ev.at))}${loc}</div>
-            ${ev.note ? `<div class="tl-note">${escapeHtml(ev.note)}</div>` : ''}`;
-        } else if (s === 'placed' && order.createdAt) {
-          bodyDetails = `<div class="tl-meta">${escapeHtml(fmtDateTime(order.createdAt))}</div>`;
-        } else {
-          bodyDetails = `<div class="tl-meta">Completed</div>`;
-        }
-      } else if (cls === 'current') {
-        const inProgressCopy = {
-          placed: 'Order received',
-          confirmed: 'Awaiting admin acceptance',
-          packed: 'Items being packed',
-          shipped: 'In transit',
-          out_for_delivery: 'Arriving soon',
-          delivered: ''
-        }[s] || 'In progress';
-        bodyDetails = `<div class="tl-note tl-current-copy">${escapeHtml(inProgressCopy)}</div>`;
+        if (ev) when = fmtDate(ev.at);
+        else if (s === 'placed' && order.createdAt) when = fmtDate(order.createdAt);
       }
-      // future: no body content — grey badge alone communicates the state
-
+      const inner = (cls === 'done')
+        ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>'
+        : (i + 1);
       return `
-        <div class="tl-step ${cls}">
-          <span class="tl-badge"><i data-lucide="${ico}" class="w-4 h-4"></i></span>
-          <div class="tl-body">
-            <div class="tl-name">${meta.label}</div>
-            ${bodyDetails}
-          </div>
+        <div class="track-step ${cls}">
+          <div class="dot">${inner}</div>
+          <div class="lbl">${meta.label}</div>
+          ${when ? `<div class="when">${escapeHtml(when)}</div>` : ''}
         </div>`;
-    }).join('');
+    }).join('') + '</div>';
 
     // Rejected banner
     let rejectedBanner = '';
@@ -1559,15 +1547,10 @@
         <div>
           <div class="sum-row"><span class="lbl">Subtotal</span><span class="val">${DB.fmtINR(subtotal)}</span></div>
           ${cancelledRow}
-          <div class="sum-row">
-            <span class="lbl">Shipping${order.shippingMethod ? ' · ' + escapeHtml(order.shippingMethod) : ''}</span>
-            <span class="val">${DB.fmtINR(fee)}</span>
-          </div>
           <div class="sum-divider"></div>
           <div class="sum-row sum-total"><span>Total</span><span>${DB.fmtINR(total)}</span></div>
           ${lockedRow}
           ${tobepaidRow}
-          <div class="sum-muted">Funds locked from site wallet · settled on delivery</div>
         </div>
       </div>`;
   }
@@ -1645,14 +1628,13 @@
         <div>
           ${renderVendorCommitment(order)}
           ${renderTimeline(order)}
+          ${renderItems(order)}
           ${renderShipment(order)}
         </div>
         <!-- RIGHT -->
         <div>
           ${renderApproval(order)}
           ${renderAddress(order)}
-          ${renderSoldBy(order)}
-          ${renderItems(order)}
           ${renderSummary(order)}
           ${renderActions(order)}
         </div>
