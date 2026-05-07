@@ -1395,6 +1395,11 @@ function contextRow(o){
 }
 
 function actions(o){
+  let st = o.status;
+  if (window.ZE && ZE.orders && typeof ZE.orders.deriveStatus === 'function') {
+    try { const d = ZE.orders.deriveStatus(o) || {}; if (d.status) st = d.status; } catch(e){}
+  }
+  o = Object.assign({}, o, { status: st });
   const chatBtn = `<button class="btn-sm btn-chat btn-icon-only" data-stop data-toggle-chat aria-label="${o.status==='placed'||o.chatTag==='queued'?'Open chat':'Chat'}"><i data-lucide="message-square" class="w-4 h-4"></i>${o.unread?`<span class="unread-dot">${o.unread}</span>`:''}</button>`;
   if (o.status === 'placed') {
     const viewBtn = `<a href="admin_accept_order_1.html?id=${encodeURIComponent(o.id)}" class="btn-sm btn-primary-outline" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View &amp; Accept</a>`;
