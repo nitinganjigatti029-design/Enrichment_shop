@@ -2,81 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>ZooEnrich · Add Product</title>
+  <title>ZooEnrich · Admin — Add product</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="tokens.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="data.js?v=20260504c"></script>
-  <script src="app.js?v=20260504c"></script>
+  <script src="data.js?v=20260505a"></script>
+  <script src="app.js?v=20260505a"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
 
-    /* =========== Vendor header (UNIFIED) =========== */
+    /* =========== Buyer header (cloned from admin_products_1) =========== */
     .app-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .app-header .row { display: flex; align-items: center; gap: 20px; height: 68px; }
-    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); flex-shrink: 0; text-decoration: none; }
-    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+    .app-header .row { display: flex; align-items: center; gap: 20px; height: 72px; }
+    .brand-mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); letter-spacing: -0.01em; text-decoration: none; }
+    .brand-mark .logo-box { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
 
-    .v-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-    .v-nav::-webkit-scrollbar { display: none; }
-    .v-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
-    .v-nav a:hover { color: var(--text); background: #F1F2F4; }
-    .v-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
-    .v-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: 2px; }
+    .search-pill { flex: 1; max-width: 560px; height: 48px; background: #F1F2F4; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--text-muted); transition: .15s; border: 1.5px solid transparent; }
+    .search-pill:focus-within { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(55,189,105,.12); }
+    .search-pill input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); }
+    .search-pill .kbd { background: #fff; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
 
-    .v-right { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .v-avatar-wrap { position: relative; }
-    .v-avatar-btn { display: inline-flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: .15s; }
-    .v-avatar-btn:hover { border-color: var(--border-strong); background: #F9FAFB; }
-    .v-avatar-btn img { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); }
-    .v-avatar-btn .v-name { font-size: 13px; font-weight: 600; color: var(--text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .v-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 80; }
-    .v-menu.open { display: block; }
-    .v-menu a, .v-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; text-align: left; text-decoration: none; }
-    .v-menu a:hover, .v-menu button:hover { background: #F1F2F4; }
-    .v-menu .divider { height: 1px; background: var(--border); margin: 6px 4px; }
-    .v-menu .muted { color: var(--text-muted); font-size: 12px; padding: 6px 12px; }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .header-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; transition: .15s; background: transparent; border: none; position: relative; min-width: 64px; }
+    .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-btn.active { background: var(--brand-soft); color: var(--brand-hover); }
+    .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-btn .badge-dot { position: absolute; top: 4px; right: 12px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid #fff; }
+    .avatar { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); margin-left: 8px; cursor: pointer; }
 
+    /* Avatar dropdown */
+    .avatar-wrap { position: relative; margin-left: 8px; }
+    .avatar-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-md); min-width: 220px; padding: 6px; z-index: 60; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: .15s; }
+    .avatar-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .avatar-menu .menu-header { padding: 10px 12px 8px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .avatar-menu .menu-header .name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .avatar-menu .menu-header .email { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
+    .avatar-menu a, .avatar-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: var(--text); background: transparent; border: none; cursor: pointer; transition: .12s; text-decoration: none; }
+    .avatar-menu a:hover, .avatar-menu button:hover { background: var(--card-subtle); color: var(--brand-hover); }
+    .avatar-menu a.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .avatar-menu a.active .menu-check { margin-left: auto; color: var(--brand-hover); }
+    .avatar-menu .menu-sep { height: 1px; background: var(--border); margin: 6px 0; }
+    .avatar-menu .sign-out { color: var(--danger); }
+    .signin-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; margin-left: 8px; transition: .15s; }
+    .signin-pill:hover { background: var(--brand-hover); }
+
+    /* =========== Mobile hamburger button + drawer =========== */
+    .mobile-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
+    .mobile-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
+    @media (max-width: 767px) { .mobile-menu-btn { display: inline-flex; } }
+
+    .mobile-nav-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); z-index: 110; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .mobile-nav-overlay.open { opacity: 1; pointer-events: auto; }
+    .mobile-nav-drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(320px, 82vw); background: #fff; z-index: 111; transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: 6px 0 24px rgba(0,0,0,.2); }
+    .mobile-nav-drawer.open { transform: translateX(0); }
+    .mobile-nav-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .mobile-nav-head .avatar-big { width: 44px; height: 44px; border-radius: 999px; object-fit: cover; border: 2px solid var(--border); }
+    .mobile-nav-head .nav-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .mobile-nav-head .nav-sub  { font-size: 12px; color: var(--text-muted); }
+    .mobile-nav-head .close { margin-left: auto; width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .mobile-nav-body { padding: 12px 10px; overflow-y: auto; flex: 1; }
+    .mobile-nav-body .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; font-size: 14px; color: var(--text); cursor: pointer; text-decoration: none; }
+    .mobile-nav-body .nav-item:hover { background: #F4F5F7; }
+    .mobile-nav-body .nav-item.active { background: var(--brand-soft); color: var(--brand-hover); font-weight: 600; }
+    .mobile-nav-body .nav-item.active i { color: var(--brand-hover); }
+    .mobile-nav-body .nav-item i { color: var(--text-muted); }
+    .mobile-nav-body .nav-divider { height: 1px; background: var(--border); margin: 8px 6px; }
+
+    /* =========== Responsive: header =========== */
     @media (max-width: 900px) {
-      .v-avatar-btn .v-name { display: none; }
-      .v-nav { display: none !important; }
-      .app-header .row { gap: 12px !important; }
+      .app-header .row { height: 60px !important; gap: 10px; }
+      .search-pill { display: none !important; }
+      .header-btn span { display: none !important; }
+      .header-btn { min-width: 40px !important; padding: 8px !important; }
+    }
+    @media (max-width: 767px) {
+      .header-btn#ordersBtn, .header-btn#savedBtn { display: none !important; }
+      .avatar-wrap { display: none !important; }
+      .brand-mark { font-size: 17px !important; }
+      .brand-mark .logo-box { width: 28px; height: 28px; }
     }
     @media (max-width: 400px) {
       .brand-mark > span:not(.logo-box) { display: none; }
     }
 
-    /* =========== Shared vendor mobile drawer =========== */
-    .vendor-menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; background: #F1F2F4; border: none; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
-    .vendor-menu-btn:hover { background: var(--brand-soft); color: var(--brand); }
-    @media (max-width: 900px) { .vendor-menu-btn { display: inline-flex; } }
-    .vendor-drawer-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); opacity: 0; pointer-events: none; transition: .2s; z-index: 90; }
-    .vendor-drawer-overlay.open { opacity: 1; pointer-events: auto; }
-    .vendor-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw; background: var(--card); transform: translateX(-100%); transition: .25s cubic-bezier(.2,.8,.2,1); z-index: 100; display: flex; flex-direction: column; box-shadow: 6px 0 20px rgba(0,0,0,.15); }
-    .vendor-drawer.open { transform: translateX(0); }
-    .vd-head { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
-    .vd-head .brand-mark { font-size: 17px; }
-    .vd-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    .vd-close:hover { background: #F1F2F4; color: var(--text); }
-    .vd-nav { display: flex; flex-direction: column; padding: 12px 0; gap: 2px; flex: 1; overflow-y: auto; }
-    .vd-nav a { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: var(--text); font-size: 14px; font-weight: 500; text-decoration: none; }
-    .vd-nav a:hover, .vd-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
-    .vd-nav a i { color: var(--text-muted); }
-    .vd-nav a:hover i, .vd-nav a.active i { color: var(--brand-hover); }
-    .vd-nav a .nav-badge { min-width: 20px; height: 20px; padding: 0 6px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-left: auto; }
-    .vd-foot { padding: 14px 16px; border-top: 1px solid var(--border); }
-    .vd-foot .btn-ghost { width: 100%; padding: 11px 14px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .vd-foot .btn-ghost:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
-
     /* =========== Breadcrumb =========== */
-    .crumb { padding: 24px 0 10px; font-size: 12px; color: var(--text-muted); display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-    .crumb a { color: var(--text-muted); font-weight: 500; }
-    .crumb a:hover { color: var(--brand); }
-    .crumb .sep { color: var(--text-subtle); }
-    .crumb .now { color: var(--text); font-weight: 600; }
+    .crumbs { font-size: 12px; color: var(--text-muted); padding: 22px 0 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .crumbs a { color: var(--text-muted); text-decoration: none; }
+    .crumbs a:hover { color: var(--brand); }
+    .crumbs .sep { color: var(--text-subtle); }
+    .crumbs .current { color: var(--text); font-weight: 600; }
 
     /* =========== Title row =========== */
     .title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0 22px; flex-wrap: wrap; }
@@ -146,91 +164,220 @@
     .tag-chip.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-hover); font-weight: 600; }
     .tag-chip.active .dot { background: var(--brand-hover); }
 
-    /* Species multi-select grid */
-    .species-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    @media (max-width: 700px) { .species-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 460px) { .species-grid { grid-template-columns: 1fr; } }
-    .spc { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: .15s; user-select: none; background: var(--card); }
-    .spc:hover { border-color: var(--border-strong); background: #F9FAFB; }
-    .spc.active { border-color: var(--brand); background: var(--brand-soft); }
-    .spc img { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
-    .spc .nm { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
-    .spc .tk { font-size: 11px; color: var(--text-muted); }
-    .spc-count { font-size: 12px; color: var(--text-muted); margin-top: 10px; font-weight: 500; }
+    /* =========== Unified taxonomy (categories + tags) chips =========== */
+    .tx-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 38px; }
+    .tx-wrap.invalid { outline: 2px dashed var(--danger); outline-offset: 6px; border-radius: 12px; }
+    .tx-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px 6px 12px; border-radius: 999px; background: #F1F2F4; color: var(--text); font-size: 13px; font-weight: 600; cursor: default; transition: .15s; border: 1.5px solid transparent; }
+    .tx-chip .tx-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--text-muted); flex-shrink: 0; }
+    .tx-chip .tx-lbl { line-height: 1; }
+    .tx-chip .tx-kind { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); opacity: .7; margin-left: 2px; }
+    .tx-chip .tx-x { width: 18px; height: 18px; border-radius: 999px; background: rgba(15,23,42,.08); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: .15s; border: none; color: var(--text-muted); padding: 0; }
+    .tx-chip .tx-x:hover { background: var(--danger); color: #fff; }
+    .tx-chip .tx-x i { width: 11px; height: 11px; }
+    .tx-add { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: var(--card); color: var(--brand); border: 1.5px dashed var(--brand); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; font-family: var(--font); }
+    .tx-add:hover { background: var(--brand-soft); border-style: solid; }
+    .tx-add i { width: 14px; height: 14px; }
+
+    /* =========== Taxonomy side sheet =========== */
+    .tx-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .tx-overlay.open { opacity: 1; pointer-events: auto; }
+    .tx-sheet { position: fixed; top: 0; bottom: 0; right: 0; width: 440px; max-width: 100vw; background: var(--card); z-index: 201; transform: translateX(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: -6px 0 24px rgba(0,0,0,.18); }
+    .tx-sheet.open { transform: translateX(0); }
+    .tx-sheet-grab { display: none; width: 40px; height: 4px; border-radius: 999px; background: var(--border); margin: 8px auto 0; }
+    .tx-sheet-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--border); background: var(--card); z-index: 2; flex-shrink: 0; }
+    .tx-sheet-head h3 { font-size: 16px; font-weight: 700; color: var(--text); flex: 1; letter-spacing: -0.01em; }
+    .tx-sheet-close { width: 36px; height: 36px; border-radius: 999px; background: #F1F2F4; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text); transition: .15s; }
+    .tx-sheet-close:hover { background: var(--border); }
+    .tx-sheet-search { padding: 12px 20px 8px; background: var(--card); z-index: 2; border-bottom: 1px solid transparent; flex-shrink: 0; }
+    .tx-sheet-search .search-box { display: flex; align-items: center; gap: 8px; background: #F1F2F4; border: 1.5px solid transparent; border-radius: 999px; padding: 0 14px; height: 40px; transition: .15s; }
+    .tx-sheet-search .search-box:focus-within { background: var(--card); border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .tx-sheet-search input { flex: 1; background: transparent; border: none; outline: none; font-size: 14px; color: var(--text); font-family: var(--font); }
+    .tx-sheet-search i { color: var(--text-muted); width: 16px; height: 16px; flex-shrink: 0; }
+    .tx-sheet-tabs { display: flex; gap: 6px; padding: 8px 20px 12px; border-bottom: 1px solid var(--border); background: var(--card); z-index: 2; flex-shrink: 0; }
+    .tx-sheet-tabs .tab { flex: 0 0 auto; padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: .15s; font-family: var(--font); }
+    .tx-sheet-tabs .tab:hover { border-color: var(--border-strong); color: var(--text); }
+    .tx-sheet-tabs .tab.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-hover); }
+    .tx-sheet-body { flex: 1; overflow-y: auto; padding: 6px 0 6px; }
+    .tx-sheet-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    .tx-sheet-empty i { width: 28px; height: 28px; color: var(--text-subtle); display: block; margin: 0 auto 10px; }
+    .tx-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; transition: .12s; border-bottom: 1px solid var(--border); user-select: none; }
+    .tx-row:hover { background: #F9FAFB; }
+    .tx-row.selected { background: var(--brand-soft); }
+    .tx-row .tx-row-ico { width: 34px; height: 34px; border-radius: 10px; background: var(--card-subtle); display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; }
+    .tx-row.selected .tx-row-ico { background: #fff; color: var(--brand-hover); }
+    .tx-row .tx-row-ico .tx-row-dot { width: 12px; height: 12px; border-radius: 999px; }
+    .tx-row .tx-row-main { flex: 1; min-width: 0; }
+    .tx-row .tx-row-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-row .tx-row-kind { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+    .tx-row.selected .tx-row-kind { color: var(--brand-hover); opacity: .75; }
+    .tx-row .tx-row-check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border); display: inline-flex; align-items: center; justify-content: center; background: var(--card); flex-shrink: 0; transition: .15s; }
+    .tx-row.selected .tx-row-check { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .tx-row .tx-row-check i { width: 13px; height: 13px; }
+    .tx-sheet-foot { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--card); z-index: 2; flex-shrink: 0; }
+    .tx-sheet-foot .tx-foot-count { font-size: 13px; color: var(--text-muted); font-weight: 500; flex: 1; }
+    .tx-sheet-foot .tx-foot-count strong { color: var(--text); font-weight: 700; }
+    .tx-sheet-foot .tx-clear { background: transparent; border: none; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 10px; border-radius: 8px; font-family: var(--font); }
+    .tx-sheet-foot .tx-clear:hover { background: rgba(233,51,83,.08); }
+    .tx-sheet-foot .tx-clear.disabled { color: var(--text-subtle); cursor: not-allowed; pointer-events: none; }
+    .tx-sheet-foot .tx-apply { padding: 10px 22px; border-radius: 999px; background: var(--brand); color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; font-family: var(--font); box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .tx-sheet-foot .tx-apply:hover { background: var(--brand-hover); }
+
+    @media (max-width: 600px) {
+      .tx-sheet { width: 100vw; top: auto; height: 92vh; border-top-left-radius: 18px; border-top-right-radius: 18px; transform: translateY(100%); }
+      .tx-sheet.open { transform: translateY(0); }
+      .tx-sheet-grab { display: block; }
+      .tx-sheet-head { padding-top: 10px; }
+    }
+
+    /* Species chip avatar override */
+    .tx-chip .tx-sp-avatar { width: 20px; height: 20px; border-radius: 999px; object-fit: cover; background: var(--card-subtle); margin-right: 2px; flex-shrink: 0; }
+    /* Species side-sheet row: bigger avatar (48x48, radius 10), common + scientific */
+    .tx-row.sp-row { align-items: flex-start; padding: 10px 20px; }
+    .tx-row.sp-row .tx-sp-img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: var(--card-subtle); flex-shrink: 0; }
+    .tx-row.sp-row .tx-row-main { display: flex; flex-direction: column; gap: 2px; justify-content: center; }
+    .tx-row.sp-row .tx-row-name { font-family: 'Inter', var(--font); font-size: 14px; font-weight: 600; color: var(--text); }
+    .tx-row.sp-row .tx-row-sci { font-family: 'Inter', var(--font); font-size: 12px; font-style: italic; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-row.sp-row.selected .tx-row-sci { color: var(--brand-hover); opacity: .85; }
+    .tx-row.sp-row .tx-row-check { align-self: center; }
 
     /* Unit-price pill */
     .price-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-soft); color: var(--brand-hover); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; margin-top: 10px; }
 
-    /* =========== Attributes card =========== */
-    .attr-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-    .attr-row { display: grid; grid-template-columns: 180px 1fr auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--card); transition: .15s; }
-    .attr-row:hover { border-color: var(--border-strong); }
-    @media (max-width: 720px) { .attr-row { grid-template-columns: 1fr auto; } .attr-row .attr-name { grid-column: 1 / -1; } }
-    .attr-name { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text); }
-    .attr-name .attr-ico { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .attr-name .attr-custom { font-size: 10px; background: #EEF2FF; color: #4338CA; padding: 2px 6px; border-radius: 999px; font-weight: 700; letter-spacing: 0.03em; }
-    .attr-remove { width: 30px; height: 30px; border-radius: 999px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
-    .attr-remove:hover { background: #FFF1F3; color: var(--danger); }
+    /* =========== Attributes — chip-row + side sheets =========== */
+    /* Type badge rendered inside select-attribute rows */
+    .ar-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 8px; flex-shrink: 0; }
+    .ar-badge.ar-input { background: #F1F2F4; color: var(--text-muted); }
+    .ar-badge.ar-select { background: var(--brand-soft); color: var(--brand-hover); }
+    .ar-badge.ar-custom { background: #EEF2FF; color: #4338CA; margin-left: 6px; }
 
-    .attr-ctrl { min-width: 0; }
-    .attr-ctrl .pill-seg { display: flex; flex-wrap: wrap; gap: 6px; }
-    .attr-ctrl .pill-seg button { padding: 6px 12px; border-radius: 999px; background: #F1F2F4; color: var(--text); border: 1.5px solid transparent; font-size: 12px; font-weight: 500; cursor: pointer; transition: .15s; }
-    .attr-ctrl .pill-seg button:hover { background: #E5E7EB; }
-    .attr-ctrl .pill-seg button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    /* Attribute-select sheet rows: header area + expandable value panel */
+    .ar-row { display: block; padding: 0; cursor: default; border-bottom: 1px solid var(--border); transition: .12s; user-select: none; }
+    .ar-row:hover { background: #FAFBFC; }
+    .ar-row.expanded { background: var(--brand-soft); }
+    .ar-row.has-value { background: #F3FAF6; }
+    .ar-row-head { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; }
+    .ar-row-ico { width: 34px; height: 34px; border-radius: 10px; background: var(--card-subtle); display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; }
+    .ar-row.has-value .ar-row-ico, .ar-row.expanded .ar-row-ico { background: #fff; color: var(--brand-hover); }
+    .ar-row-main { flex: 1; min-width: 0; }
+    .ar-row-title { display: flex; align-items: center; flex-wrap: wrap; }
+    .ar-row-title .nm { font-size: 14px; font-weight: 600; color: var(--text); }
+    .ar-row-val { font-size: 12px; color: var(--brand-hover); font-weight: 600; margin-top: 3px; display: none; }
+    .ar-row.has-value .ar-row-val { display: block; }
+    .ar-row-check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border); display: inline-flex; align-items: center; justify-content: center; background: var(--card); flex-shrink: 0; transition: .15s; color: var(--text-muted); cursor: pointer; }
+    .ar-row-check:hover { border-color: var(--brand); }
+    .ar-row-check:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .ar-row.has-value .ar-row-check { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .ar-row-check i { width: 13px; height: 13px; }
+    .ar-row-chev { width: 18px; height: 18px; color: var(--text-muted); margin-left: 4px; flex-shrink: 0; transition: transform .15s; }
+    .ar-row.expanded .ar-row-chev { transform: rotate(180deg); color: var(--brand-hover); }
 
-    .attr-ctrl .swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .attr-ctrl .swatch { width: 30px; height: 30px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); cursor: pointer; transition: .15s; }
-    .attr-ctrl .swatch.active { box-shadow: 0 0 0 2px var(--brand); transform: scale(1.1); }
+    /* Expandable value panel */
+    .ar-row-panel { display: none; padding: 4px 20px 14px 66px; border-top: 1px dashed var(--border); background: #fff; }
+    .ar-row.expanded .ar-row-panel { display: block; }
+    .ar-row-panel .ar-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ar-opt-chip { padding: 6px 12px; border-radius: 999px; background: #F1F2F4; color: var(--text); border: 1.5px solid transparent; font-size: 12px; font-weight: 500; cursor: pointer; transition: .15s; font-family: var(--font); }
+    .ar-opt-chip:hover { background: #E5E7EB; }
+    .ar-opt-chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .ar-opt-chip.swatch { width: 28px; height: 28px; padding: 0; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+    .ar-opt-chip.swatch.active { box-shadow: 0 0 0 2px var(--brand); transform: scale(1.08); }
+    .ar-input-wrap { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .ar-input { flex: 1; height: 38px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; outline: none; font-family: var(--font); background: #fff; }
+    .ar-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
+    .ar-panel-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-    /* Toggle switch */
-    .toggle { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
-    .toggle input { position: absolute; opacity: 0; pointer-events: none; }
-    .toggle .track { width: 40px; height: 22px; border-radius: 999px; background: #E5E7EB; position: relative; transition: .2s; flex-shrink: 0; }
-    .toggle .track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: .2s; }
-    .toggle input:checked + .track { background: var(--brand); }
-    .toggle input:checked + .track::after { transform: translateX(18px); }
-    .toggle .lbl { font-size: 13px; color: var(--text); font-weight: 500; }
+    /* Create-attribute form inside a side sheet */
+    .ac-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .ac-field { display: flex; flex-direction: column; gap: 6px; }
+    .ac-field label { font-size: 12px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: 0.04em; }
+    .ac-field .hint { font-size: 11px; color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: -2px; }
+    .ac-input { width: 100%; height: 40px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 14px; outline: none; font-family: var(--font); background: #fff; color: var(--text); }
+    .ac-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
 
-    /* Empty attrs */
-    .attr-empty { padding: 22px; text-align: center; font-size: 13px; color: var(--text-muted); border: 1.5px dashed var(--border); border-radius: 12px; margin-top: 8px; }
+    /* Required toggle */
+    .ac-toggle { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .ac-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .ac-toggle .track { width: 40px; height: 22px; border-radius: 999px; background: #E5E7EB; position: relative; transition: .2s; flex-shrink: 0; }
+    .ac-toggle .track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: .2s; }
+    .ac-toggle input:checked + .track { background: var(--brand); }
+    .ac-toggle input:checked + .track::after { transform: translateX(18px); }
+    .ac-toggle .ac-toggle-lbl { font-size: 13px; color: var(--text); font-weight: 500; }
 
-    /* Add-attribute button + popover */
-    .add-attr-wrap { position: relative; margin-top: 14px; }
-    .add-attr-btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 14px; border-radius: 12px; border: 1.5px dashed var(--border-strong); background: #fff; color: var(--brand); font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
-    .add-attr-btn:hover { border-color: var(--brand); background: var(--brand-soft); }
-    .attr-pop { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 12px; z-index: 60; display: none; max-height: 420px; overflow-y: auto; max-width: 90vw; }
-    .attr-pop.open { display: block; animation: fadeUp .18s ease both; border-color: var(--brand); }
-    @media (max-width: 600px) { .attr-pop { max-width: 90vw; max-height: 60vh; } }
-    .attr-search { width: 100%; height: 38px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; outline: none; margin-bottom: 8px; }
-    .attr-search:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.12); }
-    .attr-pop-list { max-height: 240px; overflow-y: auto; }
-    .attr-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text); }
-    .attr-opt:hover { background: #F4F5F7; }
-    .attr-opt .ico { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-hover); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .attr-opt .name { flex: 1; font-weight: 500; }
-    .attr-opt .meta { color: var(--text-subtle); font-size: 11px; }
-    .attr-pop-divider { height: 1px; background: var(--border); margin: 8px 0; }
-    .create-attr-row { padding: 10px; border-radius: 10px; cursor: pointer; color: var(--brand); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .create-attr-row:hover { background: var(--brand-soft); }
-    .attr-empty-state { padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px; }
+    /* Segmented type selector */
+    .ac-seg { display: flex; gap: 8px; }
+    .ac-seg-btn { flex: 1; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; transition: .15s; font-family: var(--font); }
+    .ac-seg-btn:hover { border-color: var(--border-strong); }
+    .ac-seg-btn.active { border-color: var(--brand); background: var(--brand-soft); }
+    .ac-seg-btn .ac-seg-head { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text); }
+    .ac-seg-btn.active .ac-seg-head { color: var(--brand-hover); }
+    .ac-seg-btn .ac-seg-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 
-    /* Create-attribute inline form */
-    .create-form { border: 1.5px solid var(--brand); border-radius: 12px; padding: 14px; background: var(--brand-soft); margin-top: 4px; }
-    .create-form .field label { color: var(--text); }
-    .create-form .mini { width: 100%; height: 38px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; outline: none; background: #fff; }
-    .create-form .mini:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(55,189,105,.15); }
-    .create-form .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-    .create-form .btn-sm { padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-    .create-form .btn-sm.primary { background: var(--brand); color: #fff; }
-    .create-form .btn-sm.primary:hover { background: var(--brand-hover); }
-    .create-form .btn-sm.ghost { background: transparent; color: var(--text); }
-    .create-form .btn-sm.ghost:hover { background: rgba(0,0,0,.05); }
+    /* Options list builder (inside creator) */
+    .ac-opts-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .ac-opt-row { display: flex; gap: 8px; }
+    .ac-opt-add { height: 40px; padding: 0 16px; border-radius: 10px; background: var(--brand); color: #fff; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-family: var(--font); transition: .15s; }
+    .ac-opt-add:hover { background: var(--brand-hover); }
+    .ac-opt-add:disabled { opacity: .5; cursor: not-allowed; }
+    .ac-opt-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
+    .ac-opt-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 6px 5px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 12px; font-weight: 600; border: 1.5px solid transparent; }
+    .ac-opt-chip .x { width: 18px; height: 18px; border-radius: 999px; background: rgba(55,189,105,.22); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: var(--brand-hover); padding: 0; }
+    .ac-opt-chip .x:hover { background: var(--brand); color: #fff; }
+    .ac-opt-chip .x i { width: 10px; height: 10px; }
+    .ac-opt-empty { font-size: 12px; color: var(--text-muted); padding: 4px 0; font-style: italic; }
+
+    /* Creator sheet footer */
+    .ac-foot { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+    .ac-foot .ac-cancel { padding: 10px 18px; border-radius: 999px; background: transparent; color: var(--text); border: 1.5px solid var(--border-strong); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: .15s; }
+    .ac-foot .ac-cancel:hover { background: #F1F2F4; }
+    .ac-foot .ac-save { margin-left: auto; padding: 10px 22px; border-radius: 999px; background: var(--brand); color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: .15s; font-family: var(--font); box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); display: inline-flex; align-items: center; gap: 6px; }
+    .ac-foot .ac-save:hover { background: var(--brand-hover); }
+    .ac-foot .ac-save:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+    /* Stack creator footer buttons on mobile */
+    @media (max-width: 420px) {
+      .ac-seg { flex-direction: column; }
+    }
 
     /* =========== Image card =========== */
     .drop-zone { border: 2px dashed var(--border-strong); border-radius: 12px; padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px; background: var(--card-subtle); cursor: pointer; transition: .15s; }
-    .drop-zone:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-hover); }
+    .drop-zone:hover, .drop-zone.is-drag { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-hover); }
     .drop-zone .ico { width: 44px; height: 44px; border-radius: 999px; background: #fff; color: var(--brand); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px; }
     .drop-zone strong { color: var(--text); font-weight: 600; }
+
+    /* =========== Multi-image uploader =========== */
+    .img-count { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-hover); font-size: 11px; font-weight: 600; margin-bottom: 12px; letter-spacing: 0.02em; }
+    .img-count.full { background: #FEF3C7; color: #92400E; }
+    .img-count .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; opacity: .75; }
+
+    .img-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 1023px) { .img-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px)  { .img-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .img-tile { position: relative; aspect-ratio: 16 / 12; border-radius: 10px; overflow: hidden; background: var(--card-subtle); border: 1px solid var(--border); cursor: grab; transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+    .img-tile:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 18px -6px rgba(15,23,42,.18); z-index: 2; }
+    .img-tile:active { cursor: grabbing; }
+    .img-tile.dragging { opacity: .45; }
+    .img-tile.drag-over { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .img-tile img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+
+    .img-tile .tile-primary { position: absolute; top: 6px; left: 6px; background: var(--brand-soft); color: var(--brand-hover); font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; backdrop-filter: blur(6px); box-shadow: 0 2px 6px -2px rgba(0,0,0,.15); }
+
+    .img-tile .tile-remove { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 999px; border: none; background: rgba(15,23,42,.72); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s, background .15s, transform .15s; }
+    .img-tile:hover .tile-remove { opacity: 1; }
+    .img-tile .tile-remove:hover { background: var(--danger, #dc2626); transform: scale(1.1); }
+    @media (max-width: 640px) { .img-tile .tile-remove { opacity: 1; } }
+
+    .img-tile .tile-make-primary { position: absolute; bottom: 6px; left: 6px; right: 6px; background: rgba(15,23,42,.72); color: #fff; border: none; font-size: 11px; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+    .img-tile:hover .tile-make-primary { opacity: 1; }
+    .img-tile .tile-make-primary:hover { background: var(--brand-hover); }
+    .img-tile.is-primary .tile-make-primary { display: none; }
+
+    .img-add-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; aspect-ratio: 16 / 12; border: 2px dashed var(--border-strong); border-radius: 10px; background: var(--card-subtle); color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; transition: .15s; text-align: center; padding: 8px; }
+    .img-add-tile:hover, .img-add-tile.is-drag { border-color: var(--brand); color: var(--brand-hover); background: var(--brand-soft); }
+    .img-add-tile .ico-sm { width: 32px; height: 32px; border-radius: 999px; background: #fff; color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+    .img-add-tile.is-full { opacity: .55; cursor: not-allowed; }
+
+    .img-caveat { font-size: 11px; color: var(--text-muted); margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; }
+    .img-caveat i { color: var(--text-subtle); }
 
     .gen-area { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
     .gen-row { display: flex; gap: 10px; align-items: flex-end; }
@@ -271,100 +418,124 @@
     .act-delete:hover { background: #FFF1F3; }
     .act-foot { font-size: 11px; color: var(--text-subtle); line-height: 1.45; padding-top: 10px; border-top: 1px solid var(--border); }
 
+    /* ===== Sticky bottom action bar (full-width) ===== */
+    .form-stickybar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--border); box-shadow: 0 -10px 28px -12px rgba(15,23,42,.14); z-index: 45; padding: 12px 24px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .form-stickybar .sb-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+    .form-stickybar .sb-note { font-size: 12px; color: var(--text-muted); flex: 1; line-height: 1.4; }
+    .form-stickybar .sb-note code { background: var(--card-subtle); padding: 1px 6px; border-radius: 4px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--text); }
+    .form-stickybar .sb-right { display: inline-flex; gap: 10px; align-items: center; flex-shrink: 0; }
+    .form-stickybar button { border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font-family: var(--font); transition: .15s; }
+    .form-stickybar .sb-delete { height: 42px; padding: 0 18px; background: #fff; color: var(--danger); border: 1.5px solid var(--danger); font-size: 13px; font-weight: 600; }
+    .form-stickybar .sb-delete:hover { background: var(--danger-bg); }
+    .form-stickybar .sb-preview { height: 42px; padding: 0 16px; background: transparent; color: var(--brand); font-size: 13px; font-weight: 600; }
+    .form-stickybar .sb-preview:hover { background: var(--brand-soft); color: var(--brand-hover); }
+    .form-stickybar .sb-draft { height: 42px; padding: 0 20px; background: #fff; color: var(--brand); border: 1.5px solid var(--brand); font-size: 13px; font-weight: 600; }
+    .form-stickybar .sb-draft:hover { background: var(--brand-soft); }
+    .form-stickybar .sb-save { height: 46px; padding: 0 26px; background: var(--brand); color: #fff; font-size: 14px; font-weight: 700; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); }
+    .form-stickybar .sb-save:hover { background: var(--brand-hover); transform: translateY(-1px); }
+    /* Push page content up so sticky bar doesn't cover the form */
+    body { padding-bottom: 84px; }
+    @media (max-width: 900px) {
+      .form-stickybar { padding: 10px 14px; }
+      .form-stickybar .sb-note { display: none; }
+    }
+    @media (max-width: 600px) {
+      .form-stickybar .sb-inner { gap: 8px; }
+      .form-stickybar .sb-delete span, .form-stickybar .sb-preview span, .form-stickybar .sb-draft span { display: none; }
+      .form-stickybar .sb-delete, .form-stickybar .sb-preview, .form-stickybar .sb-draft { padding: 0 12px; }
+      .form-stickybar .sb-save { padding: 0 18px; height: 44px; font-size: 13px; }
+      body { padding-bottom: 76px; }
+    }
+
     /* Toast */
     .ze-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0F172A; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: .25s; z-index: 200; max-width: 360px; }
     .ze-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .anim-up { animation: fadeUp .4s cubic-bezier(.2,.8,.2,1) both; }
   </style>
-  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
 </head>
 <body data-device="desktop">
 <div class="device-shell"><div class="device-inner">
 
-  <!-- =============== HEADER =============== -->
+  <!-- =============== BUYER HEADER =============== -->
   <header class="app-header">
     <div class="page-wrap row">
-      <a href="admin_dashboard_1.html" class="brand-mark">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open menu">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <a href="index_1.html" class="brand-mark">
         <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
         <span>ZooEnrich</span>
       </a>
 
-      <button class="vendor-menu-btn" id="vendorMenuBtn" aria-label="Open menu" type="button">
-        <i data-lucide="menu" class="w-5 h-5"></i>
-      </button>
+      <label class="search-pill">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <input type="text" placeholder="Search catalog…"/>
+        <span class="kbd">⌘K</span>
+      </label>
 
-      <nav class="v-nav" id="vNav">
-        <a href="admin_dashboard_1.html" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
-        <a href="admin_orders_1.html" data-nav="orders"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span></a>
-        <a href="admin_products_1.html" class="active" data-nav="products"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
-        <a href="admin_analytics_1.html" data-nav="analytics"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
-        <a href="admin_notifications_1.html" data-nav="notifications"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span><span class="nav-badge">3</span></a>
-        <a href="chat_1.html" data-nav="chat"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
-        <a href="admin_returns_1.html" data-nav="returns"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span><span class="nav-badge">2</span></a>
-      </nav>
-
-      <div class="v-right">
-        <div class="v-avatar-wrap">
-          <button class="v-avatar-btn" id="avatarBtn" aria-haspopup="menu">
-            <img id="vAvatar" src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin logo"/>
-            <span class="v-name" id="vName">TeakCraft</span>
-            <i data-lucide="chevron-down" class="w-4 h-4" style="color:var(--text-muted)"></i>
-          </button>
-          <div class="v-menu" id="vMenu" role="menu">
-            <div class="muted" id="vMenuEmail">Signed in</div>
-            <div class="divider"></div><a href="index_1.html" data-mode-switch="to-buyer" onclick="window.location.href='index_1.html';return false;"><i data-lucide="shopping-bag" class="w-4 h-4"></i>Switch to Buyer view</a>
-            <a href="admin_profile_1.html">
-              <i data-lucide="briefcase" class="w-4 h-4"></i>Business profile
-            </a>
-            <button id="btnSignOut">
-              <i data-lucide="log-out" class="w-4 h-4"></i>Sign out
-            </button>
-          </div>
-        </div>
+      <div class="header-actions">
+        <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
+          <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
+        </button>
+        <button class="header-btn" type="button" id="ordersBtn">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+          <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="savedBtn">
+          <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+          <span class="badge-dot" id="savedBadge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" type="button" id="cartBtn">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+          <span class="badge-dot" id="cartBadge" style="display:none">0</span>
+        </button>
+        <div id="userSlot"></div>
       </div>
     </div>
   </header>
 
-  <!-- =============== VENDOR MOBILE DRAWER =============== -->
-  <div class="vendor-drawer-overlay" id="vDrawerOverlay"></div>
-  <aside class="vendor-drawer" id="vDrawer" aria-hidden="true" aria-label="Admin navigation">
-    <div class="vd-head">
-      <span class="brand-mark">
-        <span class="logo-box"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
-        <span>ZooEnrich</span>
-      </span>
-      <button class="vd-close" type="button" aria-label="Close menu"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- =============== MOBILE NAV DRAWER =============== -->
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+    <div class="mobile-nav-head">
+      <img class="avatar-big" id="mobileNavAvatar" src="https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true" alt=""/>
+      <div>
+        <div class="nav-name" id="mobileNavName">Hello there</div>
+        <div class="nav-sub" id="mobileNavSub">My account</div>
+      </div>
+      <button class="close" id="mobileNavClose" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
-    <nav class="vd-nav">
-      <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-      <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i> Orders</a>
-      <a href="admin_products_1.html" class="active"><i data-lucide="package" class="w-4 h-4"></i> Products</a>
-      <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics</a>
-      <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i> Notifications <span class="nav-badge">3</span></a>
-      <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i> Chat</a>
-      <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Returns <span class="nav-badge">2</span></a>
-    </nav>
-    <div class="vd-foot">
-      <button class="btn-ghost" id="vDrawerSignOut" type="button"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
+    <div class="mobile-nav-body">
+      <a class="nav-item" href="profile_1.html"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>
+      <a class="nav-item" href="orders_1.html"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>
+      <a class="nav-item" href="saved_1.html"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>
+      <a class="nav-item" href="cart_1.html"><i data-lucide="shopping-bag" class="w-4 h-4"></i> Cart</a>
+      <a class="nav-item active" href="admin_products_1.html"><i data-lucide="shield" class="w-4 h-4"></i> Admin · Catalog</a>
+      <div class="nav-divider"></div>
+      <button class="nav-item" id="mobileNavSignOut" style="color: var(--danger); width: 100%; text-align: left; background: transparent; border: none; font: inherit;"><i data-lucide="log-out" class="w-4 h-4"></i> Sign out</button>
     </div>
   </aside>
 
   <!-- =============== BODY =============== -->
   <main class="page-wrap">
 
-    <nav class="crumb" aria-label="Breadcrumb">
-      <a href="admin_dashboard_1.html">Dashboard</a>
+    <!-- Breadcrumb -->
+    <div class="crumbs" aria-label="Breadcrumb">
+      <a href="index_1.html">Shop</a>
       <span class="sep">·</span>
-      <a href="admin_products_1.html">Products</a>
+      <span>Admin</span>
       <span class="sep">·</span>
-      <span class="now" id="crumbNow">Add new product</span>
-    </nav>
+      <a href="admin_products_1.html">Catalog manager</a>
+      <span class="sep">·</span>
+      <span class="current" id="crumbNow">Add product</span>
+    </div>
 
     <div class="title-row anim-up">
       <div>
-        <h1 id="pageTitle">Add a new product</h1>
-        <div class="sub">Fill in the details below. Buyers will see what you list here.</div>
+        <h1 id="pageTitle">Add a product</h1>
+        <div class="sub">List a new enrichment item in the catalog.</div>
       </div>
       <a href="admin_products_1.html" class="cancel-link">
         <i data-lucide="x" class="w-4 h-4"></i>Cancel
@@ -386,137 +557,61 @@
             <input type="text" id="fName" class="txt" maxlength="80" placeholder="e.g. Burlap Scent Sack"/>
           </div>
 
-          <div class="row-2">
-            <div class="field">
-              <label for="fCat">Category <span class="req">*</span></label>
-              <select id="fCat" class="txt">
-                <option value="">Choose a category…</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Tags <span class="counter" id="tagCount">0 selected</span></label>
-              <div class="tag-wrap" id="fTags"></div>
-            </div>
+          <div class="field">
+            <label for="fDescription">Description<span class="counter"><span id="descCount">0</span>/280</span></label>
+            <textarea id="fDescription" class="txt" rows="3" maxlength="280" placeholder="One-sentence pitch — what makes this enrichment effective?"></textarea>
           </div>
 
           <div class="field">
-            <label for="fShort">Short description</label>
-            <textarea id="fShort" class="txt" rows="3" placeholder="One-sentence pitch" maxlength="200"></textarea>
+            <label>Categories <span class="req">*</span><span class="counter" id="catCount">0 selected</span></label>
+            <div class="tx-wrap" id="fCategories"></div>
           </div>
 
           <div class="field">
-            <label for="fLong">Long description</label>
-            <textarea id="fLong" class="txt" rows="6" placeholder="Why is this enrichment effective? Which species benefits?"></textarea>
+            <label>Tags <span class="counter" id="tagCount">0 selected</span></label>
+            <div class="tx-wrap" id="fTags"></div>
+          </div>
+
+          <div class="field">
+            <label>Species tagged<span class="counter" id="spCount">0 selected</span></label>
+            <div class="tx-wrap" id="fSpecies"></div>
+          </div>
+
+          <div class="field">
+            <label>Attributes<span class="counter" id="attrCount">0 selected</span></label>
+            <div class="tx-wrap" id="fAttributes"></div>
           </div>
         </section>
 
-        <!-- 2. Compatible species -->
-        <section class="card anim-up" style="animation-delay:.05s">
-          <div class="card-head"><h3><i data-lucide="paw-print" class="w-4 h-4" style="color:var(--brand)"></i>Compatible species</h3></div>
-          <div class="card-sub">Pick every species this product is safe and effective for.</div>
-          <div class="species-grid" id="fSpecies"></div>
-          <div class="spc-count"><span id="spcN">0</span> selected</div>
-        </section>
-
-        <!-- 3. Pricing & stock -->
-        <section class="card anim-up" style="animation-delay:.1s">
-          <div class="card-head"><h3><i data-lucide="indian-rupee" class="w-4 h-4" style="color:var(--brand)"></i>Pricing &amp; stock</h3></div>
-          <div class="card-sub">Buyers see the sum of material + labor as the unit price.</div>
-
-          <div class="row-3">
-            <div class="field">
-              <label for="fMat">Material cost</label>
-              <div class="rupee-prefix"><input type="number" id="fMat" class="txt" min="0" step="1" placeholder="0"/></div>
-            </div>
-            <div class="field">
-              <label for="fLab">Labor cost</label>
-              <div class="rupee-prefix"><input type="number" id="fLab" class="txt" min="0" step="1" placeholder="0"/></div>
-            </div>
-            <div class="field">
-              <label for="fEff">Effort (hours)</label>
-              <div class="txt-suffix-wrap">
-                <input type="number" id="fEff" class="txt" min="0" step="0.25" placeholder="0"/>
-                <span class="txt-suffix">hrs</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="price-pill" id="pricePill">
-            <i data-lucide="tag" class="w-3.5 h-3.5"></i>
-            <span>Unit price: <strong id="unitPriceTxt">₹0</strong></span>
-          </div>
-
-          <div class="row-2" style="margin-top:16px">
-            <div class="field">
-              <label for="fStock">Starting stock</label>
-              <div class="txt-suffix-wrap">
-                <input type="number" id="fStock" class="txt" min="0" step="1" placeholder="0"/>
-                <span class="txt-suffix">units</span>
-              </div>
-            </div>
-            <div class="field">
-              <label for="fMin">Low-stock alert threshold</label>
-              <div class="txt-suffix-wrap">
-                <input type="number" id="fMin" class="txt" min="0" step="1" value="5"/>
-                <span class="txt-suffix">units</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 4. Attributes -->
-        <section class="card anim-up" style="animation-delay:.15s">
-          <div class="card-head"><h3><i data-lucide="tags" class="w-4 h-4" style="color:var(--brand)"></i>Product attributes <span class="n" id="attrN">0</span></h3></div>
-          <div class="card-sub">Tag your product so buyers can filter for it.</div>
-
-          <div class="attr-list" id="attrList"></div>
-
-          <div class="add-attr-wrap">
-            <button type="button" class="add-attr-btn" id="addAttrBtn">
-              <i data-lucide="plus" class="w-4 h-4"></i>Add attribute
-            </button>
-            <div class="attr-pop" id="attrPop" role="dialog" aria-label="Add attribute">
-              <input type="text" id="attrSearch" class="attr-search" placeholder="Search attributes…"/>
-              <div class="attr-pop-list" id="attrPopList"></div>
-              <div class="attr-pop-divider"></div>
-              <div class="create-attr-row" id="createAttrBtn">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                Create new attribute
-              </div>
-              <div id="createAttrForm" style="display:none"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 5. Images -->
+        <!-- 3. Images -->
         <section class="card anim-up" style="animation-delay:.2s">
           <div class="card-head"><h3><i data-lucide="image" class="w-4 h-4" style="color:var(--brand)"></i>Images</h3></div>
           <div class="card-sub">Upload or generate — you need at least one image.</div>
 
-          <div class="drop-zone" id="dropZone">
-            <div class="ico"><i data-lucide="upload-cloud" class="w-5 h-5"></i></div>
-            <div><strong>Drag an image here</strong> or click to browse</div>
-            <div style="font-size:11px;margin-top:4px;">PNG or JPG · up to 4MB</div>
+          <!-- Counter pill — visible once at least one image is uploaded -->
+          <div id="imgCount" class="img-count" style="display:none;">
+            <span class="dot"></span>
+            <span id="imgCountTxt">0 of 20 images</span>
           </div>
 
-          <div class="gen-area">
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-              <i data-lucide="sparkles" class="w-4 h-4" style="color:var(--brand)"></i>
-              Or generate with AI
-            </div>
-            <div class="gen-row">
-              <div class="field">
-                <label for="fPrompt">Image prompt</label>
-                <textarea id="fPrompt" class="txt" rows="2" placeholder="e.g. burlap scent sack with lavender sprigs, studio lighting, white background"></textarea>
-              </div>
-              <button type="button" class="gen-btn" id="genBtn">
-                <i data-lucide="wand-2" class="w-4 h-4"></i>Generate preview
-              </button>
-            </div>
-            <div class="gen-preview" id="genPreview">
-              <span>Your generated image will appear here.</span>
-            </div>
+          <!-- Empty drop zone (shown only when gallery is empty) -->
+          <div class="drop-zone" id="dropZone">
+            <div class="ico"><i data-lucide="upload-cloud" class="w-5 h-5"></i></div>
+            <div><strong>Drag images here</strong> or click to browse</div>
+            <div style="font-size:11px;margin-top:4px;">PNG, JPG or WebP · up to 4MB each · up to 20 images</div>
           </div>
+
+          <!-- Grid of uploaded thumbnails (shown when gallery has 1+ images) -->
+          <div class="img-grid" id="imgGrid" style="display:none;"></div>
+
+          <!-- Hidden file input used by both the drop zone and the add-more tile -->
+          <input type="file" id="imgInput" accept="image/png,image/jpeg,image/webp" multiple hidden/>
+
+          <div class="img-caveat" id="imgCaveat" style="display:none;">
+            <i data-lucide="info" class="w-3 h-3"></i>
+            Uploaded images live until page refresh — prototype
+          </div>
+
         </section>
 
       </div>
@@ -539,37 +634,179 @@
           <div class="pv-vendor" id="pvVendor">Sold by —</div>
         </section>
 
-        <section class="act-card anim-up" style="animation-delay:.15s">
-          <button type="button" class="act-save" id="btnSave">
-            <i data-lucide="check" class="w-4 h-4"></i><span id="saveLabel">Save product</span>
-          </button>
-          <button type="button" class="act-draft" id="btnDraft">
-            <i data-lucide="file" class="w-4 h-4"></i>Save as draft
-          </button>
-          <div class="act-link" id="btnPreview">
-            <i data-lucide="external-link" class="w-3 h-3" style="display:inline"></i>
-            Preview as buyer
-          </div>
-          <button type="button" class="act-delete" id="btnDelete" style="display:none">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>Delete product
-          </button>
-          <div class="act-foot">
-            Changes live only until page refresh — this is a prototype. Saving updates the in-memory DB, and custom attributes persist in <code>localStorage</code>.
-          </div>
-        </section>
-
       </div>
 
     </form>
   </main>
 
+  <!-- Sticky bottom action bar (spans full viewport width) -->
+  <div class="form-stickybar" id="formStickybar">
+    <div class="sb-inner">
+      <button type="button" class="sb-delete" id="btnDelete" style="display:none">
+        <i data-lucide="trash-2" class="w-4 h-4"></i><span>Delete product</span>
+      </button>
+      <span class="sb-note">Changes live until refresh · in-memory prototype · custom attributes saved to <code>localStorage</code></span>
+      <div class="sb-right">
+        <button type="button" class="sb-preview" id="btnPreview">
+          <i data-lucide="external-link" class="w-4 h-4"></i><span>Preview</span>
+        </button>
+        <button type="button" class="sb-save" id="btnSave">
+          <i data-lucide="check" class="w-4 h-4"></i><span id="saveLabel">Save product</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="ze-toast" role="status" aria-live="polite"></div>
 </div></div>
 
+  <!-- =============== CATEGORIES & TAGS SIDE SHEET =============== -->
+  <div class="tx-overlay" id="txOverlay"></div>
+  <aside class="tx-sheet" id="txSheet" role="dialog" aria-hidden="true" aria-labelledby="txSheetTitle">
+    <div class="tx-sheet-grab"></div>
+    <div class="tx-sheet-head">
+      <h3 id="txSheetTitle">Select categories &amp; tags</h3>
+      <button class="tx-sheet-close" id="txSheetClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="tx-sheet-search">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="txSearch" placeholder="Search categories and tags…" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="tx-sheet-tabs">
+      <button type="button" class="tab active" data-txtab="all">All</button>
+      <button type="button" class="tab" data-txtab="selected">Selected <span id="txSelTabCount">(0)</span></button>
+    </div>
+    <div class="tx-sheet-body" id="txSheetList"></div>
+    <div class="tx-sheet-foot">
+      <div class="tx-foot-count"><strong id="txFootN">0</strong> selected</div>
+      <button type="button" class="tx-clear" id="txClearAll">Clear all</button>
+      <button type="button" class="tx-apply" id="txApply">Apply</button>
+    </div>
+  </aside>
+
+  <!-- =============== SPECIES TAGGED SIDE SHEET =============== -->
+  <div class="tx-overlay" id="spOverlay"></div>
+  <aside class="tx-sheet" id="spSheet" role="dialog" aria-hidden="true" aria-labelledby="spSheetTitle">
+    <div class="tx-sheet-grab"></div>
+    <div class="tx-sheet-head">
+      <h3 id="spSheetTitle">Tag species</h3>
+      <button class="tx-sheet-close" id="spSheetClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="tx-sheet-search">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="spSearch" placeholder="Search by common or scientific name…" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="tx-sheet-tabs">
+      <button type="button" class="tab active" data-sptab="all">All</button>
+      <button type="button" class="tab" data-sptab="selected">Selected <span id="spSelTabCount">(0)</span></button>
+    </div>
+    <div class="tx-sheet-body" id="spSheetList"></div>
+    <div class="tx-sheet-foot">
+      <div class="tx-foot-count"><strong id="spFootN">0</strong> selected</div>
+      <button type="button" class="tx-clear" id="spClearAll">Clear all</button>
+      <button type="button" class="tx-apply" id="spApply">Apply</button>
+    </div>
+  </aside>
+
+  <!-- =============== SELECT ATTRIBUTE SIDE SHEET =============== -->
+  <div class="tx-overlay" id="attrSelectOverlay"></div>
+  <aside class="tx-sheet" id="attrSelectSheet" role="dialog" aria-hidden="true" aria-labelledby="attrSelectTitle">
+    <div class="tx-sheet-grab"></div>
+    <div class="tx-sheet-head">
+      <h3 id="attrSelectTitle">Select attribute</h3>
+      <button class="tx-sheet-close" id="attrSelectClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="tx-sheet-search">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="attrSelSearch" placeholder="Search attributes…" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="tx-sheet-tabs">
+      <button type="button" class="tab active" data-artab="all">All</button>
+      <button type="button" class="tab" data-artab="selected">Selected <span id="attrSelTabCount">(0)</span></button>
+    </div>
+    <div class="tx-sheet-body" id="attrSelList"></div>
+    <div class="tx-sheet-foot">
+      <div class="tx-foot-count"><strong id="attrSelFootN">0</strong> selected</div>
+      <button type="button" class="tx-clear" id="attrSelClearAll">Clear all</button>
+      <button type="button" class="tx-apply" id="attrSelApply">Apply</button>
+    </div>
+  </aside>
+
+  <!-- =============== ADD ATTRIBUTE (CREATOR) SIDE SHEET =============== -->
+  <div class="tx-overlay" id="attrCreateOverlay"></div>
+  <aside class="tx-sheet" id="attrCreateSheet" role="dialog" aria-hidden="true" aria-labelledby="attrCreateTitle">
+    <div class="tx-sheet-grab"></div>
+    <div class="tx-sheet-head">
+      <h3 id="attrCreateTitle">Add new attribute</h3>
+      <button class="tx-sheet-close" id="attrCreateClose" aria-label="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="tx-sheet-body" id="attrCreateBody">
+      <div class="ac-body">
+        <div class="ac-field">
+          <label for="acName">Name</label>
+          <input type="text" id="acName" class="ac-input" maxlength="40" placeholder="e.g. Size, Color, Material"/>
+          <span class="hint">Shown to buyers as the attribute label.</span>
+        </div>
+
+        <div class="ac-field">
+          <label>Required?</label>
+          <label class="ac-toggle">
+            <input type="checkbox" id="acRequired"/>
+            <span class="track"></span>
+            <span class="ac-toggle-lbl" id="acRequiredLbl">Optional</span>
+          </label>
+        </div>
+
+        <div class="ac-field">
+          <label>Type</label>
+          <div class="ac-seg" role="radiogroup" aria-label="Attribute type">
+            <button type="button" class="ac-seg-btn active" data-actype="input" role="radio" aria-checked="true">
+              <span class="ac-seg-head"><i data-lucide="type" class="w-3.5 h-3.5"></i>Input field</span>
+              <span class="ac-seg-sub">Buyer types a value</span>
+            </button>
+            <button type="button" class="ac-seg-btn" data-actype="select" role="radio" aria-checked="false">
+              <span class="ac-seg-head"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>Selection of options</span>
+              <span class="ac-seg-sub">Buyer picks from a list</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="ac-field" id="acOptsField" style="display:none">
+          <label>Options</label>
+          <div class="ac-opts-wrap">
+            <div class="ac-opt-row">
+              <input type="text" id="acOptInput" class="ac-input" placeholder="Enter option (e.g. XL)" maxlength="40"/>
+              <button type="button" class="ac-opt-add" id="acOptAdd"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Add</button>
+            </div>
+            <div class="ac-opt-chips" id="acOptChips">
+              <span class="ac-opt-empty">Add at least one option.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ac-foot">
+      <button type="button" class="ac-cancel" id="acCancel">Cancel</button>
+      <button type="button" class="ac-save" id="acSave"><i data-lucide="check" class="w-4 h-4"></i>Save attribute</button>
+    </div>
+  </aside>
+
 <script>
 (function () {
-  if (!ZE.user.requireRole('admin')) return;
-
   // ---------- Helpers ----------
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) { return Array.from((root || document).querySelectorAll(sel)); }
@@ -583,28 +820,8 @@
   }
   function rerenderIcons() { if (window.lucide?.createIcons) window.lucide.createIcons(); }
 
-  // ---------- Resolve vendor ----------
-  const vendor = ZE.user.resolve();
-  if (!vendor || !vendor.id) {
-    ZE.user.signOut();
-    location = 'login_1.html';
-    return;
-  }
-
-  // Header chrome
-  $('#vAvatar').src = DB.vendorLogo(vendor);
-  $('#vName').textContent = vendor.name;
-  $('#vMenuEmail').textContent = 'Signed in as ' + vendor.name;
-  var _navSf = $('#navStorefront'); if (_navSf) _navSf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
-  var _vps = $('#viewPublicStore'); if (_vps) _vps.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
-
-  // Avatar menu
-  const avatarBtn = $('#avatarBtn'), vMenu = $('#vMenu');
-  avatarBtn.addEventListener('click', (e) => { e.stopPropagation(); vMenu.classList.toggle('open'); });
-  document.addEventListener('click', (e) => {
-    if (!vMenu.contains(e.target) && !avatarBtn.contains(e.target)) vMenu.classList.remove('open');
-  });
-  $('#btnSignOut').addEventListener('click', () => { ZE.user.signOut(); location = 'login_1.html'; });
+  // ---------- Resolve user (buyer/admin context; no role guard) ----------
+  const user = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve() : null;
 
   // ---------- Custom attributes persistence ----------
   const LS_KEY = 'ze_custom_attrs_v1';
@@ -630,42 +847,75 @@
 
   const state = {
     name: '',
+    description: '',
     cat: '',
     tags: [],
-    shortDesc: '',
-    longDesc: '',
-    species: [],
-    mat: 0,
-    lab: 0,
-    effort: 0,
-    stock: 0,
-    minStock: 5,
+    selectedSpeciesIds: [],
     attrs: [], // { id, value }
     imgPrompt: '',
-    img: '',
+    gallery: [], // [{ id, url, name }]  — first entry is the primary image
     status: 'published'
   };
 
+  // Back-compat getter: state.img returns the primary (first) gallery URL.
+  // renderPreview() and commit() still read state.img, so nothing else changes.
+  Object.defineProperty(state, 'img', {
+    enumerable: true,
+    configurable: true,
+    get() { return (state.gallery[0] && state.gallery[0].url) || ''; },
+    set(v) {
+      // Allow legacy direct assignment (e.g. future AI-gen): replace gallery with a single URL.
+      if (!v) { state.gallery = []; return; }
+      state.gallery = [{ id: 'img_' + Date.now(), url: v, name: 'image' }];
+    }
+  });
+
   if (existing) {
     state.name       = existing.name || '';
+    state.description = existing.description || existing.shortDesc || '';
     state.cat        = existing.cat || '';
     state.tags       = Array.isArray(existing.tags) ? existing.tags.slice() : [];
-    state.shortDesc  = existing.shortDesc || '';
-    state.longDesc   = existing.longDesc || '';
-    state.species    = Array.isArray(existing.compatibleSpecies) ? existing.compatibleSpecies.slice() : [];
-    state.mat        = existing.price?.material || 0;
-    state.lab        = existing.price?.labor || 0;
-    state.effort     = existing.price?.effortHrs || 0;
-    state.stock      = existing.stock || 0;
-    state.minStock   = 5;
-    state.img        = existing.img || '';
+    // Prefill species from either new shape (species: [...]) or legacy (compatibleSpecies / speciesId)
+    if (Array.isArray(existing.species)) {
+      state.selectedSpeciesIds = existing.species.slice();
+    } else if (Array.isArray(existing.compatibleSpecies)) {
+      state.selectedSpeciesIds = existing.compatibleSpecies.slice();
+    } else if (existing.speciesId) {
+      state.selectedSpeciesIds = [existing.speciesId];
+    }
+    // Gallery prefill: prefer new p.gallery[] shape, fall back to single p.img
+    if (Array.isArray(existing.gallery) && existing.gallery.length) {
+      state.gallery = existing.gallery.map((url, i) => ({
+        id: 'img_' + Date.now() + '_' + i,
+        url: url,
+        name: 'image ' + (i + 1)
+      }));
+    } else if (existing.img) {
+      state.gallery = [{ id: 'img_seed', url: existing.img, name: 'image 1' }];
+    }
     state.imgPrompt  = existing.imgQ || '';
     state.status     = existing.status || 'published';
-    // Prefill attrs from existing specs
-    if (existing.specs && typeof existing.specs === 'object') {
+    // Prefill attrs — prefer new p.attributes[] shape, fall back to legacy p.specs{}
+    if (Array.isArray(existing.attributes) && existing.attributes.length) {
+      state.attrs = existing.attributes
+        .filter(a => a && a.id)
+        .map(a => ({ id: a.id, value: a.value == null ? '' : a.value }));
+    } else if (existing.specs && typeof existing.specs === 'object') {
       state.attrs = Object.keys(existing.specs).map(k => ({ id: k, value: existing.specs[k] }));
     }
   }
+
+  // Spec-facing alias: selectedAttributes = [{ id, name, value }]
+  // Derived from state.attrs so the two views stay in sync.
+  Object.defineProperty(state, 'selectedAttributes', {
+    enumerable: true,
+    get() {
+      return state.attrs.map(a => {
+        const def = findAttr(a.id);
+        return { id: a.id, name: def ? def.name : a.id, value: a.value };
+      });
+    }
+  });
 
   // ---------- Title / breadcrumb / mode-specific UI ----------
   if (editing && existing) {
@@ -673,229 +923,903 @@
     $('#crumbNow').textContent = 'Edit product';
     $('#saveLabel').textContent = 'Save changes';
     $('#btnDelete').style.display = '';
-    document.title = 'ZooEnrich · Edit ' + existing.name;
+    document.title = 'ZooEnrich · Admin — Edit ' + existing.name;
   } else if (editing && !existing) {
     toast('Product not found — adding new instead.');
   }
 
-  // ---------- Category dropdown ----------
-  (function initCats() {
-    const sel = $('#fCat');
-    (DB.CATEGORIES || []).forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id; o.textContent = c.name;
-      sel.appendChild(o);
-    });
-    sel.value = state.cat;
-  })();
+  // ---------- Unified taxonomy (Categories + Tags) ----------
+  // Single merged list used by the side sheet. Each item keeps its original
+  // type (category/tag), color (tags) and icon (categories).
+  function taxonomyAll() {
+    const cats = (DB.CATEGORIES || []).map(c => ({
+      id: c.id, name: c.name, kind: 'category', icon: c.icon || 'folder', color: null
+    }));
+    const tags = (DB.TAGS || []).map(t => ({
+      id: t.id, name: t.name, kind: 'tag', icon: 'tag', color: t.color || null
+    }));
+    return cats.concat(tags);
+  }
+  function taxonomyById(id) { return taxonomyAll().find(x => x.id === id); }
 
-  // ---------- Tags ----------
-  function renderTags() {
-    const host = $('#fTags');
-    host.innerHTML = (DB.TAGS || []).map(t => {
-      const active = state.tags.includes(t.id);
-      return '<button type="button" class="tag-chip' + (active ? ' active' : '') + '" data-tag="' + esc(t.id) + '">' +
-               '<span class="dot" style="background:' + esc(t.color) + '"></span>' +
-               esc(t.name) +
-             '</button>';
-    }).join('');
-    $('#tagCount').textContent = state.tags.length + ' selected';
+  // Unified selection: a single array of ids (preserves selection order).
+  state.selectedTaxonomy = [];
+  // Seed from legacy state.cat / state.tags (handles edit-mode prefill and
+  // any existing product shape). Category comes first, then tags.
+  if (state.cat && !state.selectedTaxonomy.includes(state.cat)) state.selectedTaxonomy.push(state.cat);
+  (state.tags || []).forEach(tid => { if (!state.selectedTaxonomy.includes(tid)) state.selectedTaxonomy.push(tid); });
+
+  // Keep legacy state.cat / state.tags derived from state.selectedTaxonomy
+  // so the save/preview/validate code keeps working without rewiring.
+  function syncLegacyTaxonomy() {
+    const picked = state.selectedTaxonomy.map(id => taxonomyById(id)).filter(Boolean);
+    const firstCat = picked.find(x => x.kind === 'category');
+    state.cat = firstCat ? firstCat.id : '';
+    // Everything that isn't the chosen primary category behaves like a "tag"
+    // for downstream code — this lets a user pick multiple categories too
+    // (extra cats get stored on state.tags alongside real tags).
+    state.tags = picked.filter(x => !firstCat || x.id !== firstCat.id).map(x => x.id);
   }
 
-  // ---------- Species ----------
-  function renderSpecies() {
-    const host = $('#fSpecies');
-    host.innerHTML = (DB.SPECIES || []).map(s => {
-      const active = state.species.includes(s.id);
-      const imgUrl = DB.img(s.imgQ, 80, 80, s.seed);
-      return '<div class="spc' + (active ? ' active' : '') + '" data-sp="' + esc(s.id) + '">' +
-               '<img src="' + esc(imgUrl) + '" alt=""/>' +
-               '<div style="min-width:0;flex:1;">' +
-                 '<div class="nm">' + esc(s.name) + '</div>' +
-                 '<div class="tk">' + esc(s.taxon) + '</div>' +
-               '</div>' +
-               (active ? '<i data-lucide="check" class="w-4 h-4" style="color:var(--brand-hover);flex-shrink:0;"></i>' : '') +
-             '</div>';
-    }).join('');
-    $('#spcN').textContent = state.species.length;
-    rerenderIcons();
-  }
-
-  // ---------- Attribute list ----------
-  function renderAttrList() {
-    const host = $('#attrList');
-    $('#attrN').textContent = state.attrs.length;
-
-    if (state.attrs.length === 0) {
-      host.innerHTML = '<div class="attr-empty">No attributes yet. Click <strong>+ Add attribute</strong> below to tag your product with size, material, scent, and more.</div>';
-      return;
-    }
-
-    host.innerHTML = state.attrs.map(a => {
-      const def = findAttr(a.id);
-      if (!def) return '';
-      const isCustom = !!customAttrs.find(c => c.id === a.id);
-      const ico = def.icon || 'tag';
-      let ctrl = '';
-      if (def.type === 'select') {
-        ctrl = '<select class="txt" data-aid="' + esc(def.id) + '">' +
-                 '<option value="">Choose…</option>' +
-                 (def.options || []).map(opt => '<option value="' + esc(opt) + '"' + (a.value === opt ? ' selected' : '') + '>' + esc(opt) + '</option>').join('') +
-               '</select>';
-      } else if (def.type === 'multi_select') {
-        const cur = Array.isArray(a.value) ? a.value : [];
-        ctrl = '<div class="pill-seg" data-aid="' + esc(def.id) + '" data-multi="1">' +
-                 (def.options || []).map(opt => '<button type="button" class="' + (cur.includes(opt) ? 'active' : '') + '" data-opt="' + esc(opt) + '">' + esc(opt) + '</button>').join('') +
-               '</div>';
-      } else if (def.type === 'number') {
-        const val = (a.value == null || a.value === '') ? '' : a.value;
-        ctrl = '<div class="txt-suffix-wrap">' +
-                 '<input type="number" class="txt" data-aid="' + esc(def.id) + '" value="' + esc(val) + '" placeholder="0" step="any"/>' +
-                 (def.unit ? '<span class="txt-suffix">' + esc(def.unit) + '</span>' : '') +
-               '</div>';
-      } else if (def.type === 'boolean') {
-        const on = !!a.value;
-        ctrl = '<label class="toggle">' +
-                 '<input type="checkbox" data-aid="' + esc(def.id) + '"' + (on ? ' checked' : '') + '/>' +
-                 '<span class="track"></span>' +
-                 '<span class="lbl">' + (on ? 'Yes' : 'No') + '</span>' +
-               '</label>';
-      } else if (def.type === 'color') {
-        ctrl = '<div class="swatch-row" data-aid="' + esc(def.id) + '">' +
-                 (def.options || []).map(c => '<div class="swatch' + (a.value === c ? ' active' : '') + '" data-c="' + esc(c) + '" style="background:' + esc(c) + '"></div>').join('') +
-               '</div>';
-      }
-      return '<div class="attr-row" data-aid="' + esc(def.id) + '">' +
-               '<div class="attr-name">' +
-                 '<span class="attr-ico"><i data-lucide="' + esc(ico) + '" class="w-3.5 h-3.5"></i></span>' +
-                 esc(def.name) +
-                 (isCustom ? '<span class="attr-custom">CUSTOM</span>' : '') +
-               '</div>' +
-               '<div class="attr-ctrl">' + ctrl + '</div>' +
-               '<button type="button" class="attr-remove" aria-label="Remove">' +
-                 '<i data-lucide="x" class="w-4 h-4"></i>' +
+  // ---------- Taxonomy chips (on the form) ----------
+  function renderTaxRow(host, picked, kind, counterEl) {
+    if (!host) return;
+    const chips = picked.map(item => {
+      const dotColor = item.color || 'var(--brand-hover)';
+      return '<span class="tx-chip" data-tx="' + esc(item.id) + '" title="' + (kind === 'category' ? 'Category' : 'Tag') + '">' +
+               '<span class="tx-dot" style="background:' + esc(dotColor) + '"></span>' +
+               '<span class="tx-lbl">' + esc(item.name) + '</span>' +
+               '<button type="button" class="tx-x" data-tx-remove="' + esc(item.id) + '" aria-label="Remove ' + esc(item.name) + '">' +
+                 '<i data-lucide="x"></i>' +
                '</button>' +
-             '</div>';
+             '</span>';
     }).join('');
+    const addLabel = kind === 'category'
+      ? (picked.length ? 'Add more' : 'Add category')
+      : (picked.length ? 'Add more' : 'Add tag');
+    host.innerHTML = chips +
+      '<button type="button" class="tx-add" data-tx-kind="' + kind + '">' +
+        '<i data-lucide="plus"></i>' + addLabel +
+      '</button>';
+    if (counterEl) counterEl.textContent = picked.length + ' selected';
+    host.classList.remove('invalid');
+  }
+
+  function renderTaxonomyChips() {
+    const all = state.selectedTaxonomy.map(id => taxonomyById(id)).filter(Boolean);
+    renderTaxRow($('#fCategories'), all.filter(x => x.kind === 'category'), 'category', $('#catCount'));
+    renderTaxRow($('#fTags'), all.filter(x => x.kind === 'tag'), 'tag', $('#tagCount'));
     rerenderIcons();
   }
 
-  // ---------- Add-attribute popover ----------
-  function renderAttrPop(query) {
-    const q = (query || '').toLowerCase().trim();
-    const host = $('#attrPopList');
-    const taken = new Set(state.attrs.map(a => a.id));
-    const avail = allAttributes().filter(a => !taken.has(a.id) && (!q || a.name.toLowerCase().includes(q)));
-    if (avail.length === 0) {
-      host.innerHTML = '<div class="attr-empty-state">' + (q ? 'No attributes match "' + esc(q) + '".' : 'All attributes already added.') + '</div>';
+  // ---------- Side sheet state ----------
+  const tx = {
+    open: false,
+    search: '',
+    tab: 'all', // 'all' | 'selected'
+    kindFilter: 'category', // 'category' | 'tag' — set when sheet opens
+    draft: []   // working copy of selection while sheet is open
+  };
+
+  function renderTxSheetList() {
+    const list = $('#txSheetList');
+    const q = tx.search.trim().toLowerCase();
+    const all = taxonomyAll().filter(x => x.kind === tx.kindFilter);
+    const pool = tx.tab === 'selected'
+      ? all.filter(x => tx.draft.includes(x.id))
+      : all;
+    const filtered = q
+      ? pool.filter(x => x.name.toLowerCase().includes(q) || x.kind.toLowerCase().includes(q))
+      : pool;
+
+    if (!filtered.length) {
+      const msg = tx.tab === 'selected' && !tx.draft.length
+        ? 'Nothing selected yet. Switch to <strong>All</strong> to pick categories and tags.'
+        : 'No matches for "<strong>' + esc(tx.search) + '</strong>".';
+      list.innerHTML = '<div class="tx-sheet-empty"><i data-lucide="search-x"></i>' + msg + '</div>';
+      rerenderIcons();
       return;
     }
-    host.innerHTML = avail.map(a => {
-      const meta = a.type === 'number' ? ('number' + (a.unit ? ' · ' + a.unit : '')) : (a.type || '').replace('_', ' ');
-      return '<div class="attr-opt" data-pick="' + esc(a.id) + '">' +
-               '<span class="ico"><i data-lucide="' + esc(a.icon || 'tag') + '" class="w-3.5 h-3.5"></i></span>' +
-               '<span class="name">' + esc(a.name) + '</span>' +
-               '<span class="meta">' + esc(meta) + '</span>' +
+
+    list.innerHTML = filtered.map(item => {
+      const selected = tx.draft.includes(item.id);
+      const dot = item.color
+        ? '<span class="tx-row-dot" style="background:' + esc(item.color) + '"></span>'
+        : '<i data-lucide="' + esc(item.icon || 'tag') + '" class="w-4 h-4"></i>';
+      return '<div class="tx-row' + (selected ? ' selected' : '') + '" data-tx-row="' + esc(item.id) + '" role="button" aria-pressed="' + selected + '">' +
+               '<span class="tx-row-ico">' + dot + '</span>' +
+               '<div class="tx-row-main">' +
+                 '<div class="tx-row-name">' + esc(item.name) + '</div>' +
+                 '<div class="tx-row-kind">' + (item.kind === 'category' ? 'Category' : 'Tag') + '</div>' +
+               '</div>' +
+               '<span class="tx-row-check">' + (selected ? '<i data-lucide="check"></i>' : '') + '</span>' +
              '</div>';
     }).join('');
+
+    // Footer + tab counts (scoped to the current kind only)
+    const kindCount = tx.draft.filter(id => {
+      const item = taxonomyById(id);
+      return item && item.kind === tx.kindFilter;
+    }).length;
+    $('#txFootN').textContent = kindCount;
+    $('#txSelTabCount').textContent = '(' + kindCount + ')';
+    $('#txClearAll').classList.toggle('disabled', kindCount === 0);
     rerenderIcons();
   }
 
-  function openAttrPop() {
-    $('#attrPop').classList.add('open');
-    $('#attrSearch').value = '';
-    $('#createAttrForm').style.display = 'none';
-    $('#createAttrForm').innerHTML = '';
-    renderAttrPop('');
-    setTimeout(() => $('#attrSearch').focus(), 40);
-  }
-  function closeAttrPop() {
-    $('#attrPop').classList.remove('open');
+  function openTxSheet(kind) {
+    tx.open = true;
+    tx.search = '';
+    tx.tab = 'all';
+    tx.kindFilter = kind === 'tag' ? 'tag' : 'category';
+    tx.draft = state.selectedTaxonomy.slice();
+    const input = $('#txSearch');
+    if (input) {
+      input.value = '';
+      input.placeholder = tx.kindFilter === 'tag' ? 'Search tags…' : 'Search categories…';
+    }
+    const titleEl = $('#txSheetTitle');
+    if (titleEl) titleEl.textContent = tx.kindFilter === 'tag' ? 'Select tags' : 'Select categories';
+    $$('#txSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-txtab') === 'all'));
+    $('#txOverlay').classList.add('open');
+    $('#txSheet').classList.add('open');
+    $('#txSheet').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    renderTxSheetList();
+    // Delay focus so the slide animation is smooth.
+    setTimeout(() => { const s = $('#txSearch'); if (s) s.focus(); }, 280);
   }
 
-  // Create-attribute inline form
-  function showCreateAttr() {
-    const host = $('#createAttrForm');
-    host.innerHTML =
-      '<div class="create-form">' +
-        '<div class="field"><label>Attribute name <span class="req">*</span></label>' +
-          '<input type="text" id="caName" class="mini" placeholder="e.g. Water-resistance rating" maxlength="40"/></div>' +
-        '<div class="field"><label>Type</label>' +
-          '<select id="caType" class="mini">' +
-            '<option value="select">Single select</option>' +
-            '<option value="multi_select">Multi-select</option>' +
-            '<option value="number">Number</option>' +
-            '<option value="boolean">Yes / No toggle</option>' +
-            '<option value="color">Color swatches</option>' +
-          '</select></div>' +
-        '<div class="field" id="caOptsWrap"><label>Options (comma-separated)</label>' +
-          '<input type="text" id="caOpts" class="mini" placeholder="e.g. Small, Medium, Large"/></div>' +
-        '<div class="field" id="caUnitWrap" style="display:none"><label>Unit</label>' +
-          '<input type="text" id="caUnit" class="mini" placeholder="e.g. kg, cm, L"/></div>' +
-        '<div class="actions">' +
-          '<button type="button" class="btn-sm ghost" id="caCancel">Cancel</button>' +
-          '<button type="button" class="btn-sm primary" id="caSave"><i data-lucide="check" class="w-3 h-3"></i>Save attribute</button>' +
-        '</div>' +
-      '</div>';
-    host.style.display = '';
+  function closeTxSheet(applyChanges) {
+    if (applyChanges !== false) {
+      state.selectedTaxonomy = tx.draft.slice();
+      syncLegacyTaxonomy();
+      renderTaxonomyChips();
+      renderPreview();
+    }
+    tx.open = false;
+    $('#txOverlay').classList.remove('open');
+    $('#txSheet').classList.remove('open');
+    $('#txSheet').setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
 
-    const typeSel = $('#caType');
-    function reflectType() {
-      const t = typeSel.value;
-      $('#caOptsWrap').style.display = (t === 'select' || t === 'multi_select' || t === 'color') ? '' : 'none';
-      $('#caUnitWrap').style.display = (t === 'number') ? '' : 'none';
-      const lbl = $('#caOptsWrap').querySelector('label');
-      if (t === 'color') {
-        lbl.textContent = 'Color swatches (hex, comma-separated)';
-        $('#caOpts').placeholder = 'e.g. #37BD69, #E4B819, #FA6140';
-      } else {
-        lbl.textContent = 'Options (comma-separated)';
-        $('#caOpts').placeholder = 'e.g. Small, Medium, Large';
+  // ---------- Taxonomy event wiring ----------
+  // Chip rows: open sheet via + Add, remove chip via ×
+  function handleTaxRowClick(e) {
+    const removeBtn = e.target.closest('[data-tx-remove]');
+    if (removeBtn) {
+      e.stopPropagation();
+      const id = removeBtn.getAttribute('data-tx-remove');
+      const i = state.selectedTaxonomy.indexOf(id);
+      if (i >= 0) state.selectedTaxonomy.splice(i, 1);
+      syncLegacyTaxonomy();
+      renderTaxonomyChips();
+      renderPreview();
+      return;
+    }
+    const addBtn = e.target.closest('[data-tx-kind]');
+    if (addBtn) { openTxSheet(addBtn.getAttribute('data-tx-kind')); return; }
+  }
+  $('#fCategories').addEventListener('click', handleTaxRowClick);
+  $('#fTags').addEventListener('click', handleTaxRowClick);
+
+  // Sheet wiring
+  $('#txOverlay').addEventListener('click', () => closeTxSheet(true));
+  $('#txSheetClose').addEventListener('click', () => closeTxSheet(true));
+  $('#txApply').addEventListener('click', () => closeTxSheet(true));
+  $('#txClearAll').addEventListener('click', () => {
+    if (!tx.draft.length) return;
+    // Only clear selections of the current kind so the other row's picks survive.
+    tx.draft = tx.draft.filter(id => {
+      const item = taxonomyById(id);
+      return !item || item.kind !== tx.kindFilter;
+    });
+    renderTxSheetList();
+  });
+  $('#txSearch').addEventListener('input', (e) => {
+    tx.search = e.target.value || '';
+    renderTxSheetList();
+  });
+  $$('#txSheet .tx-sheet-tabs .tab').forEach(tabEl => {
+    tabEl.addEventListener('click', () => {
+      tx.tab = tabEl.getAttribute('data-txtab') || 'all';
+      $$('#txSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t === tabEl));
+      renderTxSheetList();
+    });
+  });
+  $('#txSheetList').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-tx-row]');
+    if (!row) return;
+    const id = row.getAttribute('data-tx-row');
+    const i = tx.draft.indexOf(id);
+    if (i >= 0) tx.draft.splice(i, 1); else tx.draft.push(id);
+    renderTxSheetList();
+  });
+  // Esc closes (apply)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (sp.open) { e.preventDefault(); closeSpSheet(true); return; }
+    if (tx.open) { e.preventDefault(); closeTxSheet(true); }
+  });
+
+  // ---------- Species tagged (chip row + side sheet) ----------
+  function speciesById(id) { return (DB.SPECIES || []).find(s => s.id === id); }
+  function speciesSciName(s) { return s && (s.latin || s.sciName || s.scientific || '') || ''; }
+
+  function renderSpeciesChips() {
+    const host = $('#fSpecies');
+    const picked = state.selectedSpeciesIds.map(speciesById).filter(Boolean);
+    const chips = picked.map(sp => {
+      const imgUrl = DB.img(sp.imgQ, 40, 40, sp.seed);
+      return '<span class="tx-chip" data-sp="' + esc(sp.id) + '" title="Species">' +
+               '<img class="tx-sp-avatar" src="' + esc(imgUrl) + '" alt=""/>' +
+               '<span class="tx-lbl">' + esc(sp.name) + '</span>' +
+               '<button type="button" class="tx-x" data-sp-remove="' + esc(sp.id) + '" aria-label="Remove ' + esc(sp.name) + '">' +
+                 '<i data-lucide="x"></i>' +
+               '</button>' +
+             '</span>';
+    }).join('');
+    host.innerHTML = chips +
+      '<button type="button" class="tx-add" id="spAddBtn">' +
+        '<i data-lucide="plus"></i>' +
+        (picked.length ? 'Tag more' : 'Tag species') +
+      '</button>';
+    $('#spCount').textContent = picked.length + ' selected';
+    rerenderIcons();
+  }
+
+  // ---------- Species side sheet state ----------
+  const sp = {
+    open: false,
+    search: '',
+    tab: 'all', // 'all' | 'selected'
+    draft: []
+  };
+
+  function renderSpSheetList() {
+    const list = $('#spSheetList');
+    const q = sp.search.trim().toLowerCase();
+    const all = (DB.SPECIES || []);
+    const pool = sp.tab === 'selected' ? all.filter(x => sp.draft.includes(x.id)) : all;
+    const filtered = q
+      ? pool.filter(x => {
+          const nm = (x.name || '').toLowerCase();
+          const sci = speciesSciName(x).toLowerCase();
+          return nm.includes(q) || sci.includes(q);
+        })
+      : pool;
+
+    if (!filtered.length) {
+      const msg = sp.tab === 'selected' && !sp.draft.length
+        ? 'No species tagged yet. Switch to <strong>All</strong> to pick.'
+        : 'No matches for "<strong>' + esc(sp.search) + '</strong>".';
+      list.innerHTML = '<div class="tx-sheet-empty"><i data-lucide="search-x"></i>' + msg + '</div>';
+      rerenderIcons();
+      return;
+    }
+
+    list.innerHTML = filtered.map(item => {
+      const selected = sp.draft.includes(item.id);
+      const imgUrl = DB.img(item.imgQ, 96, 96, item.seed);
+      const sci = speciesSciName(item);
+      return '<div class="tx-row sp-row' + (selected ? ' selected' : '') + '" data-sp-row="' + esc(item.id) + '" role="button" aria-pressed="' + selected + '">' +
+               '<img class="tx-sp-img" src="' + esc(imgUrl) + '" alt=""/>' +
+               '<div class="tx-row-main">' +
+                 '<div class="tx-row-name">' + esc(item.name) + '</div>' +
+                 (sci ? '<div class="tx-row-sci">' + esc(sci) + '</div>' : '') +
+               '</div>' +
+               '<span class="tx-row-check">' + (selected ? '<i data-lucide="check"></i>' : '') + '</span>' +
+             '</div>';
+    }).join('');
+
+    $('#spFootN').textContent = sp.draft.length;
+    $('#spSelTabCount').textContent = '(' + sp.draft.length + ')';
+    $('#spClearAll').classList.toggle('disabled', sp.draft.length === 0);
+    rerenderIcons();
+  }
+
+  function openSpSheet() {
+    sp.open = true;
+    sp.search = '';
+    sp.tab = 'all';
+    sp.draft = state.selectedSpeciesIds.slice();
+    const input = $('#spSearch'); if (input) input.value = '';
+    $$('#spSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-sptab') === 'all'));
+    $('#spOverlay').classList.add('open');
+    $('#spSheet').classList.add('open');
+    $('#spSheet').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    renderSpSheetList();
+    setTimeout(() => { const s = $('#spSearch'); if (s) s.focus(); }, 280);
+  }
+
+  function closeSpSheet(applyChanges) {
+    if (applyChanges !== false) {
+      state.selectedSpeciesIds = sp.draft.slice();
+      renderSpeciesChips();
+      renderPreview();
+    }
+    sp.open = false;
+    $('#spOverlay').classList.remove('open');
+    $('#spSheet').classList.remove('open');
+    $('#spSheet').setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // ---------- Species event wiring ----------
+  $('#fSpecies').addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('[data-sp-remove]');
+    if (removeBtn) {
+      e.stopPropagation();
+      const id = removeBtn.getAttribute('data-sp-remove');
+      const i = state.selectedSpeciesIds.indexOf(id);
+      if (i >= 0) state.selectedSpeciesIds.splice(i, 1);
+      renderSpeciesChips();
+      renderPreview();
+      return;
+    }
+    const addBtn = e.target.closest('#spAddBtn');
+    if (addBtn) { openSpSheet(); return; }
+  });
+
+  $('#spOverlay').addEventListener('click', () => closeSpSheet(true));
+  $('#spSheetClose').addEventListener('click', () => closeSpSheet(true));
+  $('#spApply').addEventListener('click', () => closeSpSheet(true));
+  $('#spClearAll').addEventListener('click', () => {
+    if (!sp.draft.length) return;
+    sp.draft = [];
+    renderSpSheetList();
+  });
+  $('#spSearch').addEventListener('input', (e) => {
+    sp.search = e.target.value || '';
+    renderSpSheetList();
+  });
+  $$('#spSheet .tx-sheet-tabs .tab').forEach(tabEl => {
+    tabEl.addEventListener('click', () => {
+      sp.tab = tabEl.getAttribute('data-sptab') || 'all';
+      $$('#spSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t === tabEl));
+      renderSpSheetList();
+    });
+  });
+  $('#spSheetList').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-sp-row]');
+    if (!row) return;
+    const id = row.getAttribute('data-sp-row');
+    const i = sp.draft.indexOf(id);
+    if (i >= 0) sp.draft.splice(i, 1); else sp.draft.push(id);
+    renderSpSheetList();
+  });
+
+  // ---------- Attributes chip row (chip-based, mirrors Species / Tags) ----------
+  // Each entry: { id, value }
+  //   • input-type value: string (e.g. "XL", "10kg", "Teak")
+  //   • select-type value: string (single option) — for legacy multi_select, first element
+  // state.attrs is the canonical array (already seeded from existing.specs above).
+
+  // Classify an attribute def into the new "kind" model:
+  //   'select' if it has options, else 'input'
+  function attrKind(def) {
+    if (!def) return 'input';
+    if (def.type === 'select' || def.type === 'multi_select' || def.type === 'color') return 'select';
+    if (Array.isArray(def.options) && def.options.length) return 'select';
+    return 'input';
+  }
+
+  // Display a value the way chips + row-summary show it.
+  function attrValueDisplay(def, value) {
+    if (value === '' || value == null) return '';
+    if (Array.isArray(value)) return value.filter(Boolean).join(', ');
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (def && def.type === 'color') return value; // hex string
+    return String(value);
+  }
+
+  // ---------- Chips on the form ----------
+  function renderAttributeChips() {
+    const host = $('#fAttributes');
+    if (!host) return;
+    const chips = state.attrs.map(entry => {
+      const def = findAttr(entry.id);
+      if (!def) return '';
+      const isCustom = !!customAttrs.find(c => c.id === entry.id);
+      const disp = attrValueDisplay(def, entry.value);
+      const lbl = esc(def.name) + (disp ? ': ' + esc(disp) : '');
+      const dotStyle = (def.type === 'color' && typeof entry.value === 'string' && entry.value.startsWith('#'))
+        ? 'background:' + esc(entry.value)
+        : 'background:var(--brand-hover)';
+      return '<span class="tx-chip" data-aid="' + esc(entry.id) + '" title="' + esc(def.name) + (isCustom ? ' (custom)' : '') + '">' +
+               '<span class="tx-dot" style="' + dotStyle + '"></span>' +
+               '<span class="tx-lbl">' + lbl + '</span>' +
+               '<button type="button" class="tx-x" data-attr-remove="' + esc(entry.id) + '" aria-label="Remove ' + esc(def.name) + '">' +
+                 '<i data-lucide="x"></i>' +
+               '</button>' +
+             '</span>';
+    }).join('');
+    host.innerHTML = chips +
+      '<button type="button" class="tx-add" id="btnSelectAttr">' +
+        '<i data-lucide="plus"></i>Select attribute' +
+      '</button>' +
+      '<button type="button" class="tx-add" id="btnAddAttr">' +
+        '<i data-lucide="plus"></i>Add attribute' +
+      '</button>';
+    const cnt = $('#attrCount'); if (cnt) cnt.textContent = state.attrs.length + ' selected';
+    rerenderIcons();
+  }
+
+  // ---------- SELECT-ATTRIBUTE side sheet ----------
+  const arSel = {
+    open: false,
+    search: '',
+    tab: 'all',            // 'all' | 'selected'
+    draft: [],             // working copy of state.attrs
+    expandedId: null       // currently open row
+  };
+
+  function arDraftHas(id) { return arSel.draft.some(d => d.id === id); }
+  function arDraftGet(id) { return arSel.draft.find(d => d.id === id); }
+  function arDraftHasValue(id) {
+    const d = arDraftGet(id);
+    if (!d) return false;
+    if (Array.isArray(d.value)) return d.value.length > 0;
+    return d.value !== '' && d.value != null && d.value !== false;
+  }
+
+  function renderAttrSelSheet() {
+    const list = $('#attrSelList');
+    const q = arSel.search.trim().toLowerCase();
+    const all = allAttributes();
+    const pool = arSel.tab === 'selected'
+      ? all.filter(a => arDraftHas(a.id))
+      : all;
+    const filtered = q
+      ? pool.filter(a => (a.name || '').toLowerCase().includes(q))
+      : pool;
+
+    if (!filtered.length) {
+      const msg = arSel.tab === 'selected' && !arSel.draft.length
+        ? 'No attributes added yet. Switch to <strong>All</strong> to pick.'
+        : (q ? 'No matches for "<strong>' + esc(arSel.search) + '</strong>".' : 'No attributes available.');
+      list.innerHTML = '<div class="tx-sheet-empty"><i data-lucide="search-x"></i>' + msg + '</div>';
+      // still update footer counts
+      $('#attrSelFootN').textContent = arSel.draft.length;
+      $('#attrSelTabCount').textContent = '(' + arSel.draft.length + ')';
+      $('#attrSelClearAll').classList.toggle('disabled', arSel.draft.length === 0);
+      rerenderIcons();
+      return;
+    }
+
+    list.innerHTML = filtered.map(def => {
+      const kind = attrKind(def);
+      const isCustom = !!customAttrs.find(c => c.id === def.id);
+      const icoName = def.icon || (kind === 'select' ? 'list-checks' : 'type');
+      const draft = arDraftGet(def.id);
+      const isSelected = arDraftHas(def.id);
+      const hasVal = arDraftHasValue(def.id);
+      const isExpanded = arSel.expandedId === def.id;
+
+      // Value summary line (only when an actual value is set)
+      const valDisp = (draft && hasVal) ? attrValueDisplay(def, draft.value) : '';
+      const valLine = hasVal ? '<div class="ar-row-val">' + esc(valDisp) + '</div>' : '';
+
+      // Badge
+      const badge = kind === 'select'
+        ? '<span class="ar-badge ar-select">Select</span>'
+        : '<span class="ar-badge ar-input">Input</span>';
+      const customBadge = isCustom ? '<span class="ar-badge ar-custom">Custom</span>' : '';
+
+      // Expanded panel
+      let panel = '';
+      if (isExpanded) {
+        if (kind === 'select') {
+          const opts = def.options || [];
+          const currentVal = draft ? (Array.isArray(draft.value) ? draft.value[0] : draft.value) : '';
+          if (def.type === 'color') {
+            panel = '<div class="ar-row-panel">' +
+                      '<div class="ar-panel-hint">Choose a color.</div>' +
+                      '<div class="ar-opts">' +
+                        opts.map(c => '<button type="button" class="ar-opt-chip swatch' + (currentVal === c ? ' active' : '') + '" data-ar-opt="' + esc(c) + '" style="background:' + esc(c) + '" aria-label="' + esc(c) + '"></button>').join('') +
+                      '</div>' +
+                    '</div>';
+          } else {
+            panel = '<div class="ar-row-panel">' +
+                      '<div class="ar-panel-hint">Pick one option.</div>' +
+                      '<div class="ar-opts">' +
+                        opts.map(opt => '<button type="button" class="ar-opt-chip' + (currentVal === opt ? ' active' : '') + '" data-ar-opt="' + esc(opt) + '">' + esc(opt) + '</button>').join('') +
+                      '</div>' +
+                    '</div>';
+          }
+        } else {
+          // input type
+          const currentVal = draft ? (draft.value == null ? '' : String(draft.value)) : '';
+          const unit = def.unit ? (' · ' + def.unit) : '';
+          panel = '<div class="ar-row-panel">' +
+                    '<div class="ar-panel-hint">Type a value' + esc(unit) + '.</div>' +
+                    '<div class="ar-input-wrap">' +
+                      '<input type="text" class="ar-input" data-ar-input="' + esc(def.id) + '" value="' + esc(currentVal) + '" placeholder="' + esc(def.unit ? ('e.g. 2 ' + def.unit) : ('Enter ' + (def.name || 'value').toLowerCase())) + '"/>' +
+                    '</div>' +
+                  '</div>';
+        }
+      }
+
+      // Row is highlighted (green bg + filled check) whenever it is selected
+      // in the draft — value may still be empty for input-type rows.
+      const rowCls = 'ar-row' + (isExpanded ? ' expanded' : '') + (isSelected ? ' has-value' : '');
+      return '<div class="' + rowCls + '" data-ar-row="' + esc(def.id) + '">' +
+               '<div class="ar-row-head">' +
+                 '<span class="ar-row-ico"><i data-lucide="' + esc(icoName) + '" class="w-4 h-4"></i></span>' +
+                 '<div class="ar-row-main">' +
+                   '<div class="ar-row-title"><span class="nm">' + esc(def.name) + '</span>' + badge + customBadge + '</div>' +
+                   valLine +
+                 '</div>' +
+                 '<span class="ar-row-check" role="checkbox" aria-checked="' + (isSelected ? 'true' : 'false') + '" tabindex="0">' + (isSelected ? '<i data-lucide="check"></i>' : '') + '</span>' +
+                 '<i data-lucide="chevron-down" class="ar-row-chev"></i>' +
+               '</div>' +
+               panel +
+             '</div>';
+    }).join('');
+
+    $('#attrSelFootN').textContent = arSel.draft.length;
+    $('#attrSelTabCount').textContent = '(' + arSel.draft.length + ')';
+    $('#attrSelClearAll').classList.toggle('disabled', arSel.draft.length === 0);
+    rerenderIcons();
+  }
+
+  function openAttrSelSheet() {
+    arSel.open = true;
+    arSel.search = '';
+    arSel.tab = 'all';
+    // deep copy of state.attrs (handle array values too)
+    arSel.draft = state.attrs.map(a => ({ id: a.id, value: Array.isArray(a.value) ? a.value.slice() : a.value }));
+    arSel.expandedId = null;
+    const input = $('#attrSelSearch'); if (input) input.value = '';
+    $$('#attrSelectSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-artab') === 'all'));
+    $('#attrSelectOverlay').classList.add('open');
+    $('#attrSelectSheet').classList.add('open');
+    $('#attrSelectSheet').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    renderAttrSelSheet();
+    setTimeout(() => { const s = $('#attrSelSearch'); if (s) s.focus(); }, 280);
+  }
+
+  function closeAttrSelSheet(applyChanges) {
+    let appliedCount = 0;
+    if (applyChanges !== false) {
+      const prevIds = new Set(state.attrs.map(a => a.id));
+      // Commit EVERY draft entry, regardless of value. Input-type rows with
+      // an empty value are still considered "selected" and appear as chips.
+      state.attrs = arSel.draft.map(d => ({
+        id: d.id,
+        value: Array.isArray(d.value) ? d.value.slice() : d.value
+      }));
+      appliedCount = state.attrs.filter(a => !prevIds.has(a.id)).length;
+      renderAttributeChips();
+      renderPreview();
+      if (appliedCount > 0) {
+        toast(appliedCount + ' attribute' + (appliedCount === 1 ? '' : 's') + ' added');
       }
     }
-    typeSel.addEventListener('change', reflectType);
-    reflectType();
-
-    $('#caCancel').addEventListener('click', () => {
-      host.style.display = 'none';
-      host.innerHTML = '';
-    });
-    $('#caSave').addEventListener('click', () => {
-      const name = $('#caName').value.trim();
-      const type = $('#caType').value;
-      if (!name) { toast('Name this attribute first'); $('#caName').focus(); return; }
-      const optsRaw = ($('#caOpts').value || '').split(',').map(s => s.trim()).filter(Boolean);
-      const unit = ($('#caUnit').value || '').trim();
-      if ((type === 'select' || type === 'multi_select' || type === 'color') && optsRaw.length === 0) {
-        toast('Add at least one option'); $('#caOpts').focus(); return;
-      }
-      const newAttr = {
-        id: 'attr_custom_' + Date.now(),
-        name: name,
-        type: type,
-        options: optsRaw,
-        unit: unit,
-        icon: 'star',
-        custom: true
-      };
-      customAttrs.push(newAttr);
-      saveCustomAttrs();
-      state.attrs.push({ id: newAttr.id, value: (type === 'multi_select' ? [] : (type === 'boolean' ? false : '')) });
-      host.style.display = 'none';
-      host.innerHTML = '';
-      closeAttrPop();
-      renderAttrList();
-      renderPreview();
-      rerenderIcons();
-      toast("New attribute added to your product — admins will review before it's shared library-wide.");
-    });
-    rerenderIcons();
-    setTimeout(() => $('#caName').focus(), 40);
+    arSel.open = false;
+    arSel.expandedId = null;
+    $('#attrSelectOverlay').classList.remove('open');
+    $('#attrSelectSheet').classList.remove('open');
+    $('#attrSelectSheet').setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
   }
+
+  // Chip-row delegation: Select / Add / remove chip
+  $('#fAttributes').addEventListener('click', (e) => {
+    const rm = e.target.closest('[data-attr-remove]');
+    if (rm) {
+      e.stopPropagation();
+      const id = rm.getAttribute('data-attr-remove');
+      state.attrs = state.attrs.filter(a => a.id !== id);
+      renderAttributeChips();
+      renderPreview();
+      return;
+    }
+    if (e.target.closest('#btnSelectAttr')) { openAttrSelSheet(); return; }
+    if (e.target.closest('#btnAddAttr'))    { openAttrCreateSheet(); return; }
+  });
+
+  // Sheet-level wiring
+  $('#attrSelectOverlay').addEventListener('click', () => closeAttrSelSheet(true));
+  $('#attrSelectClose').addEventListener('click',   () => closeAttrSelSheet(true));
+  $('#attrSelApply').addEventListener('click',      () => closeAttrSelSheet(true));
+  $('#attrSelClearAll').addEventListener('click', () => {
+    if (!arSel.draft.length) return;
+    arSel.draft = [];
+    arSel.expandedId = null;
+    renderAttrSelSheet();
+  });
+  $('#attrSelSearch').addEventListener('input', (e) => {
+    arSel.search = e.target.value || '';
+    renderAttrSelSheet();
+  });
+  $$('#attrSelectSheet .tx-sheet-tabs .tab').forEach(tabEl => {
+    tabEl.addEventListener('click', () => {
+      arSel.tab = tabEl.getAttribute('data-artab') || 'all';
+      $$('#attrSelectSheet .tx-sheet-tabs .tab').forEach(t => t.classList.toggle('active', t === tabEl));
+      renderAttrSelSheet();
+    });
+  });
+
+  // Helper: add or remove a draft entry by id. When adding, seeds a sensible
+  // default (first option for select-type; empty string for input-type).
+  function arToggleSelect(id) {
+    const def = findAttr(id);
+    if (!def) return false;
+    const idx = arSel.draft.findIndex(d => d.id === id);
+    if (idx >= 0) {
+      arSel.draft.splice(idx, 1);
+      if (arSel.expandedId === id) arSel.expandedId = null;
+      return false; // now unselected
+    }
+    const kind = attrKind(def);
+    let defaultVal = '';
+    if (kind === 'select') {
+      const opts = def.options || [];
+      defaultVal = opts.length ? opts[0] : '';
+    }
+    arSel.draft.push({ id, value: defaultVal });
+    return true; // now selected
+  }
+
+  // Row interactions (select + expand + value entry)
+  $('#attrSelList').addEventListener('click', (e) => {
+    // Option chip (select-type value)
+    const optBtn = e.target.closest('.ar-opt-chip[data-ar-opt]');
+    if (optBtn) {
+      e.stopPropagation();
+      const row = e.target.closest('[data-ar-row]');
+      if (!row) return;
+      const id = row.getAttribute('data-ar-row');
+      const val = optBtn.getAttribute('data-ar-opt');
+      let entry = arDraftGet(id);
+      if (!entry) { entry = { id, value: '' }; arSel.draft.push(entry); }
+      // Toggle same option off; otherwise set
+      entry.value = (entry.value === val) ? '' : val;
+      renderAttrSelSheet();
+      return;
+    }
+
+    // Checkbox — immediately toggles selection (no expand, no value pick required)
+    const check = e.target.closest('.ar-row-check');
+    if (check) {
+      e.stopPropagation();
+      const row = check.closest('[data-ar-row]');
+      if (!row) return;
+      const id = row.getAttribute('data-ar-row');
+      arToggleSelect(id);
+      renderAttrSelSheet();
+      return;
+    }
+
+    // Row head (not the checkbox) — toggles expand; auto-selects if not yet in draft
+    const head = e.target.closest('.ar-row-head');
+    if (head) {
+      const row = head.closest('[data-ar-row]');
+      if (!row) return;
+      const id = row.getAttribute('data-ar-row');
+      const wasSelected = arDraftHas(id);
+      if (arSel.expandedId === id) {
+        // Collapsing — keep selection as-is
+        arSel.expandedId = null;
+      } else {
+        arSel.expandedId = id;
+        // If user opens a row that isn't selected yet, auto-select it with default value
+        if (!wasSelected) arToggleSelect(id);
+      }
+      renderAttrSelSheet();
+      // Focus the input if we just opened an input-row
+      const newRow = $('#attrSelList [data-ar-row="' + id.replace(/"/g,'\\"') + '"].expanded');
+      const inp = newRow && newRow.querySelector('input.ar-input');
+      if (inp) setTimeout(() => inp.focus(), 60);
+    }
+  });
+
+  // Space/Enter on a focused checkbox also toggles selection (keyboard a11y)
+  $('#attrSelList').addEventListener('keydown', (e) => {
+    if (e.key !== ' ' && e.key !== 'Enter') return;
+    const check = e.target.closest && e.target.closest('.ar-row-check');
+    if (!check) return;
+    const row = check.closest('[data-ar-row]');
+    if (!row) return;
+    e.preventDefault();
+    const id = row.getAttribute('data-ar-row');
+    arToggleSelect(id);
+    renderAttrSelSheet();
+  });
+
+  // Input value entry (input-type) — row stays selected as long as it is in
+  // the draft; we just sync the value. Counts reflect draft length, not values.
+  $('#attrSelList').addEventListener('input', (e) => {
+    const inp = e.target.closest('input.ar-input[data-ar-input]');
+    if (!inp) return;
+    const id = inp.getAttribute('data-ar-input');
+    let entry = arDraftGet(id);
+    if (!entry) { entry = { id, value: '' }; arSel.draft.push(entry); }
+    entry.value = inp.value;
+    // Footer + tab count — one per draft entry (selection), not per value.
+    const count = arSel.draft.length;
+    $('#attrSelFootN').textContent = count;
+    $('#attrSelTabCount').textContent = '(' + count + ')';
+    $('#attrSelClearAll').classList.toggle('disabled', count === 0);
+  });
+  // Enter-to-commit in input-type rows: just close expansion
+  $('#attrSelList').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const inp = e.target.closest('input.ar-input[data-ar-input]');
+    if (!inp) return;
+    e.preventDefault();
+    arSel.expandedId = null;
+    renderAttrSelSheet();
+  });
+
+  // ---------- ADD-ATTRIBUTE (creator) side sheet ----------
+  const arCreate = {
+    open: false,
+    type: 'input',        // 'input' | 'select'
+    required: false,
+    options: []
+  };
+
+  function resetCreatorForm() {
+    arCreate.type = 'input';
+    arCreate.required = false;
+    arCreate.options = [];
+    const nm = $('#acName'); if (nm) nm.value = '';
+    const opt = $('#acOptInput'); if (opt) opt.value = '';
+    const req = $('#acRequired'); if (req) req.checked = false;
+    const rLbl = $('#acRequiredLbl'); if (rLbl) rLbl.textContent = 'Optional';
+    $$('#attrCreateSheet .ac-seg-btn').forEach(b => {
+      const isActive = b.getAttribute('data-actype') === 'input';
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+    $('#acOptsField').style.display = 'none';
+    renderCreatorOptionChips();
+    updateCreatorSaveEnabled();
+  }
+
+  function renderCreatorOptionChips() {
+    const host = $('#acOptChips');
+    if (!host) return;
+    if (arCreate.options.length === 0) {
+      host.innerHTML = '<span class="ac-opt-empty">Add at least one option.</span>';
+      return;
+    }
+    host.innerHTML = arCreate.options.map((opt, i) =>
+      '<span class="ac-opt-chip" data-ac-i="' + i + '">' +
+        esc(opt) +
+        '<button type="button" class="x" data-ac-rm="' + i + '" aria-label="Remove ' + esc(opt) + '">' +
+          '<i data-lucide="x"></i>' +
+        '</button>' +
+      '</span>'
+    ).join('');
+    rerenderIcons();
+  }
+
+  function updateCreatorSaveEnabled() {
+    const saveBtn = $('#acSave');
+    if (!saveBtn) return;
+    const nameOk = ($('#acName')?.value || '').trim().length > 0;
+    const typeOk = arCreate.type === 'input' || (arCreate.type === 'select' && arCreate.options.length >= 1);
+    saveBtn.disabled = !(nameOk && typeOk);
+  }
+
+  function openAttrCreateSheet() {
+    resetCreatorForm();
+    arCreate.open = true;
+    $('#attrCreateOverlay').classList.add('open');
+    $('#attrCreateSheet').classList.add('open');
+    $('#attrCreateSheet').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    rerenderIcons();
+    setTimeout(() => { const s = $('#acName'); if (s) s.focus(); }, 280);
+  }
+
+  function closeAttrCreateSheet() {
+    arCreate.open = false;
+    $('#attrCreateOverlay').classList.remove('open');
+    $('#attrCreateSheet').classList.remove('open');
+    $('#attrCreateSheet').setAttribute('aria-hidden', 'true');
+    // Only release scroll if the other sheet is also closed
+    if (!arSel.open && !tx.open && !sp.open) document.body.style.overflow = '';
+  }
+
+  function saveCreatedAttribute() {
+    const name = ($('#acName').value || '').trim();
+    if (!name) { toast('Name this attribute first'); $('#acName').focus(); return; }
+    if (arCreate.type === 'select' && arCreate.options.length === 0) {
+      toast('Add at least one option'); $('#acOptInput').focus(); return;
+    }
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'attr';
+    const newDef = {
+      id: 'attr_' + slug + '_' + Date.now(),
+      name: name,
+      type: arCreate.type === 'select' ? 'select' : 'input',
+      options: arCreate.type === 'select' ? arCreate.options.slice() : [],
+      required: !!arCreate.required,
+      icon: arCreate.type === 'select' ? 'list-checks' : 'type',
+      custom: true
+    };
+    customAttrs.push(newDef);
+    saveCustomAttrs();
+
+    // Auto-select for the current product with a sensible default
+    if (!state.attrs.find(a => a.id === newDef.id)) {
+      const defaultVal = arCreate.type === 'select' ? (arCreate.options[0] || '') : '';
+      state.attrs.push({ id: newDef.id, value: defaultVal });
+    }
+    renderAttributeChips();
+    renderPreview();
+    closeAttrCreateSheet();
+    toast("Attribute '" + name + "' added to your master");
+  }
+
+  // Wire creator events once (elements live in the markup).
+  $('#attrCreateOverlay').addEventListener('click', () => closeAttrCreateSheet());
+  $('#attrCreateClose').addEventListener('click',   () => closeAttrCreateSheet());
+  $('#acCancel').addEventListener('click',          () => closeAttrCreateSheet());
+  $('#acSave').addEventListener('click',            () => saveCreatedAttribute());
+
+  $('#acName').addEventListener('input', updateCreatorSaveEnabled);
+  $('#acRequired').addEventListener('change', (e) => {
+    arCreate.required = e.target.checked;
+    const lbl = $('#acRequiredLbl'); if (lbl) lbl.textContent = e.target.checked ? 'Required' : 'Optional';
+  });
+  $$('#attrCreateSheet .ac-seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-actype') || 'input';
+      arCreate.type = t;
+      $$('#attrCreateSheet .ac-seg-btn').forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      $('#acOptsField').style.display = (t === 'select') ? '' : 'none';
+      updateCreatorSaveEnabled();
+      rerenderIcons();
+    });
+  });
+
+  function addCreatorOption() {
+    const inp = $('#acOptInput');
+    const val = (inp.value || '').trim();
+    if (!val) { inp.focus(); return; }
+    if (arCreate.options.includes(val)) { toast('Already added'); inp.focus(); return; }
+    arCreate.options.push(val);
+    inp.value = '';
+    renderCreatorOptionChips();
+    updateCreatorSaveEnabled();
+    inp.focus();
+  }
+  $('#acOptAdd').addEventListener('click', addCreatorOption);
+  $('#acOptInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addCreatorOption(); }
+  });
+  $('#acOptChips').addEventListener('click', (e) => {
+    const rm = e.target.closest('[data-ac-rm]');
+    if (!rm) return;
+    const i = parseInt(rm.getAttribute('data-ac-rm'), 10);
+    if (!isNaN(i)) {
+      arCreate.options.splice(i, 1);
+      renderCreatorOptionChips();
+      updateCreatorSaveEnabled();
+    }
+  });
+
+  // Escape closes either attr sheet (creator has priority since it opens on top)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (arCreate.open) { e.preventDefault(); closeAttrCreateSheet(); return; }
+    if (arSel.open)    { e.preventDefault(); closeAttrSelSheet(true); return; }
+  });
 
   // ---------- Preview card ----------
-  function unitPrice() { return (Number(state.mat)||0) + (Number(state.lab)||0); }
-  function renderUnitPill() { $('#unitPriceTxt').textContent = DB.fmtINR(unitPrice()); }
+  function unitPrice() { return 0; }
+  function renderUnitPill() { /* no-op: pricing field removed */ }
   function renderPreview() {
     // Image
     const wrap = $('#pvImgWrap');
@@ -908,12 +1832,6 @@
       wrap.innerHTML = '<span id="pvImgPlaceholder">Image preview</span>';
     }
     // Badges
-    if (Number(state.stock) > 0 && Number(state.stock) <= Number(state.minStock || 0)) {
-      const b = document.createElement('div');
-      b.className = 'low-badge';
-      b.innerHTML = '<i data-lucide="alert-triangle" class="w-3 h-3"></i>Low stock';
-      wrap.appendChild(b);
-    }
     if ((state.tags || []).includes('tag_sen') && state.attrs.length >= 4) {
       // just a little flair — mark products with many specs as a top item
       const b = document.createElement('div');
@@ -936,19 +1854,26 @@
     // Rating placeholder
     $('#pvRating').textContent = editing && existing ? ((DB.productRating(existing.id)?.count || 0) + ' reviews') : 'New listing';
 
-    // Price
-    $('#pvPrice').textContent = DB.fmtINR(unitPrice());
+    // Price — sourced from the existing product if editing, otherwise ₹0
+    const priceVal = (existing && existing.price)
+      ? ((Number(existing.price.material)||0) + (Number(existing.price.labor)||0))
+      : 0;
+    $('#pvPrice').textContent = DB.fmtINR(priceVal);
 
-    // Stock
-    const st = Number(state.stock || 0);
+    // Stock — sourced from existing product if editing
+    const st = Number((existing && existing.stock) || 0);
     const pvS = $('#pvStock');
     pvS.classList.remove('low','zero');
-    if (!state.stock && state.stock !== 0) { pvS.innerHTML = '<i data-lucide="box" class="w-3 h-3"></i>No stock set'; }
+    if (!existing) { pvS.innerHTML = '<i data-lucide="box" class="w-3 h-3"></i>No stock set'; }
     else if (st === 0) { pvS.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3"></i>Out of stock'; pvS.classList.add('zero'); }
-    else if (st <= Number(state.minStock || 0)) { pvS.innerHTML = '<i data-lucide="alert-triangle" class="w-3 h-3"></i>Only ' + st + ' left'; pvS.classList.add('low'); }
     else { pvS.innerHTML = '<i data-lucide="box" class="w-3 h-3"></i>' + st + ' in stock'; }
 
-    $('#pvVendor').textContent = 'Sold by ' + vendor.name;
+    if (editing && existing) {
+      const v = DB.byId(DB.VENDORS || [], existing.vendorId);
+      $('#pvVendor').textContent = v ? ('Sold by ' + v.name) : 'Catalog listing';
+    } else {
+      $('#pvVendor').textContent = 'Catalog listing';
+    }
 
     rerenderIcons();
   }
@@ -963,193 +1888,246 @@
     $('#nameCount').textContent = nameEl.value.length;
     renderPreview();
   });
-  // Short / long
-  $('#fShort').value = state.shortDesc;
-  $('#fShort').addEventListener('input', e => { state.shortDesc = e.target.value; });
-  $('#fLong').value = state.longDesc;
-  $('#fLong').addEventListener('input', e => { state.longDesc = e.target.value; });
+  // Description + counter
+  const descEl = $('#fDescription');
+  if (descEl) {
+    descEl.value = state.description;
+    $('#descCount').textContent = state.description.length;
+    descEl.addEventListener('input', () => {
+      state.description = descEl.value;
+      $('#descCount').textContent = descEl.value.length;
+    });
+  }
+  // (Category + Tags wiring is handled by the unified taxonomy section above.)
+  // (Species-tagged wiring is handled by the species side-sheet section above.)
 
-  // Category
-  $('#fCat').addEventListener('change', e => { state.cat = e.target.value; renderPreview(); });
+  // ---------- Image generator (REMOVED) ----------
+  // The "Or generate with AI" section was removed from the UI.
+  // state.imgPrompt is kept in state for save-flow compatibility but no longer bound to any input.
 
-  // Tags delegate
-  $('#fTags').addEventListener('click', (e) => {
-    const btn = e.target.closest('.tag-chip'); if (!btn) return;
-    const tid = btn.getAttribute('data-tag');
-    const i = state.tags.indexOf(tid);
-    if (i >= 0) state.tags.splice(i, 1); else state.tags.push(tid);
-    renderTags();
+  // ---------- Multi-image uploader ----------
+  const IMG_MAX      = 20;
+  const IMG_MAX_BYTES = 4 * 1024 * 1024; // 4MB
+  const IMG_MIME     = ['image/png', 'image/jpeg', 'image/webp'];
+
+  const dropZone = $('#dropZone');
+  const imgGrid  = $('#imgGrid');
+  const imgInput = $('#imgInput');
+  const imgCountEl  = $('#imgCount');
+  const imgCountTxt = $('#imgCountTxt');
+  const imgCaveat   = $('#imgCaveat');
+
+  function renderGallery() {
+    const n = state.gallery.length;
+    const full = n >= IMG_MAX;
+
+    // Empty state: big drop zone visible, grid & counter hidden
+    if (n === 0) {
+      dropZone.style.display = '';
+      imgGrid.style.display  = 'none';
+      imgCountEl.style.display = 'none';
+      imgCaveat.style.display  = 'none';
+      imgGrid.innerHTML = '';
+      return;
+    }
+
+    // Filled: hide big drop zone, show grid with thumbs + "+ Add more" tile at end
+    dropZone.style.display = 'none';
+    imgGrid.style.display  = 'grid';
+    imgCountEl.style.display = 'inline-flex';
+    imgCaveat.style.display  = 'inline-flex';
+
+    imgCountTxt.textContent = n + ' of ' + IMG_MAX + ' images';
+    imgCountEl.classList.toggle('full', full);
+
+    const tiles = state.gallery.map((g, i) => {
+      const primary = i === 0;
+      return ''
+        + '<div class="img-tile' + (primary ? ' is-primary' : '') + '" draggable="true" data-idx="' + i + '">'
+        +   '<img src="' + esc(g.url) + '" alt="' + esc(g.name || ('image ' + (i + 1))) + '"/>'
+        +   (primary ? '<span class="tile-primary">Primary</span>' : '')
+        +   '<button type="button" class="tile-remove" data-remove="' + i + '" aria-label="Remove image">'
+        +     '<i data-lucide="x" class="w-3.5 h-3.5"></i>'
+        +   '</button>'
+        +   (primary ? '' : '<button type="button" class="tile-make-primary" data-primary="' + i + '"><i data-lucide="star" class="w-3 h-3"></i>Make primary</button>')
+        + '</div>';
+    }).join('');
+
+    const addTile = ''
+      + '<div class="img-add-tile' + (full ? ' is-full' : '') + '" id="imgAddTile" role="button" tabindex="0" aria-label="Add more images">'
+      +   '<div class="ico-sm"><i data-lucide="plus" class="w-4 h-4"></i></div>'
+      +   '<div>' + (full ? 'Max reached' : 'Add more images') + '</div>'
+      + '</div>';
+
+    imgGrid.innerHTML = tiles + addTile;
+    rerenderIcons();
+  }
+
+  function addFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+
+    let skippedType = 0, skippedSize = 0, skippedCap = 0;
+    const remaining = IMG_MAX - state.gallery.length;
+
+    for (const f of files) {
+      if (!IMG_MIME.includes(f.type)) { skippedType++; continue; }
+      if (f.size > IMG_MAX_BYTES)     { skippedSize++; continue; }
+      if (state.gallery.length >= IMG_MAX) { skippedCap++; continue; }
+      state.gallery.push({
+        id: 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        url: URL.createObjectURL(f),
+        name: f.name
+      });
+    }
+
+    const added = Math.max(0, Math.min(files.length, remaining) - skippedType - skippedSize);
+    if (added > 0) toast('Added ' + added + ' image' + (added === 1 ? '' : 's'));
+    if (skippedType) toast('Skipped ' + skippedType + ' — unsupported file type');
+    if (skippedSize) toast('Skipped ' + skippedSize + ' — larger than 4MB');
+    if (skippedCap)  toast('Only 20 images allowed — ' + skippedCap + ' skipped');
+
+    renderGallery();
+    renderPreview(); // primary may have changed if this is the first upload
+  }
+
+  // Click on empty drop zone → open picker
+  dropZone.addEventListener('click', () => imgInput.click());
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); imgInput.click(); }
+  });
+
+  // File picker change
+  imgInput.addEventListener('change', (e) => {
+    addFiles(e.target.files);
+    imgInput.value = ''; // allow re-selecting the same file later
+  });
+
+  // Drag visuals + drop (empty zone)
+  ['dragenter', 'dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('is-drag'); });
+  });
+  ['dragleave', 'dragend', 'drop'].forEach(ev => {
+    dropZone.addEventListener(ev, () => dropZone.classList.remove('is-drag'));
+  });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      addFiles(e.dataTransfer.files);
+    }
+  });
+
+  // Grid-level events: delegation for remove / make-primary / add-more click,
+  // plus drag-and-drop both for file upload (onto add-tile / grid) and for
+  // thumb reordering.
+  let dragSrcIdx = null;
+
+  imgGrid.addEventListener('click', (e) => {
+    const rm = e.target.closest('[data-remove]');
+    if (rm) {
+      const i = Number(rm.getAttribute('data-remove'));
+      const [removed] = state.gallery.splice(i, 1);
+      if (removed && typeof removed.url === 'string' && removed.url.startsWith('blob:')) {
+        try { URL.revokeObjectURL(removed.url); } catch (_) {}
+      }
+      renderGallery();
+      renderPreview();
+      return;
+    }
+    const mp = e.target.closest('[data-primary]');
+    if (mp) {
+      const i = Number(mp.getAttribute('data-primary'));
+      if (i > 0 && i < state.gallery.length) {
+        const [item] = state.gallery.splice(i, 1);
+        state.gallery.unshift(item);
+        renderGallery();
+        renderPreview();
+        toast('Set as primary image');
+      }
+      return;
+    }
+    if (e.target.closest('#imgAddTile')) {
+      if (state.gallery.length >= IMG_MAX) {
+        toast('Maximum 20 images reached');
+        return;
+      }
+      imgInput.click();
+    }
+  });
+
+  // HTML5 drag-reorder on thumbnails
+  imgGrid.addEventListener('dragstart', (e) => {
+    const tile = e.target.closest('.img-tile');
+    if (!tile) return;
+    dragSrcIdx = Number(tile.getAttribute('data-idx'));
+    tile.classList.add('dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      // Required for Firefox to initiate drag
+      try { e.dataTransfer.setData('text/plain', String(dragSrcIdx)); } catch (_) {}
+    }
+  });
+  imgGrid.addEventListener('dragend', (e) => {
+    const tile = e.target.closest('.img-tile');
+    if (tile) tile.classList.remove('dragging');
+    imgGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSrcIdx = null;
+  });
+  imgGrid.addEventListener('dragover', (e) => {
+    // Allow drop either for file-upload or thumb-reorder.
+    e.preventDefault();
+    const tile = e.target.closest('.img-tile');
+    const add  = e.target.closest('#imgAddTile');
+    imgGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    if (tile && dragSrcIdx !== null) tile.classList.add('drag-over');
+    if (add) add.classList.add('is-drag');
+    if (e.dataTransfer) e.dataTransfer.dropEffect = (dragSrcIdx !== null ? 'move' : 'copy');
+  });
+  imgGrid.addEventListener('dragleave', (e) => {
+    const tile = e.target.closest('.img-tile');
+    const add  = e.target.closest('#imgAddTile');
+    if (tile) tile.classList.remove('drag-over');
+    if (add)  add.classList.remove('is-drag');
+  });
+  imgGrid.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const addTile = e.target.closest('#imgAddTile');
+    // Case 1: file drop from desktop → upload
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      addFiles(e.dataTransfer.files);
+      if (addTile) addTile.classList.remove('is-drag');
+      return;
+    }
+    // Case 2: thumbnail reorder
+    if (dragSrcIdx === null) return;
+    const targetTile = e.target.closest('.img-tile');
+    if (!targetTile) return;
+    const targetIdx = Number(targetTile.getAttribute('data-idx'));
+    if (Number.isNaN(targetIdx) || targetIdx === dragSrcIdx) return;
+    const [moved] = state.gallery.splice(dragSrcIdx, 1);
+    state.gallery.splice(targetIdx, 0, moved);
+    dragSrcIdx = null;
+    renderGallery();
     renderPreview();
   });
 
-  // Species delegate
-  $('#fSpecies').addEventListener('click', (e) => {
-    const row = e.target.closest('.spc'); if (!row) return;
-    const sid = row.getAttribute('data-sp');
-    const i = state.species.indexOf(sid);
-    if (i >= 0) state.species.splice(i, 1); else state.species.push(sid);
-    renderSpecies();
-  });
-
-  // Pricing / stock
-  $('#fMat').value   = state.mat || '';
-  $('#fLab').value   = state.lab || '';
-  $('#fEff').value   = state.effort || '';
-  $('#fStock').value = state.stock || '';
-  $('#fMin').value   = state.minStock;
-  ['fMat','fLab'].forEach(id => {
-    $('#' + id).addEventListener('input', () => {
-      state[id === 'fMat' ? 'mat' : 'lab'] = Number($('#' + id).value) || 0;
-      renderUnitPill(); renderPreview();
-    });
-  });
-  $('#fEff').addEventListener('input', () => { state.effort = Number($('#fEff').value) || 0; });
-  $('#fStock').addEventListener('input', () => { state.stock = Number($('#fStock').value) || 0; renderPreview(); });
-  $('#fMin').addEventListener('input',   () => { state.minStock = Number($('#fMin').value) || 0; renderPreview(); });
-
-  // Attribute list delegate
-  $('#attrList').addEventListener('click', (e) => {
-    const rm = e.target.closest('.attr-remove');
-    if (rm) {
-      const row = e.target.closest('.attr-row');
-      const aid = row.getAttribute('data-aid');
-      state.attrs = state.attrs.filter(a => a.id !== aid);
-      renderAttrList(); renderPreview();
-      return;
-    }
-    // multi_select pill toggle
-    const pillBtn = e.target.closest('.pill-seg[data-multi="1"] button');
-    if (pillBtn) {
-      const parent = pillBtn.parentElement;
-      const aid = parent.getAttribute('data-aid');
-      const opt = pillBtn.getAttribute('data-opt');
-      const entry = state.attrs.find(a => a.id === aid);
-      if (!entry) return;
-      if (!Array.isArray(entry.value)) entry.value = [];
-      const i = entry.value.indexOf(opt);
-      if (i >= 0) entry.value.splice(i, 1); else entry.value.push(opt);
-      pillBtn.classList.toggle('active');
-      return;
-    }
-    // color swatch
-    const sw = e.target.closest('.swatch-row .swatch');
-    if (sw) {
-      const aid = sw.parentElement.getAttribute('data-aid');
-      const c = sw.getAttribute('data-c');
-      const entry = state.attrs.find(a => a.id === aid);
-      if (entry) entry.value = c;
-      sw.parentElement.querySelectorAll('.swatch').forEach(n => n.classList.remove('active'));
-      sw.classList.add('active');
-      return;
-    }
-  });
-  $('#attrList').addEventListener('change', (e) => {
-    const sel = e.target.closest('select[data-aid]');
-    if (sel) {
-      const aid = sel.getAttribute('data-aid');
-      const entry = state.attrs.find(a => a.id === aid);
-      if (entry) entry.value = sel.value;
-      return;
-    }
-    const cb = e.target.closest('input[type="checkbox"][data-aid]');
-    if (cb) {
-      const aid = cb.getAttribute('data-aid');
-      const entry = state.attrs.find(a => a.id === aid);
-      if (entry) entry.value = cb.checked;
-      // update label
-      const lbl = cb.parentElement.querySelector('.lbl');
-      if (lbl) lbl.textContent = cb.checked ? 'Yes' : 'No';
-      return;
-    }
-  });
-  $('#attrList').addEventListener('input', (e) => {
-    const n = e.target.closest('input[type="number"][data-aid]');
-    if (n) {
-      const aid = n.getAttribute('data-aid');
-      const entry = state.attrs.find(a => a.id === aid);
-      if (entry) entry.value = n.value === '' ? '' : Number(n.value);
-    }
-  });
-
-  // Add-attr button + popover
-  $('#addAttrBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const pop = $('#attrPop');
-    if (pop.classList.contains('open')) closeAttrPop();
-    else openAttrPop();
-  });
-  $('#attrSearch').addEventListener('input', () => renderAttrPop($('#attrSearch').value));
-  $('#attrPop').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const opt = e.target.closest('.attr-opt[data-pick]');
-    if (opt) {
-      const aid = opt.getAttribute('data-pick');
-      const def = findAttr(aid);
-      if (def && !state.attrs.find(a => a.id === aid)) {
-        const initial = def.type === 'multi_select' ? [] : (def.type === 'boolean' ? false : '');
-        state.attrs.push({ id: aid, value: initial });
-      }
-      closeAttrPop();
-      renderAttrList();
-      renderPreview();
-      return;
-    }
-    if (e.target.closest('#createAttrBtn')) { showCreateAttr(); return; }
-  });
-  document.addEventListener('click', (e) => {
-    const pop = $('#attrPop');
-    if (!pop.classList.contains('open')) return;
-    if (pop.contains(e.target) || $('#addAttrBtn').contains(e.target)) return;
-    closeAttrPop();
-  });
-
-  // ---------- Image generator ----------
-  $('#fPrompt').value = state.imgPrompt || '';
-  if (state.img) {
-    const gp = $('#genPreview');
-    gp.innerHTML = '<img src="' + esc(state.img) + '" alt="generated preview"/>';
-  }
-  $('#fPrompt').addEventListener('input', e => { state.imgPrompt = e.target.value; });
-  $('#genBtn').addEventListener('click', () => {
-    const p = ($('#fPrompt').value || '').trim();
-    if (!p) { toast('Describe the image first'); $('#fPrompt').focus(); return; }
-    const btn = $('#genBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4" style="animation:spin 1s linear infinite"></i>Generating…';
-    rerenderIcons();
-    const seed = Math.floor(Math.random() * 9999) + 1;
-    const url = DB.img(p + ', product photography, studio lighting, soft shadow, white background, 8k, sharp focus, detailed', 600, 480, seed);
-    const probe = new Image();
-    probe.onload = () => finalize();
-    probe.onerror = () => finalize();
-    probe.src = url;
-    setTimeout(finalize, 1600); // show preview even if pollinations is slow
-    let done = false;
-    function finalize() {
-      if (done) return; done = true;
-      state.img = url;
-      state.imgPrompt = p;
-      const gp = $('#genPreview');
-      gp.innerHTML = '<img src="' + esc(url) + '" alt="generated preview"/>';
-      btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="wand-2" class="w-4 h-4"></i>Regenerate';
-      rerenderIcons();
-      renderPreview();
-      toast('Image generated');
-    }
-  });
-
-  // Drop zone (stub)
-  $('#dropZone').addEventListener('click', () => toast('Upload is not wired up — use the AI generator below.'));
-  $('#dropZone').addEventListener('dragover', (e) => { e.preventDefault(); });
-  $('#dropZone').addEventListener('drop', (e) => { e.preventDefault(); toast('Upload is not wired up — use the AI generator below.'); });
+  // Initial paint so edit-mode prefills appear.
+  renderGallery();
 
   // ---------- Save / draft / preview / delete ----------
   function validate() {
     let ok = true;
     $$('.txt.invalid').forEach(el => el.classList.remove('invalid'));
+    const catWrap = $('#fCategories'); if (catWrap) catWrap.classList.remove('invalid');
     if (!state.name.trim()) { $('#fName').classList.add('invalid'); ok = false; }
-    if (!state.cat) { $('#fCat').classList.add('invalid'); ok = false; }
+    const hasCategory = (state.selectedTaxonomy || []).some(id => {
+      const item = taxonomyById(id);
+      return item && item.kind === 'category';
+    });
+    if (!hasCategory) {
+      if (catWrap) catWrap.classList.add('invalid');
+      ok = false;
+    }
     if (!ok) toast('Please fill the highlighted fields.');
     return ok;
   }
@@ -1167,18 +2145,33 @@
   function commit(status) {
     if (!validate()) return false;
     const specs = buildSpecs();
+    // New canonical attribute shape (spec): [{ id, value }]
+    const attributes = state.selectedAttributes.map(a => ({ id: a.id, value: a.value }));
     const cat = DB.byId(DB.CATEGORIES, state.cat);
+    const speciesArr = state.selectedSpeciesIds.slice();
     if (editing && existing) {
       existing.name = state.name.trim();
+      existing.description = state.description.trim();
+      existing.shortDesc = state.description.trim();
       existing.cat = state.cat;
       existing.tags = state.tags.slice();
-      existing.shortDesc = state.shortDesc;
-      existing.longDesc = state.longDesc;
-      existing.compatibleSpecies = state.species.slice();
-      existing.price = { material: state.mat, labor: state.lab, effortHrs: state.effort };
-      existing.stock = state.stock;
-      existing.specs = specs;
-      if (state.img) existing.img = state.img;
+      // Species tagged — primary shape is array; keep legacy mirrors in sync
+      existing.species = speciesArr;
+      existing.compatibleSpecies = speciesArr.slice();
+      if ('speciesId' in existing) { existing.speciesId = speciesArr[0] || ''; }
+      // Removed fields — provide sensible defaults only if missing so we
+      // don't clobber historical values already on the product.
+      if (existing.longDesc == null) existing.longDesc = '';
+      if (existing.price == null) existing.price = { material: 0, labor: 0, effortHrs: 0 };
+      if (existing.stock == null) existing.stock = 0;
+      existing.attributes = attributes;
+      existing.specs = specs; // legacy mirror (product_detail etc.)
+      if (state.img) {
+        existing.img = state.img;
+        existing.imgSmall = state.img;
+      }
+      // Gallery: full array of uploaded URLs (matches DB.galleryFor() pattern).
+      existing.gallery = state.gallery.map(g => g.url);
       if (state.imgPrompt) existing.imgQ = state.imgPrompt;
       existing.status = status;
       if (ZE.emit) ZE.emit('products:change');
@@ -1186,25 +2179,29 @@
       return existing;
     } else {
       const id = 'prod_' + Date.now();
+      const creatorId = (user && user.id) ? user.id : 'admin';
       const p = {
         id,
-        vendorId: vendor.id,
         name: state.name.trim(),
+        description: state.description.trim(),
         cat: state.cat,
         tags: state.tags.slice(),
-        shortDesc: state.shortDesc,
-        longDesc: state.longDesc,
-        compatibleSpecies: state.species.slice(),
-        price: { material: state.mat, labor: state.lab, effortHrs: state.effort },
-        stock: state.stock,
+        shortDesc: state.description.trim(),
+        longDesc: '',
+        species: speciesArr,
+        compatibleSpecies: speciesArr.slice(),
+        price: { material: 0, labor: 0, effortHrs: 0 },
+        stock: 0,
         stars: 0,
         uses: 0,
         hot: false,
-        specs: specs,
+        attributes: attributes,
+        specs: specs, // legacy mirror
         img: state.img || DB.img((cat ? cat.imgQ : 'enrichment product'), 600, 600, Math.floor(Math.random() * 999) + 1),
         imgSmall: state.img || DB.img((cat ? cat.imgQ : 'enrichment product'), 240, 240, Math.floor(Math.random() * 999) + 1),
+        gallery: state.gallery.map(g => g.url),
         imgQ: state.imgPrompt || '',
-        submittedBy: vendor.id,
+        submittedBy: creatorId,
         createdAt: new Date().toISOString(),
         status: status
       };
@@ -1219,13 +2216,10 @@
     const p = commit('published');
     if (p) setTimeout(() => { location = 'admin_products_1.html'; }, 700);
   });
-  $('#btnDraft').addEventListener('click', () => {
-    const p = commit('draft');
-    if (p) setTimeout(() => { location = 'admin_products_1.html'; }, 700);
-  });
+  // btnDraft removed — user requested no draft flow
   $('#btnPreview').addEventListener('click', () => {
     const p = commit(state.status || 'published');
-    if (p) window.open('product_detail_1.html?id=' + encodeURIComponent(p.id), '_blank');
+    if (p) window.open('product_detail_1.html?id=' + encodeURIComponent(p.id) + '&view=admin', '_blank');
   });
   $('#btnDelete').addEventListener('click', () => {
     if (!existing) return;
@@ -1238,10 +2232,10 @@
   });
 
   // ---------- Initial render ----------
-  renderTags();
-  renderSpecies();
-  renderAttrList();
-  renderUnitPill();
+  syncLegacyTaxonomy();
+  renderTaxonomyChips();
+  renderSpeciesChips();
+  renderAttributeChips();
   renderPreview();
   rerenderIcons();
 
@@ -1250,25 +2244,146 @@
   style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
   document.head.appendChild(style);
 
-  // ---------- Vendor mobile drawer ----------
-  (function initVendorDrawer(){
-    const btn = document.getElementById('vendorMenuBtn');
-    const dr  = document.getElementById('vDrawer');
-    const ov  = document.getElementById('vDrawerOverlay');
-    if (!btn || !dr || !ov) return;
-    const openDr = () => { dr.classList.add('open'); ov.classList.add('open'); dr.setAttribute('aria-hidden','false'); };
-    const closeDr = () => { dr.classList.remove('open'); ov.classList.remove('open'); dr.setAttribute('aria-hidden','true'); };
-    btn.addEventListener('click', openDr);
-    ov.addEventListener('click', closeDr);
-    dr.querySelector('.vd-close').addEventListener('click', closeDr);
-    const sf = document.getElementById('vDrawerStorefront');
-    if (sf && vendor && vendor.id) sf.href = 'admin_dashboard_1.html?id=' + encodeURIComponent(vendor.id);
-    const so = document.getElementById('vDrawerSignOut');
-    if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
+  // ---------- Buyer header: user slot (avatar dropdown with Admin highlighted) ----------
+  function renderUserSlot() {
+    const slot = document.getElementById('userSlot');
+    if (!slot) return;
+    const role = (ZE && ZE.user && ZE.user.role) ? ZE.user.role() : null;
+    const u = (role && ZE.user.resolve) ? ZE.user.resolve() : null;
+
+    if (!role || !u) {
+      slot.innerHTML = '<a href="login_1.html" class="signin-pill"><i data-lucide="log-in" class="w-4 h-4"></i> Sign in</a>';
+      if (window.lucide?.createIcons) window.lucide.createIcons();
+      return;
+    }
+
+    const avatarUrl = u.avatar || u.photo || 'https://image.pollinations.ai/prompt/professional%20zoo%20biologist%20portrait%20headshot%20smile?width=80&height=80&seed=401&nologo=true';
+    const name = u.name || u.fullName || 'Account';
+    const email = u.email || '';
+
+    slot.innerHTML =
+      '<div class="avatar-wrap">' +
+        '<img class="avatar" id="avatarTrigger" src="' + esc(avatarUrl) + '" alt="' + esc(name) + '" loading="eager" style="margin-left:0;"/>' +
+        '<div class="avatar-menu" id="avatarMenu" role="menu">' +
+          '<div class="menu-header">' +
+            '<div class="name">' + esc(name) + '</div>' +
+            (email ? '<div class="email">' + esc(email) + '</div>' : '') +
+          '</div>' +
+          '<a href="profile_1.html" role="menuitem"><i data-lucide="user" class="w-4 h-4"></i> Profile</a>' +
+          '<a href="orders_1.html" role="menuitem"><i data-lucide="package" class="w-4 h-4"></i> Orders</a>' +
+          '<a href="saved_1.html" role="menuitem"><i data-lucide="heart" class="w-4 h-4"></i> Saved</a>' +
+          '<a href="admin_products_1.html" class="active" role="menuitem" aria-current="page">' +
+            '<i data-lucide="shield" class="w-4 h-4"></i> Admin · Catalog' +
+            '<i data-lucide="check" class="w-4 h-4 menu-check"></i>' +
+          '</a>' +
+          '<div class="menu-sep"></div>' +
+          '<button type="button" class="sign-out" id="signOutBtn" role="menuitem">' +
+            '<i data-lucide="log-out" class="w-4 h-4"></i> Sign out' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+
+    const trigger = document.getElementById('avatarTrigger');
+    const menu = document.getElementById('avatarMenu');
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && e.target !== trigger) menu.classList.remove('open');
+    });
+    const signOut = document.getElementById('signOutBtn');
+    if (signOut) {
+      signOut.addEventListener('click', () => {
+        if (ZE.user && ZE.user.signOut) ZE.user.signOut();
+        window.location.href = 'login_1.html';
+      });
+    }
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+  }
+
+  // ---------- Header badges ----------
+  function renderBadges() {
+    try {
+      const cartN = (ZE.cart && ZE.cart.count) ? ZE.cart.count() : 0;
+      const cartB = document.getElementById('cartBadge');
+      if (cartB) {
+        if (cartN > 0) { cartB.style.display = 'inline-flex'; cartB.textContent = cartN; }
+        else cartB.style.display = 'none';
+      }
+
+      const savN = (ZE.saved && ZE.saved.count) ? ZE.saved.count() : 0;
+      const savB = document.getElementById('savedBadge');
+      if (savB) {
+        if (savN > 0) { savB.style.display = 'inline-flex'; savB.textContent = savN; }
+        else savB.style.display = 'none';
+      }
+
+      const ordN = (ZE.orders && ZE.orders.count) ? ZE.orders.count() : 0;
+      const ordB = document.getElementById('ordersBadge');
+      if (ordB) {
+        if (ordN > 0) { ordB.style.display = 'inline-flex'; ordB.textContent = ordN; }
+        else ordB.style.display = 'none';
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  // ---------- Header button nav ----------
+  const _ordersBtn = document.getElementById('ordersBtn');
+  if (_ordersBtn) _ordersBtn.addEventListener('click', () => { window.location.href = 'orders_1.html'; });
+  const _savedBtn = document.getElementById('savedBtn');
+  if (_savedBtn) _savedBtn.addEventListener('click', () => { window.location.href = 'saved_1.html'; });
+  const _cartBtn = document.getElementById('cartBtn');
+  if (_cartBtn) _cartBtn.addEventListener('click', () => { window.location.href = 'cart_1.html'; });
+
+  // ---------- Subscribe ----------
+  if (ZE.on) {
+    ZE.on('cart:change',   renderBadges);
+    ZE.on('saved:change',  renderBadges);
+    ZE.on('orders:change', renderBadges);
+    ZE.on('user:change',   renderUserSlot);
+  }
+
+  // ---------- Mobile nav drawer ----------
+  (function initMobileNav(){
+    const openBtn  = document.getElementById('mobileMenuBtn');
+    const overlay  = document.getElementById('mobileNavOverlay');
+    const drawer   = document.getElementById('mobileNavDrawer');
+    const closeBtn = document.getElementById('mobileNavClose');
+    if (!openBtn || !overlay || !drawer) return;
+
+    // Populate header area from current user
+    try {
+      const u = (ZE.user && typeof ZE.user.resolve === 'function') ? ZE.user.resolve() : null;
+      if (u) {
+        const av = u.avatar || u.photo || null;
+        if (av) { const img = document.getElementById('mobileNavAvatar'); if (img) img.src = av; }
+        const nameEl = document.getElementById('mobileNavName');
+        const subEl  = document.getElementById('mobileNavSub');
+        if (nameEl && u.name) nameEl.textContent = u.name;
+        if (subEl) subEl.textContent = 'Admin · Catalog';
+      }
+    } catch(_){}
+
+    const open  = () => { overlay.classList.add('open'); drawer.classList.add('open'); document.body.style.overflow = 'hidden'; if (window.lucide?.createIcons) window.lucide.createIcons(); };
+    const close = () => { overlay.classList.remove('open'); drawer.classList.remove('open'); document.body.style.overflow = ''; };
+    openBtn.addEventListener('click', (e) => { e.stopPropagation(); open(); });
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', close);
+
+    const signOut = document.getElementById('mobileNavSignOut');
+    if (signOut) signOut.addEventListener('click', () => {
+      if (ZE.user && ZE.user.signOut) ZE.user.signOut();
+      window.location.href = 'login_1.html';
+    });
   })();
+
+  renderUserSlot();
+  renderBadges();
 
   ZE.init && ZE.init();
 })();
 </script>
+
 </body>
 </html>

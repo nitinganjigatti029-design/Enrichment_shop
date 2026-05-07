@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -88,8 +89,8 @@
     /* Notification card */
     .n-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 10px; display: flex; gap: 14px; position: relative; transition: .15s; }
     .n-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-xs); }
-    .n-card.unread { background: linear-gradient(90deg, #F0FDF4 0%, var(--card) 40%); }
-    .n-card.unread::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; background: var(--brand); border-radius: 0 3px 3px 0; }
+    .n-card.unread .n-cat::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--brand); margin-right: 8px; vertical-align: middle; position: relative; top: -1px; }
+    .n-card.unread .n-cat.urgent::before { background: var(--danger); }
     .n-ico { width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .n-ico.order { background: var(--brand-soft); color: var(--brand-hover); }
     .n-ico.chat { background: #E0F2FE; color: #0369A1; }
@@ -108,16 +109,19 @@
     .n-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.4; margin-bottom: 2px; }
     .n-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
     .n-desc strong { color: var(--text); font-weight: 600; }
-    .n-inline { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .n-inline button { padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; border: 1px solid transparent; transition: .15s; }
-    .btn-accept { background: var(--brand); color: #fff; }
+    .n-inline { display: flex; align-items: center; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+    .n-inline button, .n-inline a { padding: 8px 16px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; transition: .15s; text-decoration: none; }
+    .btn-accept { background: var(--brand); color: #fff !important; padding: 8px 16px; }
     .btn-accept:hover { background: var(--brand-hover); }
-    .btn-decline { background: #fff; color: var(--text); border-color: var(--border); }
-    .btn-decline:hover { border-color: var(--danger); color: var(--danger); }
-    .btn-reply { background: #fff; color: var(--brand); border-color: var(--brand); }
-    .btn-reply:hover { background: var(--brand-soft); }
-    .btn-view { background: transparent; color: var(--text-muted); border: none; padding: 7px 6px; }
-    .btn-view:hover { color: var(--brand); }
+    .btn-link { background: transparent; color: var(--text-muted) !important; border: none; padding: 8px 12px; }
+    .btn-link:hover { color: var(--brand) !important; background: #F1F2F4; }
+    /* legacy alias mappings */
+    .btn-reply { background: transparent; color: var(--text-muted) !important; border: none; padding: 8px 12px; }
+    .btn-reply:hover { color: var(--brand) !important; background: #F1F2F4; }
+    .btn-view { background: transparent; color: var(--text-muted) !important; border: none; padding: 8px 12px; }
+    .btn-view:hover { color: var(--brand) !important; background: #F1F2F4; }
+    .btn-decline { background: transparent; color: var(--text-muted) !important; border: none; padding: 8px 12px; }
+    .btn-decline:hover { color: var(--danger) !important; background: var(--danger-bg); }
 
     .n-more { width: 28px; height: 28px; border-radius: 8px; background: transparent; border: none; color: var(--text-subtle); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: flex-start; }
     .n-more:hover { background: #F1F2F4; color: var(--text); }
@@ -247,9 +251,8 @@
         <span>ORD-8842-L2</span>
       </div>
       <div class="n-inline">
-        <a href="chat_1.html" class="btn-reply" style="text-decoration:none"><i data-lucide="message-square" class="w-3 h-3"></i> Open chat</a>
         <button class="btn-accept"><i data-lucide="check" class="w-3 h-3"></i> Accept &amp; send offer</button>
-        <button class="btn-view">View details</button>
+        <a href="chat_1.html" class="btn-link"><i data-lucide="message-square" class="w-3 h-3"></i> Open chat</a>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -266,8 +269,8 @@
       <div class="n-title">Listing flagged for missing species tags</div>
       <div class="n-desc"><strong>"Reinforced Lion Scratch Tower"</strong> is hidden from search until you add at least one primary species. Takes 30 seconds.</div>
       <div class="n-inline">
-        <a href="admin_add_product_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="edit-3" class="w-3 h-3"></i> Fix listing</a>
-        <button class="btn-view">Why flagged?</button>
+        <a href="admin_add_product_1.html" class="btn-accept"><i data-lucide="edit-3" class="w-3 h-3"></i> Fix listing</a>
+        <button class="btn-link">Why flagged?</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -285,7 +288,7 @@
       <div class="n-desc">You've delivered <strong>3 orders</strong> — payouts worth <strong>₹1,48,500</strong> are on hold until we verify your bank account. 2 minutes.</div>
       <div class="n-inline">
         <button class="btn-accept"><i data-lucide="arrow-right" class="w-3 h-3"></i> Complete now</button>
-        <button class="btn-view">Remind me tomorrow</button>
+        <button class="btn-link">Remind me tomorrow</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -311,8 +314,7 @@
         <span>ORD-8990</span>
       </div>
       <div class="n-inline">
-        <a href="chat_1.html" class="btn-reply" style="text-decoration:none"><i data-lucide="corner-up-left" class="w-3 h-3"></i> Reply</a>
-        <button class="btn-view">Open thread</button>
+        <a href="chat_1.html" class="btn-accept"><i data-lucide="corner-up-left" class="w-3 h-3"></i> Reply</a>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -335,7 +337,7 @@
         <span>ORD-8842-L2</span>
       </div>
       <div class="n-inline">
-        <button class="btn-view"><i data-lucide="eye" class="w-3 h-3"></i> View order</button>
+        <button class="btn-link"><i data-lucide="eye" class="w-3 h-3"></i> View order</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -352,8 +354,8 @@
       <div class="n-title">5-star review from Mysuru Zoo</div>
       <div class="n-desc">"Sturdy build and excellent finish. Our macaques took to it within an hour. Will reorder." · on <strong>Custom Teak Climbing Structure</strong></div>
       <div class="n-inline">
-        <button class="btn-reply"><i data-lucide="corner-up-left" class="w-3 h-3"></i> Reply publicly</button>
-        <button class="btn-view">View review</button>
+        <button class="btn-accept"><i data-lucide="corner-up-left" class="w-3 h-3"></i> Reply publicly</button>
+        <button class="btn-link">View review</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -371,7 +373,7 @@
       <div class="n-desc">Dr. Ramesh K. approved the lion scratch tower for <strong>Gir Reserve</strong>. You can begin fabrication; target ready-by is 30 Apr.</div>
       <div class="n-inline">
         <button class="btn-accept"><i data-lucide="arrow-right" class="w-3 h-3"></i> Start production</button>
-        <button class="btn-view">View order</button>
+        <button class="btn-link">View order</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -391,8 +393,8 @@
       <div class="n-title">Reminder: queued request from Alipore Zoo</div>
       <div class="n-desc">You set a revisit date of <strong>1 May</strong> on ORD-8985. 7 days to go — send an offer or let the buyer know if you're still waiting on materials.</div>
       <div class="n-inline">
-        <a href="chat_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="sparkles" class="w-3 h-3"></i> Send offer now</a>
-        <button class="btn-view">Open chat</button>
+        <a href="chat_1.html" class="btn-accept"><i data-lucide="sparkles" class="w-3 h-3"></i> Send offer now</a>
+        <button class="btn-link">Open chat</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -409,8 +411,8 @@
       <div class="n-title">Kaziranga requested a return — spec mismatch</div>
       <div class="n-desc">Mud-wallow liner dimensions off by 12cm. Buyer prefers a <strong>rework</strong> over a refund. 3 photos attached.</div>
       <div class="n-inline">
-        <a href="admin_returns_1.html" class="btn-accept" style="text-decoration:none"><i data-lucide="eye" class="w-3 h-3"></i> Review return</a>
-        <button class="btn-reply">Offer rework</button>
+        <a href="admin_returns_1.html" class="btn-accept"><i data-lucide="eye" class="w-3 h-3"></i> Review return</a>
+        <button class="btn-link">Offer rework</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -427,7 +429,7 @@
       <div class="n-title">4-star review — "Great product, slightly delayed"</div>
       <div class="n-desc">Alipore Zoo left a review on <strong>Floating Puzzle Feeder</strong>. Shipped 2 days past ETA.</div>
       <div class="n-inline">
-        <button class="btn-reply">Reply</button>
+        <button class="btn-link"><i data-lucide="corner-up-left" class="w-3 h-3"></i> Reply</button>
       </div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
@@ -445,7 +447,7 @@
       </div>
       <div class="n-title">New listing approved: Woven Foraging Canopy</div>
       <div class="n-desc">Your product is live and visible to all zoos. First view recorded within 10 minutes.</div>
-      <div class="n-inline"><button class="btn-view">View listing</button></div>
+      <div class="n-inline"><button class="btn-link">View listing</button></div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
   </div>
@@ -459,7 +461,7 @@
       </div>
       <div class="n-title">Nandankanan Zoo onboarded in Primate Enrichment</div>
       <div class="n-desc">A new zoo is actively purchasing in your top category. Consider reaching out via your storefront intro.</div>
-      <div class="n-inline"><button class="btn-view">Learn more</button></div>
+      <div class="n-inline"><button class="btn-link">Learn more</button></div>
     </div>
     <button class="n-more"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
   </div>

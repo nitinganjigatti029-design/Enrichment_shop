@@ -394,6 +394,35 @@ const ORDERS = [
   });
 })();
 
+/* V2: split multi-product legacy orders into one-per-product so the admin
+   queue is uniformly single-product (matches V2 model). */
+(function splitOrdersToOneProduct(){
+  if (!Array.isArray(ORDERS)) return;
+  var out = [];
+  ORDERS.forEach(function(o){
+    var items = Array.isArray(o.items) ? o.items : [];
+    if (items.length <= 1) { out.push(o); return; }
+    var lineTotals = items.map(function(it){
+      var unit = (it.unit != null) ? Number(it.unit) : ((it.p && it.p.price) ? Number(it.p.price) : 0);
+      return unit * (Number(it.qty) || 1);
+    });
+    var sumLT = lineTotals.reduce(function(s,n){ return s + n; }, 0);
+    items.forEach(function(it, i){
+      var portion = sumLT > 0 ? (lineTotals[i] / sumLT) : (1/items.length);
+      var copy = Object.assign({}, o, {
+        id: o.id + '-' + String.fromCharCode(65 + i),
+        items: [it],
+        total: lineTotals[i] > 0 ? lineTotals[i] : Math.round((Number(o.total) || 0) * portion),
+        _splitFrom: o.id
+      });
+      out.push(copy);
+    });
+  });
+  ORDERS.length = 0;
+  Array.prototype.push.apply(ORDERS, out);
+})();
+
+
 /* ============ Helpers ============ */
 const inINR = n => '₹' + Number(n).toLocaleString('en-IN');
 const fmtDateLong = iso => new Date(iso).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});

@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -75,7 +76,7 @@
 
     /* =========== Tabs =========== */
     .tabs-wrap { margin-bottom: 22px; }
-    .tabs { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; flex-wrap: wrap; }
+    .tabs { display: inline-flex; background: #E4E5E8; padding: 4px; border-radius: 999px; gap: 4px; flex-wrap: wrap; }
     .tabs button { padding: 9px 18px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: 8px; }
     .tabs button:hover { color: var(--text); }
     .tabs button.active { background: var(--brand); color: #fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
@@ -140,6 +141,28 @@
     .ap-table tbody td { padding: 12px 14px; vertical-align: middle; background: var(--card); height: 64px; }
     .ap-table tbody td.right { text-align: right; }
     .ap-table tbody td.col-actions { position: sticky; right: 0; z-index: 3; background: var(--card); box-shadow: -8px 0 12px -8px rgba(0,0,0,0.08); }
+    .ap-prod { display:flex; gap:10px; align-items:center; }
+    .ap-prod-thumb { width:40px; height:40px; border-radius:8px; overflow:hidden; background:var(--muted); flex-shrink:0; }
+    .ap-prod-thumb img { width:100%; height:100%; object-fit:cover; }
+    .ap-prod-meta { min-width:0; }
+    .ap-prod-name { font-weight:700; font-size:13.5px; color:var(--text); line-height:1.25; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ap-prod-cfg { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+    .ap-prod-id { font-size:10.5px; color:var(--text-subtle); margin-top:2px; font-family: ui-monospace, monospace; opacity:.7; }
+    /* V2 detail-sheet product hero */
+    .ap-hero { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+    .ap-hero-main { width: 100%; aspect-ratio: 4/3; border-radius: 12px; background: var(--muted); overflow: hidden; }
+    .ap-hero-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .15s; }
+    .ap-hero-thumbs { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+    .ap-hero-thumb { flex: 0 0 auto; width: 64px; height: 64px; padding: 0; border: 2px solid var(--border); border-radius: 8px; background: var(--muted); cursor: pointer; overflow: hidden; transition: .12s; }
+    .ap-hero-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ap-hero-thumb:hover { border-color: var(--brand); }
+    .ap-hero-thumb.active { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(55,189,105,.2); }
+    .ap-hero-meta { display: flex; flex-direction: column; gap: 4px; }
+    .ap-hero-name { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .ap-hero-bits { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+    .ap-hero-desc { padding: 12px 14px; background: var(--card-subtle, #F9FAFB); border-radius: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .ap-hero-tagline { font-size: 13px; font-weight: 600; color: var(--text); }
+    .ap-hero-attrs { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
     .ap-table tbody tr.ap-row:hover td.col-actions { background: var(--brand-soft, #ECFDF5); }
 
     .ap-id-pill { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; }
@@ -182,6 +205,41 @@
     .status-strip.rejected { background: var(--danger-bg); color: var(--danger); border-color: #F5C2CB; }
 
     /* Inline drawer (full-width row inserted under the active row for approve note / reject reason) */
+    /* Bulk select column + action bar */
+    .ap-table th.col-check, .ap-table td.col-check { width: 36px; padding-left: 12px; padding-right: 0; }
+    .ap-table th.col-check input, .ap-table td.col-check input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--brand); }
+    .ap-bulk-bar {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      z-index: 60;
+      display: none; align-items: center; gap: 14px;
+      width: min(760px, calc(100% - 48px));
+      padding: 12px 18px; border-radius: 14px;
+      background: #fff; color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 40px -10px rgba(15,23,42,.22);
+    }
+    .ap-bulk-bar.show { display: flex; }
+    .ap-bulk-bar .count { font-size: 13.5px; font-weight: 700; color: var(--text); }
+    .ap-bulk-bar .spacer { flex: 1; }
+    .ap-bulk-bar button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 10px;
+      border: 0; cursor: pointer;
+      font-size: 13px; font-weight: 700;
+      transition: .15s;
+    }
+    .ap-bulk-bar button i, .ap-bulk-bar button svg { width: 14px !important; height: 14px !important; }
+    .ap-bulk-bar .bb-cancel { background: transparent; color: var(--text-muted); }
+    .ap-bulk-bar .bb-cancel:hover { color: var(--text); background: #F1F2F4; }
+    .ap-bulk-bar .bb-reject { background: #FFF1F2; color: var(--danger); border: 1px solid #FECDD3; }
+    .ap-bulk-bar .bb-reject:hover { background: #FFE4E6; }
+    .ap-bulk-bar .bb-approve { background: var(--brand); color: #fff; }
+    .ap-bulk-bar .bb-approve:hover { background: var(--brand-hover); }
+    /* When bulk-select is active, dim and disable per-row Reject/Approve buttons */
+    body.ap-bulk-active .ap-row .btn-sm-reject,
+    body.ap-bulk-active .ap-row .btn-sm-approve {
+      opacity: .4; pointer-events: none; cursor: not-allowed;
+    }
     .rc-drawer-row { display: none; }
     .rc-drawer-row:has(.rc-drawer.open) { display: table-row; }
     .rc-drawer-row td { padding: 0 !important; background: var(--card-subtle) !important; border-top: 1px solid var(--border) !important; }
@@ -582,18 +640,26 @@
         <table class="ap-table" id="apTable">
           <thead>
             <tr>
-              <th class="col-id">Request ID</th>
+              <th class="col-check"><input type="checkbox" id="apSelectAll" aria-label="Select all"/></th>
+              <th class="col-id">Product</th>
               <th class="col-requester">Requester</th>
               <th class="col-site">Site</th>
-              <th class="col-items">Items</th>
+              <th class="col-items">Qty</th>
               <th class="col-species">Species</th>
-              <th class="col-total right">Total</th>
+              <th class="col-total right">Amount</th>
               <th class="col-date">Requested</th>
               <th class="col-actions right">Actions</th>
             </tr>
           </thead>
           <tbody id="reqList"></tbody>
         </table>
+        <div class="ap-bulk-bar" id="apBulkBar" role="region" aria-label="Bulk actions">
+          <span class="count" id="apBulkCount">0 selected</span>
+          <span class="spacer"></span>
+          <button type="button" class="bb-cancel" id="apBulkClear">Clear</button>
+          <button type="button" class="bb-reject" id="apBulkReject"><i data-lucide="x"></i> Reject all</button>
+          <button type="button" class="bb-approve" id="apBulkApprove"><i data-lucide="check"></i> Approve all</button>
+        </div>
       </div>
     `;
   }
@@ -713,10 +779,8 @@
     if (o.approvalStatus === 'pending') {
       drawerRowHtml = `
         <tr class="rc-drawer-row" data-drawer-row-for="${esc(o.id)}">
-          <td colspan="8">
+          <td colspan="9">
             <div class="rc-drawer" id="drawer-approve-${esc(o.id)}">
-              <div class="drawer-title"><i data-lucide="check-circle" class="w-4 h-4" style="color:var(--brand)"></i> Approve request ${esc(o.id)}</div>
-              <div class="drawer-helper">Add an optional note for the requester. Once approved, the order is forwarded to the vendor.</div>
               <textarea maxlength="200" placeholder="Optional note to requester…" data-drawer-field="note-${esc(o.id)}"></textarea>
               <div class="char-count" data-char-for="note-${esc(o.id)}">0 / 200</div>
               <div class="drawer-actions">
@@ -727,8 +791,6 @@
               </div>
             </div>
             <div class="rc-drawer" id="drawer-reject-${esc(o.id)}">
-              <div class="drawer-title reject"><i data-lucide="x-circle" class="w-4 h-4"></i> Reject request ${esc(o.id)}</div>
-              <div class="drawer-helper">Please share a brief reason — the requester will see this.</div>
               <textarea class="reject-ta" maxlength="200" placeholder="Reason for rejection (required)…" data-drawer-field="reason-${esc(o.id)}"></textarea>
               <div class="char-count" data-char-for="reason-${esc(o.id)}">0 / 200</div>
               <div class="drawer-actions">
@@ -742,9 +804,28 @@
         </tr>`;
     }
 
+    /* V2 product-centric column: surface the actual product (image + name + config),
+       not the order ID. The order ID still exists internally (data-id) and shows as
+       small muted text under the product name for ops reference. */
+    const it0 = items[0] || {};
+    const prod = it0.productId ? DB.byId(DB.PRODUCTS, it0.productId) : null;
+    const prodImg = prod ? (prod.images && prod.images[0]) || (typeof DB.img === 'function' ? DB.img(prod) : '') : '';
+    const cfg = (it0.config && Object.values(it0.config).filter(Boolean).join(' · ')) || '';
+    const productHtml = prod
+      ? `<div class="ap-prod">
+          <div class="ap-prod-thumb">${prodImg ? `<img src="${prodImg}" alt="">` : ''}</div>
+          <div class="ap-prod-meta">
+            <div class="ap-prod-name">${esc(prod.name)}</div>
+            ${cfg ? `<div class="ap-prod-cfg">${esc(cfg)}</div>` : ''}
+          </div>
+        </div>`
+      : `<span class="ap-id-pill">${esc(o.id)}</span>`;
+    const qtyHtml = `<div class="ap-items-count"><span class="num">${totalQty}</span><em>${totalQty === 1 ? 'unit' : 'units'}</em></div>`;
+
     return `
       <tr class="ap-row" data-id="${esc(o.id)}" tabindex="0">
-        <td class="col-id"><span class="ap-id-pill">${esc(o.id)}</span></td>
+        <td class="col-check">${o.approvalStatus === 'pending' ? `<input type="checkbox" class="ap-check" data-ap-check data-id="${esc(o.id)}" aria-label="Select request"/>` : ''}</td>
+        <td class="col-id">${productHtml}</td>
         <td class="col-requester">
           <div class="ap-requester">
             <img class="ap-rq-avatar" src="${rqAvatar}" alt="${esc(rqName)}" loading="lazy"/>
@@ -755,7 +836,7 @@
           </div>
         </td>
         <td class="col-site"><span class="ap-site">${esc(siteInstitution)}</span></td>
-        <td class="col-items">${itemsHtml}</td>
+        <td class="col-items">${qtyHtml}</td>
         <td class="col-species">${spHtml}</td>
         <td class="col-total ap-total">${DB.fmtINR(o.total || 0)}</td>
         <td class="col-date">
@@ -1012,6 +1093,58 @@
     // Stop drawer textarea clicks from bubbling to the row
     document.querySelectorAll('.rc-drawer-row').forEach(row => {
       row.addEventListener('click', (e) => e.stopPropagation());
+    });
+
+    // Bulk select — checkboxes
+    function _refreshBulkBar() {
+      const bar = document.getElementById('apBulkBar');
+      const cnt = document.getElementById('apBulkCount');
+      const checked = document.querySelectorAll('[data-ap-check]:checked');
+      const total = document.querySelectorAll('[data-ap-check]').length;
+      const all = document.getElementById('apSelectAll');
+      if (cnt) cnt.textContent = checked.length + ' selected';
+      if (bar) bar.classList.toggle('show', checked.length > 0);
+      // Disable per-row Reject/Approve when any row is selected — bulk actions take over
+      document.body.classList.toggle('ap-bulk-active', checked.length > 0);
+      if (all) {
+        all.checked = total > 0 && checked.length === total;
+        all.indeterminate = checked.length > 0 && checked.length < total;
+      }
+    }
+    document.querySelectorAll('[data-ap-check]').forEach(cb => {
+      cb.addEventListener('click', (e) => e.stopPropagation());
+      cb.addEventListener('change', _refreshBulkBar);
+    });
+    const _selAll = document.getElementById('apSelectAll');
+    if (_selAll) {
+      _selAll.addEventListener('click', (e) => e.stopPropagation());
+      _selAll.addEventListener('change', () => {
+        const want = _selAll.checked;
+        document.querySelectorAll('[data-ap-check]').forEach(cb => { cb.checked = want; });
+        _refreshBulkBar();
+      });
+    }
+    const _bulkClear = document.getElementById('apBulkClear');
+    if (_bulkClear) _bulkClear.addEventListener('click', () => {
+      document.querySelectorAll('[data-ap-check]').forEach(cb => { cb.checked = false; });
+      if (_selAll) { _selAll.checked = false; _selAll.indeterminate = false; }
+      _refreshBulkBar();
+    });
+    const _bulkApprove = document.getElementById('apBulkApprove');
+    if (_bulkApprove) _bulkApprove.addEventListener('click', () => {
+      const ids = Array.from(document.querySelectorAll('[data-ap-check]:checked')).map(c => c.dataset.id);
+      if (!ids.length) return;
+      ids.forEach(id => { _ensureOrderInUserStore(id); ZE.orders.approveRequest(id, {}); });
+      showToast(`Approved ${ids.length} · Forwarded to vendor`);
+    });
+    const _bulkReject = document.getElementById('apBulkReject');
+    if (_bulkReject) _bulkReject.addEventListener('click', () => {
+      const ids = Array.from(document.querySelectorAll('[data-ap-check]:checked')).map(c => c.dataset.id);
+      if (!ids.length) return;
+      const reason = prompt('Reason for rejection (will apply to all selected):');
+      if (!reason || !reason.trim()) return;
+      ids.forEach(id => { _ensureOrderInUserStore(id); ZE.orders.rejectRequest(id, { reason: reason.trim() }); });
+      showToast(`Rejected ${ids.length} request${ids.length === 1 ? '' : 's'}`);
     });
 
     // Whole row click → side-sheet detail (graceful no-op if not loaded yet)
@@ -1947,34 +2080,50 @@
            + '</div>')
         : '';
 
-      // items
+      // V2 product hero — single product per order with gallery + description
       const items = Array.isArray(o.items) ? o.items : [];
-      const itemRows = items.map(function(it){
-        if (!it) return '';
-        const p = safeById((typeof DB!=='undefined'?DB.PRODUCTS:[]), it.productId);
-        const pname = p ? p.name : (it.productId || 'Item');
-        const thumb = p ? (p.imgSmall || p.img || '') : '';
-        const sp = it.speciesId ? safeById((typeof DB!=='undefined'?DB.SPECIES:[]), it.speciesId) : null;
-        const enc = it.enclosureId ? safeById((typeof DB!=='undefined'?DB.ENCLOSURES:[]), it.enclosureId) : null;
-        const metaParts = [];
-        metaParts.push('Qty ' + (it.qty != null ? it.qty : 1));
-        if (sp && sp.name) metaParts.push(sp.name);
-        if (enc && enc.name) metaParts.push(enc.name);
-        const thumbHtml = thumb
-          ? '<img class="ap-item-thumb" src="' + esc(thumb) + '" alt="" loading="lazy" />'
-          : '<div class="ap-item-thumb" aria-hidden="true"></div>';
-        return '<div class="ap-item-row">'
-             +   thumbHtml
-             +   '<div style="min-width:0; flex:1">'
-             +     '<div class="ap-item-name">' + esc(pname) + '</div>'
-             +     '<div class="ap-item-meta">' + esc(metaParts.join(' · ')) + '</div>'
-             +   '</div>'
-             + '</div>';
-      }).join('');
-      const itemsHtml = items.length
-        ? ('<div class="ap-section">'
-           + '<div class="ap-section-label">Items <span class="ap-section-count">(' + items.length + ')</span></div>'
-           + '<div class="ap-list">' + itemRows + '</div>'
+      const it0 = items[0] || {};
+      const p0 = it0 && it0.productId ? safeById((typeof DB!=='undefined'?DB.PRODUCTS:[]), it0.productId) : null;
+      const pname0 = p0 ? p0.name : (it0.productId || 'Item');
+      const gallery = p0 && DB.galleryFor ? (DB.galleryFor(p0) || []) : (p0 && p0.gallery ? p0.gallery : []);
+      const galleryList = gallery.length ? gallery : (p0 && (p0.img || p0.imgSmall) ? [p0.img || p0.imgSmall] : []);
+      const cfg0 = (it0.config && Object.values(it0.config).filter(Boolean).join(' · ')) || '';
+      const sp0 = it0.speciesId ? safeById((typeof DB!=='undefined'?DB.SPECIES:[]), it0.speciesId) : null;
+      const enc0 = it0.enclosureId ? safeById((typeof DB!=='undefined'?DB.ENCLOSURES:[]), it0.enclosureId) : null;
+      const metaBits = [];
+      metaBits.push('Qty ' + (it0.qty != null ? it0.qty : 1));
+      if (cfg0) metaBits.push(cfg0);
+      if (sp0 && sp0.name) metaBits.push(sp0.name);
+      if (enc0 && enc0.name) metaBits.push(enc0.name);
+      // Description synthesized from product attributes + vendor tagline
+      const ven = p0 && p0.vendorId ? safeById((typeof DB!=='undefined'?DB.VENDORS:[]), p0.vendorId) : null;
+      const descBits = [];
+      if (p0 && p0.mat && p0.mat.length) descBits.push('Materials: ' + p0.mat.join(', '));
+      if (p0 && p0.size) descBits.push('Size ' + p0.size);
+      if (p0 && p0.scent && p0.scent.length) descBits.push('Scent: ' + p0.scent.join(', '));
+      if (p0 && p0.duration) descBits.push('Duration ' + p0.duration);
+      if (p0 && p0.prep) descBits.push('Prep ' + p0.prep);
+      const venLine = ven && ven.tagline ? ven.tagline : '';
+      const heroHtml = items.length
+        ? ('<div class="ap-hero">'
+           + '<div class="ap-hero-main"><img class="ap-hero-img" id="apHeroMain" src="' + esc(galleryList[0] || '') + '" alt="' + esc(pname0) + '" loading="lazy" /></div>'
+           + (galleryList.length > 1
+              ? ('<div class="ap-hero-thumbs" role="tablist">'
+                 + galleryList.map(function(src, i){
+                     return '<button type="button" class="ap-hero-thumb' + (i === 0 ? ' active' : '') + '" data-ap-thumb data-src="' + esc(src) + '"><img src="' + esc(src) + '" alt="' + esc(pname0) + ' view ' + (i+1) + '" loading="lazy"/></button>';
+                   }).join('')
+                 + '</div>')
+              : '')
+           + '<div class="ap-hero-meta">'
+           +   '<div class="ap-hero-name">' + esc(pname0) + '</div>'
+           +   '<div class="ap-hero-bits">' + esc(metaBits.join(' · ')) + '</div>'
+           + '</div>'
+           + (venLine || descBits.length
+              ? ('<div class="ap-hero-desc">'
+                 + (venLine ? '<div class="ap-hero-tagline">' + esc(venLine) + '</div>' : '')
+                 + (descBits.length ? '<div class="ap-hero-attrs">' + esc(descBits.join(' · ')) + '</div>' : '')
+                 + '</div>')
+              : '')
            + '</div>')
         : '';
 
@@ -1987,7 +2136,18 @@
            + '</div>')
         : '';
 
-      body.innerHTML = reqHtml + itemsHtml + notesHtml;
+      body.innerHTML = reqHtml + heroHtml + notesHtml;
+
+      // Wire gallery thumb clicks (swap main image)
+      const mainImgEl = body.querySelector('#apHeroMain');
+      body.querySelectorAll('[data-ap-thumb]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          const src = btn.getAttribute('data-src');
+          if (mainImgEl && src) mainImgEl.src = src;
+          body.querySelectorAll('.ap-hero-thumb.active').forEach(function(a){ a.classList.remove('active'); });
+          btn.classList.add('active');
+        });
+      });
 
       // footer
       const totalHtml = '<div class="ap-foot-total">'

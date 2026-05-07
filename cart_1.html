@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -441,18 +442,22 @@
 
         <aside class="summary-col" id="summaryCol">
           <div class="card summary-card" id="summaryCard">
-            <div class="card-head">
-              <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
-              <h2>Order summary</h2>
+            <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="display:inline-flex;align-items:center;gap:8px;">
+                <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+                <h2 style="margin:0;">Order summary</h2>
+              </div>
+              <span id="sumItemPill" style="font-size:12px;font-weight:600;color:var(--text-muted);"><span id="sumItemCount">0</span> items</span>
             </div>
-            <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
-            <div class="sum-divider"></div>
-            <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+            <div class="sum-row total" style="margin-top:14px;"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
             <button class="btn btn-brand proceed-btn" id="proceedBtn">
               <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
             </button>
+            <span id="sumSubtotal" style="display:none;">₹0</span>
             <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
-            <a class="continue-shop" href="index_1.html">
+            <div id="v2OrderSplitNote" style="display:none;"></div>
+            <span id="v2OrderSplitCount" style="display:none;"></span>
+            <a class="continue-shop" href="../index_1.html">
               <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
             </a>
           </div>
@@ -752,11 +757,15 @@
     document.getElementById('sumTotal').textContent = DB.fmtINR(total);
 
     const note = document.getElementById('multiVendorNote');
-    if (vendorCount > 1) {
-      note.style.display = 'block';
-      note.textContent = `Your cart spans ${vendorCount} vendors — checkout will create ${vendorCount} separate orders.`;
-    } else {
-      note.style.display = 'none';
+    if (note) note.style.display = 'none';
+
+    /* V2: every cart line becomes its own order. Show preview count. */
+    const v2Note = document.getElementById('v2OrderSplitNote');
+    const v2Count = document.getElementById('v2OrderSplitCount');
+    if (v2Note && v2Count) {
+      const n = lines.length;
+      v2Count.textContent = String(n);
+      v2Note.style.display = n > 0 ? 'block' : 'none';
     }
   }
 
@@ -1118,18 +1127,20 @@
           </div>
           <aside class="summary-col" id="summaryCol">
             <div class="card summary-card" id="summaryCard">
-              <div class="card-head">
-                <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
-                <h2>Order summary</h2>
+              <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="display:inline-flex;align-items:center;gap:8px;">
+                  <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+                  <h2 style="margin:0;">Order summary</h2>
+                </div>
+                <span style="font-size:12px;font-weight:600;color:var(--text-muted);"><span id="sumItemCount">0</span> items</span>
               </div>
-              <div class="sum-row"><span>Items (<span id="sumItemCount">0</span>)</span><span id="sumSubtotal">₹0</span></div>
-              <div class="sum-divider"></div>
-              <div class="sum-row total"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
+              <div class="sum-row total" style="margin-top:14px;"><strong>Total</strong><strong id="sumTotal">₹0</strong></div>
               <button class="btn btn-brand proceed-btn" id="proceedBtn">
                 <i data-lucide="shield-check" class="w-4 h-4"></i> Proceed to checkout
               </button>
+              <span id="sumSubtotal" style="display:none;">₹0</span>
               <div id="multiVendorNote" class="multi-vendor-note" style="display:none"></div>
-              <a class="continue-shop" href="index_1.html">
+              <a class="continue-shop" href="../index_1.html">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue shopping
               </a>
             </div>

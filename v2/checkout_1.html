@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="../data.js?v=20260504c"></script>
   <script src="../app.js?v=20260504c"></script>
-  <script src="v2-bridge.js?v=20260505a"></script>
+  <script src="../v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -756,9 +756,12 @@
       <!-- ================= RIGHT COLUMN ================= -->
       <aside class="summary-col">
         <section class="card anim-in" id="summaryCard">
-          <div class="card-head">
-            <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
-            <h2>Order summary</h2>
+          <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div style="display:inline-flex;align-items:center;gap:8px;">
+              <span class="ico"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+              <h2 style="margin:0;">Order summary</h2>
+            </div>
+            <span id="summaryItemCount" style="font-size:12px;font-weight:600;color:var(--text-muted);">0 items</span>
           </div>
           <div id="summaryBody"><!-- populated by JS --></div>
         </section>
@@ -1028,6 +1031,12 @@
   function renderSummary() {
     const lines = ZE.cart.lines();
     const body = document.getElementById('summaryBody');
+    /* V2: surface item count next to the Order summary heading. */
+    const cntEl = document.getElementById('summaryItemCount');
+    if (cntEl) {
+      const n = (lines || []).reduce((s, l) => s + (Number(l.qty) || 0), 0);
+      cntEl.textContent = n + ' item' + (n === 1 ? '' : 's');
+    }
 
     if (!lines || lines.length === 0 || ZE.cart.isEmpty()) {
       body.innerHTML = `
@@ -1059,72 +1068,36 @@
     const totalShipping = 0;
     const grandTotal = grandSubtotal;
 
-    const groupsHtml = vendorIds.map(vid => {
-      const list = grouped[vid] || [];
-      const vendor = (DB.VENDORS && DB.byId) ? DB.byId(DB.VENDORS, vid) : null;
-      const vName  = (vendor && vendor.name) || 'Vendor';
-      const vTag   = (vendor && (vendor.tagline || vendor.description || '')) || '';
-      const vLogo  = DB.vendorLogo ? DB.vendorLogo(vendor || { id: vid }) : ((vendor && vendor.logo) || '');
-
-      // Per-vendor subtotal
-      const vSubtotal = list.reduce((s, l) => {
-        const p = prodFor(l); if (!p) return s;
-        const unit = (p.price.material || 0) + (p.price.labor || 0);
-        return s + unit * (Number(l.qty) || 0);
-      }, 0);
-
-      const linesHtml = list.map(l => {
-        const p = prodFor(l); if (!p) return '';
-        const unit = (p.price.material || 0) + (p.price.labor || 0);
-        const qty  = Number(l.qty) || 0;
-        const lineTotal = unit * qty;
-        const img = p.imgSmall || p.img;
-
-        const species = l.speciesId ? DB.byId(DB.SPECIES, l.speciesId) : null;
-        const enclosure = l.enclosureId ? DB.byId(DB.ENCLOSURES, l.enclosureId) : null;
-
-        const speciesMissing = (l.speciesId === null || l.speciesId === undefined) && !species;
-        const chipsHtml = `
-          <div class="line-chips">
-            ${species ? `<span class="species-chip"><i data-lucide="paw-print" class="w-3 h-3"></i>${escapeHtml(species.name)}</span>` : (speciesMissing ? `<span class="species-missing" style="color:var(--text-muted);font-style:italic;font-size:11px;">Species: —</span>` : '')}
-            ${enclosure ? `<span class="enc-chip"><i data-lucide="map-pin" class="w-3 h-3"></i>${escapeHtml(enclosure.name)}</span>` : ''}
-          </div>
-        `;
-
-        const noteHtml = l.note ? `<div class="line-note">“${escapeHtml(l.note)}”</div>` : '';
-
-        return `
-          <div class="sum-line">
-            <div class="thumb img-frame">
-              <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy"/>
-            </div>
-            <div class="mid">
-              <div class="name">${escapeHtml(p.name)}</div>
-              ${chipsHtml}
-              <div class="qtyprice">${qty} × ${DB.fmtINR(unit)}</div>
-              ${noteHtml}
-            </div>
-            <div class="line-total">${DB.fmtINR(lineTotal)}</div>
-          </div>
-        `;
-      }).join('');
-
+    /* V2: flat product list — no vendor grouping, no per-vendor subtotal. */
+    const allLines = ZE.cart.lines() || [];
+    const groupsHtml = allLines.map(l => {
+      const p = prodFor(l); if (!p) return '';
+      const unit = (p.price.material || 0) + (p.price.labor || 0);
+      const qty  = Number(l.qty) || 0;
+      const lineTotal = unit * qty;
+      const img = p.imgSmall || p.img;
+      const species = l.speciesId ? DB.byId(DB.SPECIES, l.speciesId) : null;
+      const enclosure = l.enclosureId ? DB.byId(DB.ENCLOSURES, l.enclosureId) : null;
+      const speciesMissing = (l.speciesId === null || l.speciesId === undefined) && !species;
+      const chipsHtml = `
+        <div class="line-chips">
+          ${species ? `<span class="species-chip"><i data-lucide="paw-print" class="w-3 h-3"></i>${escapeHtml(species.name)}</span>` : (speciesMissing ? `<span class="species-missing" style="color:var(--text-muted);font-style:italic;font-size:11px;">Species: —</span>` : '')}
+          ${enclosure ? `<span class="enc-chip"><i data-lucide="map-pin" class="w-3 h-3"></i>${escapeHtml(enclosure.name)}</span>` : ''}
+        </div>
+      `;
+      const noteHtml = l.note ? `<div class="line-note">“${escapeHtml(l.note)}”</div>` : '';
       return `
-        <div class="vendor-group">
-          <div class="vendor-head">
-            ${vLogo ? `<img class="v-logo" src="${vLogo}" alt="${escapeHtml(vName)}"/>` : `<span class="v-logo" style="display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted);"><i data-lucide="store" class="w-3 h-3"></i></span>`}
-            <div class="v-meta">
-              <div class="v-name">${escapeHtml(vName)}</div>
-              ${vTag ? `<div class="v-tag">${escapeHtml(vTag)}</div>` : ''}
-            </div>
+        <div class="sum-line">
+          <div class="thumb img-frame">
+            <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy"/>
           </div>
-          <div class="vendor-body">
-            ${linesHtml}
-            <div class="vendor-subtotal">
-              <span class="label">Vendor subtotal</span>
-              <span>${DB.fmtINR(vSubtotal)}</span>
-            </div>
+          <div class="mid">
+            <div class="name">${escapeHtml(p.name)}</div>
+            ${chipsHtml}
+            <div class="qtyprice">${qty} × ${DB.fmtINR(unit)}</div>
+            ${noteHtml}
           </div>
+          <div class="line-total">${DB.fmtINR(lineTotal)}</div>
         </div>
       `;
     }).join('');

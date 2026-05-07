@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="../data.js?v=20260504c"></script>
   <script src="../app.js?v=20260504c"></script>
-  <script src="v2-bridge.js?v=20260505a"></script>
+  <script src="../v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -420,7 +420,7 @@
 <script>
   (function () {
     // ---------- Page guard ----------
-    if (!ZE.user.requireRole('admin')) return;
+    /* V2: removed admin role redirect — keep all admin pages accessible during the demo. */
 
     // ---------- Helpers ----------
     function toast(msg) {
@@ -711,7 +711,7 @@
         const snippet = (r.text || '').length > 140 ? (r.text.slice(0, 140) + '…') : (r.text || '');
         const replyTag = r.vendorReply
           ? '<span class="rv-replied">Replied</span>'
-          : '<a class="rv-reply-link" href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '#reviews">Reply →</a>';
+          : '<a class="rv-reply-link" href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '&view=admin#reviews">Reply →</a>';
         return '' +
           '<div class="rv-row">' +
             '<div class="rv-top">' + starsHtml(r.stars || 0) +
@@ -719,7 +719,7 @@
             '</div>' +
             '<div class="rv-text">' + escapeHtml(snippet) + '</div>' +
             '<div class="rv-foot">' +
-              '<span class="rv-prod">on <a href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '">' + escapeHtml(pName) + '</a></span>' +
+              '<span class="rv-prod">on <a href="product_detail_1.html?id=' + encodeURIComponent(r.productId) + '&view=admin">' + escapeHtml(pName) + '</a></span>' +
               replyTag +
             '</div>' +
           '</div>';
@@ -754,7 +754,7 @@
           ? (r.avg.toFixed(1) + ' ★ · ' + r.count + ' reviews')
           : ((p.uses || 0) + ' uses');
         return '' +
-          '<a class="top-row" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' +
+          '<a class="top-row" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '&view=admin">' +
             '<div class="top-thumb img-frame"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></div>' +
             '<div>' +
               '<div class="top-name">' + escapeHtml(p.name) + '</div>' +

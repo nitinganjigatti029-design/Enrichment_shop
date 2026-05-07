@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 700px) { .page-wrap { padding: 0 16px; } }
@@ -20,9 +21,16 @@
     .search-pill { flex: 1; max-width: 560px; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px; background: #F1F2F4; border-radius: 999px; color: var(--text-muted); font-size: 14px; transition: .15s ease; cursor: text; }
     .search-pill:focus-within, .search-pill:hover { background: #E9EAEE; }
     .search-pill input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 14px; font-family: inherit; }
-    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
     .header-actions .link { font-size: 14px; color: var(--text-muted); padding: 0 10px; }
     .header-actions .link:hover { color: var(--text); }
+    /* V2 universal header button — icon + label stacked, like other v2 pages */
+    .header-actions .header-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 12px; color: var(--text-muted); cursor: pointer; background: transparent; border: 0; position: relative; min-width: 64px; transition: .15s; text-decoration: none; gap: 0; box-shadow: none; }
+    .header-actions .header-btn:hover { background: #F1F2F4; color: var(--text); }
+    .header-actions .header-btn span { font-size: 11px; font-weight: 500; margin-top: 3px; }
+    .header-actions .header-btn .badge { position: absolute; top: -2px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 2px solid var(--card); }
+    /* Customise stays as the brand-filled CTA — keep its inline overrides */
+    @media (max-width: 900px) { .header-actions .header-btn span { display: none; } }
     .avatar-btn { width: 40px; height: 40px; border-radius: 999px; overflow: hidden; border: 1.5px solid var(--border); cursor: pointer; position: relative; background: var(--card-subtle); }
     .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
     .avatar-wrap { position: relative; }
@@ -48,7 +56,7 @@
     @media (max-width: 960px) { .detail-grid { grid-template-columns: 1fr; gap: 20px; } }
 
     .gallery { padding: 20px; }
-    .main-image-wrap { position: relative; background: var(--card-subtle); border-radius: 12px; aspect-ratio: 4/5; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .main-image-wrap { position: relative; background: var(--card-subtle); border-radius: 12px; aspect-ratio: 4/3; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .main-image-wrap img { width: 100%; height: 100%; object-fit: cover; transition: opacity .3s ease; }
     .zoom-hint { position: absolute; right: 14px; bottom: 14px; width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.85); backdrop-filter: blur(6px); display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: .15s; }
     .zoom-hint:hover { color: var(--text); background: #fff; }
@@ -533,10 +541,10 @@
     .cta-secondary.disabled { background: #fff; color: var(--border-strong); border-color: var(--border); cursor: not-allowed; box-shadow: none; pointer-events: none; }
 
     /* Stepper (in-cart state) — filled brand green */
-    .cta-stepper { width: 100%; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: space-between; background: var(--brand); color: #fff; padding: 6px 8px; box-shadow: 0 8px 20px -6px rgba(55,189,105,.5); }
-    .cta-stepper button { width: 44px; height: 44px; border-radius: 999px; background: rgba(255,255,255,.18); border: none; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s ease; }
-    .cta-stepper button:hover { background: rgba(255,255,255,.3); }
-    .cta-stepper .cta-qty { font-size: 16px; font-weight: 700; min-width: 36px; text-align: center; }
+    .cta-stepper { width: 100%; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: space-between; background: #fff; color: var(--brand); border: 1.5px solid var(--brand); padding: 6px 8px; box-shadow: none; }
+    .cta-stepper button { width: 44px; height: 44px; border-radius: 999px; background: transparent; border: none; color: var(--brand); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s ease; }
+    .cta-stepper button:hover { background: var(--brand-soft); color: var(--brand-hover); }
+    .cta-stepper .cta-qty { font-size: 16px; font-weight: 700; min-width: 36px; text-align: center; color: var(--text); }
 
     /* Buy Now — FILLED brand green */
     .cta-buy-now { width: 100%; height: 56px; font-size: 15px; font-weight: 700; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--brand); color: #fff; border: 1.5px solid var(--brand); cursor: pointer; box-shadow: 0 8px 20px -6px rgba(55,189,105,.5); transition: .2s ease; }
@@ -544,22 +552,47 @@
     .cta-buy-now:active { transform: scale(.99); }
     .cta-buy-now.disabled, .cta-buy-now:disabled { background: var(--border-strong); border-color: var(--border-strong); color: #fff; cursor: not-allowed; box-shadow: none; pointer-events: none; opacity: .65; }
 
-    .cta-secondary { display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; height: 44px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: .15s ease; }
-    .cta-secondary:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
-    .cta-secondary.active,
-    .cta-secondary.is-saved { color: var(--danger); border-color: var(--danger); }
-    .cta-secondary.active i,
-    .cta-secondary.is-saved i { fill: currentColor; }
+    /* Save-for-later (heart) — distinct class so it doesn't override the
+       primary Add-to-cart .cta-secondary style above. */
+    .cta-fav { display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; height: 44px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; transition: .15s ease; }
+    .cta-fav:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .cta-fav.active,
+    .cta-fav.is-saved { color: var(--danger); border-color: var(--danger); }
+    .cta-fav.active i,
+    .cta-fav.is-saved i { fill: currentColor; }
     .cta-ghost { width: 100%; height: 56px; border-radius: 999px; background: transparent; border: 1.5px dashed var(--border-strong); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .cta-ghost:hover { border-color: var(--brand); color: var(--brand); background: var(--card-subtle); }
 
     .compat-section { margin-top: 28px; }
-    .species-stack { display: flex; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-    .species-avatar { width: 40px; height: 40px; border-radius: 999px; overflow: hidden; border: 2.5px solid var(--card); box-shadow: 0 2px 4px rgba(15,23,42,.08); background: var(--card-subtle); margin-left: -10px; position: relative; transition: .2s; }
-    .species-avatar:first-child { margin-left: 0; }
-    .species-avatar:hover { transform: translateY(-3px) scale(1.08); z-index: 2; }
-    .species-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .species-more { margin-left: 12px; padding: 6px 12px; border-radius: 999px; background: var(--card-subtle); border: 1px solid var(--border); font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .compat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .compat-view-detail { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; padding: 4px 0; font-size: 13px; font-weight: 600; color: var(--brand); cursor: pointer; transition: .15s; }
+    .compat-view-detail:hover { color: var(--brand-hover); }
+    .compat-view-detail i, .compat-view-detail svg { width: 14px !important; height: 14px !important; }
+    .species-stack { display: flex; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px; }
+    .species-stack.species-chips .species-chip {
+      display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px;
+      background: var(--card-subtle, #F9FAFB); border: 1px solid var(--border);
+      font-size: 12.5px; font-weight: 600; color: var(--text);
+    }
+    .species-stack.species-chips .species-chip-more { color: var(--text-muted); }
+    /* Compatible-species side sheet */
+    .cs-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: none; z-index: 200; }
+    .cs-overlay.open { display: flex; justify-content: flex-end; }
+    .cs-sheet { background: var(--card); width: min(420px, 100%); max-width: 100%; height: 100%; display: flex; flex-direction: column; box-shadow: -8px 0 32px -8px rgba(15,23,42,.25); animation: csIn .25s cubic-bezier(.2,.8,.2,1); }
+    @keyframes csIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .cs-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .cs-head h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
+    .cs-close { width: 32px; height: 32px; border-radius: 8px; background: transparent; border: 0; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
+    .cs-close:hover { background: var(--card-subtle, #F9FAFB); color: var(--text); }
+    .cs-close i, .cs-close svg { width: 16px !important; height: 16px !important; }
+    .cs-body { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .cs-row { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+    .cs-img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: var(--muted); }
+    .cs-meta { flex: 1; min-width: 0; }
+    .cs-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .cs-latin { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 2px; }
+    .cs-taxon { font-size: 11px; color: var(--text-subtle); margin-top: 2px; }
+    .cs-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
     .disclosures { margin-top: 28px; border-top: 1px solid var(--border); }
     .disclosures details { border-bottom: 1px solid var(--border); }
@@ -582,9 +615,11 @@
 
     .agg-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); height: fit-content; }
     .agg-big { font-size: 44px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1; }
-    .agg-stars { margin-top: 6px; display: inline-flex; gap: 2px; }
-    .agg-stars i { width: 18px; height: 18px; color: var(--warning); fill: currentColor; }
-    .agg-stars i.dim { color: var(--border-strong); fill: transparent; }
+    .agg-stars { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--text); }
+    .agg-stars i, .agg-stars svg { width: 16px !important; height: 16px !important; color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .rating-stars { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--text); }
+    .rating-stars i, .rating-stars svg { width: 14px !important; height: 14px !important; color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .rating-stars .star-avg, .agg-stars .star-avg { font-weight: 700; color: var(--text); }
     .agg-based { color: var(--text-muted); font-size: 13px; margin-top: 6px; }
     .dist { margin-top: 18px; display: flex; flex-direction: column; gap: 6px; }
     .dist-row { display: grid; grid-template-columns: 24px 1fr 28px; gap: 10px; align-items: center; font-size: 12px; color: var(--text-muted); }
@@ -613,16 +648,58 @@
     .gate-card a { color: var(--brand); font-weight: 600; }
 
     .review-list { display: flex; flex-direction: column; }
+    .review-list-scroll { max-height: 520px; overflow-y: auto; padding-right: 8px; }
+    .review-list-scroll::-webkit-scrollbar { width: 8px; }
+    .review-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+    .review-list-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+    .reviews-view-all { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; padding: 4px 0; font-size: 13px; font-weight: 600; color: var(--brand); cursor: pointer; transition: .15s; }
+    .reviews-view-all:hover { color: var(--brand-hover); }
+    .reviews-view-all i, .reviews-view-all svg { width: 14px !important; height: 14px !important; }
+
+    /* Reviews full-page overlay */
+    .rv-overlay { position: fixed; inset: 0; background: var(--page, #F8F9FA); z-index: 200; display: none; flex-direction: column; }
+    .rv-overlay.open { display: flex; }
+    .rv-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; background: var(--card); border-bottom: 1px solid var(--border); }
+    @media (max-width: 700px) { .rv-top { padding: 12px 16px; } }
+    .rv-title { font-size: 18px; font-weight: 800; color: var(--text); margin: 0; }
+    .rv-title .rv-product { font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+    .rv-close { width: 40px; height: 40px; border-radius: 999px; background: var(--card-subtle, #F1F2F4); border: 0; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; justify-content: center; transition: .15s; }
+    .rv-close:hover { background: var(--border); }
+    .rv-close i, .rv-close svg { width: 18px !important; height: 18px !important; }
+    .rv-body { flex: 1; overflow-y: auto; padding: 24px 32px; max-width: 1080px; width: 100%; margin: 0 auto; }
+    @media (max-width: 700px) { .rv-body { padding: 16px; } }
+    .rv-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .rv-search { flex: 1 1 280px; min-width: 220px; max-width: 480px; height: 42px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; display: flex; align-items: center; gap: 8px; padding: 0 14px; }
+    .rv-search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 14px; color: var(--text); font-family: inherit; }
+    .rv-search i, .rv-search svg { width: 16px !important; height: 16px !important; color: var(--text-muted); }
+    .rv-filter { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: .15s; }
+    .rv-filter:hover { color: var(--text); border-color: var(--border-strong); }
+    .rv-filter.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .rv-filter i, .rv-filter svg { width: 12px !important; height: 12px !important; }
+    .rv-summary { display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .rv-summary .big { font-size: 32px; font-weight: 800; color: var(--text); line-height: 1; }
+    .rv-summary .stars i, .rv-summary .stars svg { width: 16px !important; height: 16px !important; color: #FBBF24; fill: currentColor; }
+    .rv-summary .stars i.dim, .rv-summary .stars svg.dim { color: var(--border-strong); fill: none; }
+    .rv-summary .meta { font-size: 13px; color: var(--text-muted); }
+    .rv-list { display: flex; flex-direction: column; gap: 16px; }
+    .rv-empty { text-align: center; padding: 48px 16px; color: var(--text-muted); font-size: 14px; }
+    .rv-count { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
     .review-item { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); }
     .review-item:last-child { border-bottom: none; }
     .rev-avatar { width: 44px; height: 44px; border-radius: 999px; overflow: hidden; background: var(--brand); color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
     .rev-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .rev-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-    .rev-name { font-weight: 700; font-size: 14px; color: var(--text); }
-    .rev-title { font-size: 12px; color: var(--text-muted); }
-    .rev-stars { display: inline-flex; gap: 1px; margin-left: auto; }
-    .rev-stars i { width: 12px; height: 12px; color: var(--warning); fill: currentColor; }
-    .rev-stars i.dim { color: var(--border-strong); fill: transparent; }
+    .rev-id-line { font-size: 13.5px; color: var(--text); line-height: 1.3; margin-bottom: 6px; }
+    .rev-name { font-weight: 700; color: var(--text); }
+    .rev-title { color: var(--text-muted); font-weight: 500; }
+    .rev-stars-line { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .rev-stars { display: inline-flex; align-items: center; gap: 3px; }
+    .rev-stars i, .rev-stars svg { width: 18px !important; height: 18px !important; }
+    .rev-stars i.star-fill, .rev-stars svg.star-fill { color: var(--brand) !important; fill: var(--brand) !important; stroke: var(--brand) !important; }
+    .rev-stars i.star-outline, .rev-stars svg.star-outline { color: var(--border-strong) !important; fill: transparent !important; stroke: var(--border-strong) !important; }
+    .rev-avg { font-size: 16px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+    .rev-bullet { color: var(--text-muted); font-weight: 700; }
+    .rev-headline { font-size: 15px; font-weight: 700; color: var(--text); }
     .rev-text { font-size: 14px; color: var(--text); line-height: 1.55; margin-top: 4px; }
     .rev-date { font-size: 12px; color: var(--text-subtle); margin-top: 6px; }
 
@@ -849,6 +926,124 @@
 <body data-device="desktop">
   <div class="device-shell"><div class="device-inner">
 
+    <!-- ===== Admin header (shown only when user.role is admin/vendor) ===== -->
+    <header class="admin-site-header" id="adminSiteHeader" style="display:none;">
+      <div class="page-wrap admin-site-header-inner">
+        <a href="admin_dashboard_1.html" class="ash-brand">
+          <span class="ash-logo"><i data-lucide="paw-print" class="w-4 h-4"></i></span>
+          <span>ZooEnrich</span>
+        </a>
+        <nav class="ash-nav">
+          <a href="admin_dashboard_1.html"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span></a>
+          <a href="admin_orders_1.html"><i data-lucide="inbox" class="w-4 h-4"></i><span>Orders</span></a>
+          <a href="admin_products_1.html" class="active"><i data-lucide="package" class="w-4 h-4"></i><span>Products</span></a>
+          <a href="admin_analytics_1.html"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Analytics</span></a>
+          <a href="admin_notifications_1.html"><i data-lucide="bell" class="w-4 h-4"></i><span>Notifications</span></a>
+          <a href="chat_1.html"><i data-lucide="message-square" class="w-4 h-4"></i><span>Chat</span></a>
+          <a href="admin_returns_1.html"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Returns</span></a>
+        </nav>
+        <a href="admin_profile_1.html" class="ash-avatar" aria-label="Admin profile">
+          <img src="https://image.pollinations.ai/prompt/minimal%20wildlife%20vendor%20logo%20tree?width=60&height=60&seed=701&nologo=true" alt="Admin"/>
+          <span class="ash-name">TeakCraft</span>
+        </a>
+      </div>
+    </header>
+    <style>
+      .admin-site-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+      .admin-site-header-inner { display: flex; align-items: center; gap: 18px; height: 64px; }
+      .ash-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; flex-shrink: 0; }
+      .ash-logo { width: 32px; height: 32px; border-radius: 10px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+      .ash-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+      .ash-nav::-webkit-scrollbar { display: none; }
+      .ash-nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-decoration: none; transition: .15s; }
+      .ash-nav a:hover { color: var(--text); background: #F1F2F4; }
+      .ash-nav a.active { background: var(--brand-soft); color: var(--brand-hover); }
+      .ash-avatar { display: inline-flex; align-items: center; gap: 10px; padding: 4px 12px 4px 4px; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; text-decoration: none; color: var(--text); }
+      .ash-avatar img { width: 32px; height: 32px; border-radius: 999px; }
+      .ash-avatar .ash-name { font-size: 13px; font-weight: 700; }
+      body.is-admin-pdp .site-header { display: none !important; }
+      body.is-admin-pdp #adminSiteHeader { display: block !important; }
+      /* Hide buyer-only chrome on admin: original sticky CTA, config picker, related products */
+      body.is-admin-pdp #ctaSticky,
+      body.is-admin-pdp .cta-secondary-row,
+      body.is-admin-pdp .config-section,
+      body.is-admin-pdp .similar-section { display: none !important; }
+      /* Fixed admin action bar — always visible at viewport bottom */
+      body.is-admin-pdp #pdpAdminBar { display: flex !important; }
+      .pdp-admin-bar {
+        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+        z-index: 60;
+        display: none; align-items: center; gap: 10px;
+        width: min(640px, calc(100% - 48px));
+        padding: 10px 14px; border-radius: 14px;
+        background: #fff; border: 1px solid var(--border);
+        box-shadow: 0 18px 40px -10px rgba(15,23,42,.22);
+      }
+      .pdp-admin-bar button {
+        flex: 1; height: 48px; border-radius: 12px;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        transition: .15s ease;
+      }
+      .pdp-admin-bar button i, .pdp-admin-bar button svg { width: 16px !important; height: 16px !important; }
+      .pdp-admin-bar .pdp-edit { background: var(--brand); color: #fff; border: 1.5px solid var(--brand); }
+      .pdp-admin-bar .pdp-edit:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+      .pdp-admin-bar .pdp-deactivate { background: #fff; color: var(--text); border: 1.5px solid var(--border-strong); }
+      .pdp-admin-bar .pdp-deactivate:hover { border-color: var(--text-muted); background: #F1F2F4; }
+      .pdp-admin-bar .pdp-delete { background: #FFF1F2; color: var(--danger); border: 1.5px solid #FECDD3; }
+      .pdp-admin-bar .pdp-delete:hover { background: #FFE4E6; border-color: var(--danger); }
+    </style>
+    <script>
+    (function adminPdpChrome(){
+      function apply(){
+        // Admin chrome requires BOTH (1) admin/vendor persona AND (2) ?view=admin in the URL.
+        // The URL param is the explicit opt-in: admin pages (admin_products, admin_dashboard,
+        // admin order detail, etc.) append it when linking to product_detail. Buyer pages
+        // (index, cart, saved, order detail, profile) do not — so a buyer click never lands
+        // in admin chrome, even if some admin storage is lingering. This matches the user's
+        // mental model: chrome follows the page you came from, not just the storage role.
+        var params = new URLSearchParams(location.search);
+        var viewParam = params.get('view');
+        var u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
+        var role = u && u.role;
+        var hasAdminRole = u && (u.isAdmin === true || role === 'admin' || role === 'vendor');
+        var isAdmin = hasAdminRole && viewParam === 'admin';
+        if (!isAdmin) {
+          document.body.classList.remove('is-admin-pdp');
+          var existing = document.getElementById('pdpAdminBar');
+          if (existing) existing.remove();
+          return;
+        }
+        document.body.classList.add('is-admin-pdp');
+        if (document.getElementById('pdpAdminBar')) return;
+        var pid = (new URLSearchParams(location.search)).get('id') || '';
+        var bar = document.createElement('div');
+        bar.id = 'pdpAdminBar';
+        bar.className = 'pdp-admin-bar';
+        bar.innerHTML = ''
+          + '<button type="button" class="pdp-edit" onclick="location.href=\'admin_add_product_1.html?edit=' + encodeURIComponent(pid) + '\'"><i data-lucide="pencil"></i> Edit</button>'
+          + '<button type="button" class="pdp-deactivate" id="pdpDeactivateBtn"><i data-lucide="power"></i> Deactivate</button>'
+          + '<button type="button" class="pdp-delete" id="pdpDeleteBtn"><i data-lucide="trash-2"></i> Delete</button>';
+        document.body.appendChild(bar);
+        function toast(msg){
+          try { if (window.ZE && ZE.notify && ZE.notify.toast) ZE.notify.toast(msg, 'success'); else alert(msg); } catch (_) {}
+        }
+        var deactBtn = bar.querySelector('#pdpDeactivateBtn');
+        if (deactBtn) deactBtn.addEventListener('click', function(){ toast('Product deactivated · saved as Draft'); });
+        var delBtn = bar.querySelector('#pdpDeleteBtn');
+        if (delBtn) delBtn.addEventListener('click', function(){
+          if (confirm('Delete this product? This cannot be undone.')) {
+            toast('Product deleted');
+            setTimeout(function(){ location.href = 'admin_products_1.html'; }, 600);
+          }
+        });
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ apply(); setTimeout(apply, 200); });
+      else { apply(); setTimeout(apply, 200); }
+    })();
+    </script>
+
     <!-- ===== Header ===== -->
     <header class="site-header">
       <div class="page-wrap site-header-inner">
@@ -865,17 +1060,17 @@
           <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product">
             <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span>
           </button>
-          <a href="orders_1.html" class="link">Orders</a>
-          <button class="icon-btn" id="savedHeaderBtn" aria-label="Saved" onclick="window.location.href='saved_1.html'">
-            <i data-lucide="heart" class="w-4 h-4"></i>
+          <a href="orders_1.html" class="header-btn" aria-label="Orders"><i data-lucide="package" class="w-4 h-4"></i><span>Orders</span></a>
+          <button class="header-btn" type="button" id="savedHeaderBtn" aria-label="Saved" onclick="window.location.href='saved_1.html'">
+            <i data-lucide="heart" class="w-4 h-4"></i><span>Saved</span>
             <span class="badge" id="savedBadge" style="display:none">0</span>
           </button>
-          <button class="icon-btn" id="cartBtn" aria-label="Cart">
-            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          <button class="header-btn" type="button" id="cartBtn" aria-label="Cart">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i><span>Cart</span>
             <span class="badge" id="cartBadge" style="display:none">0</span>
           </button>
-          <a class="icon-btn" id="headerApprovalsLink" data-approvals-header data-approvals-display="inline-flex" href="approvals_1.html" aria-label="Approvals" style="display:none; text-decoration:none;">
-            <i data-lucide="user-check" class="w-4 h-4"></i>
+          <a class="header-btn" id="headerApprovalsLink" data-approvals-header data-approvals-display="inline-flex" href="approvals_1.html" aria-label="Approvals" style="display:none; text-decoration:none;">
+            <i data-lucide="user-check" class="w-4 h-4"></i><span>Approvals</span>
             <span class="badge" id="headerApprovalsBadge" data-approvals-header-badge style="display:none">0</span>
           </a>
           <button class="header-btn" type="button" id="walletBtn" onclick="window.location.href='wallet_1.html'" aria-label="Wallet"><i data-lucide="wallet" class="w-5 h-5"></i><span>Wallet</span></button>
@@ -907,13 +1102,14 @@
       <!-- ===== Reviews ===== -->
       <section class="reviews-section anim-in" id="reviews">
         <div class="reviews-head">
-          <h2 class="t-h2">Ratings & reviews</h2>
+          <h2 class="t-h2">Ratings &amp; reviews</h2>
+          <button type="button" class="reviews-view-all" id="reviewsViewAllBtn"><span>View all</span><i data-lucide="arrow-up-right"></i></button>
         </div>
         <div class="reviews-grid">
           <div id="aggCard"></div>
           <div>
             <div id="writeSlot"></div>
-            <div id="reviewList" class="review-list"></div>
+            <div id="reviewList" class="review-list review-list-scroll"></div>
             <div id="showMoreWrap"></div>
           </div>
         </div>
@@ -1152,15 +1348,9 @@
       return `<i data-lucide="star" class="${dim ? 'dim' : ''}" ${filled ? 'fill="currentColor"' : ''}></i>`;
     }
     function starRow(avg, size) {
-      // 5 stars rounded to 0.5; rendered using full stars + one for half
-      const rounded = Math.round(avg * 2) / 2;
-      let out = '';
-      for (let i = 1; i <= 5; i++) {
-        if (rounded >= i) out += `<i data-lucide="star" fill="currentColor"></i>`;
-        else if (rounded >= i - 0.5) out += `<i data-lucide="star-half" fill="currentColor"></i>`;
-        else out += `<i data-lucide="star" class="dim"></i>`;
-      }
-      return out;
+      // V2: single green star + numeric average — matches the listing card pattern.
+      const a = (typeof avg === 'number' && avg > 0) ? avg.toFixed(1) : '—';
+      return `<i data-lucide="star" fill="currentColor"></i> <span class="star-avg">${a}</span>`;
     }
     function relDate(ts) {
       if (!ts) return '';
@@ -1225,19 +1415,22 @@
 
         <p class="description">${desc}</p>
 
-        <div id="vendorCardSlot"></div>
+        <div id="vendorCardSlot" style="display:none;"></div>
 
         <div class="config-section" id="configSection"></div>
 
         <div class="compat-section">
-          <div class="t-eyebrow">Compatible with</div>
+          <div class="compat-head">
+            <div class="t-eyebrow" style="margin:0;">Compatible with</div>
+            <button type="button" class="compat-view-detail" id="compatViewDetailBtn"><i data-lucide="external-link"></i> View detail</button>
+          </div>
           <div id="speciesStack" class="species-stack"></div>
         </div>
 
-        <div class="disclosures" id="disclosures"></div>
+        <div class="disclosures" id="disclosures" style="display:none;"></div>
 
         <div class="cta-secondary-row">
-          <button class="cta-secondary" id="favBtn" type="button">
+          <button class="cta-fav" id="favBtn" type="button">
             <i data-lucide="heart" class="w-4 h-4"></i> Save for later
           </button>
         </div>
@@ -1262,6 +1455,7 @@
       renderConfigurator();
       renderCTA();
       wireBuyNowBtn();
+      wireCtaSlotDelegate();
       // Re-wire save-for-later because renderInfo() rebuilds the info panel DOM,
       // and reflect the current saved state on the freshly-injected button.
       wireFavBtn();
@@ -1916,6 +2110,13 @@
     // Entry points invoked from the CTA buttons.
     function openCartModal() { atcFlow = 'cart';   openAddToCartModal(p); }
     function openBuyNowModal() { atcFlow = 'buyNow'; openAddToCartModal(p); }
+    /* Direct add — no modal. Picks first compat species (or null) so + and Add
+       to cart both behave like a simple stepper. Used by the delegated handler. */
+    function quickAdd() {
+      const compat = Array.isArray(p.compatibleSpecies) ? p.compatibleSpecies : [];
+      const sid = compat.length ? compat[0] : null;
+      window.ZE.cart.addLine({ productId: p.id, speciesId: sid, enclosureId: null, qty: 1, note: null });
+    }
 
     function renderCTA() {
       const slot = qs('#ctaSlot');
@@ -1943,35 +2144,20 @@
         return;
       }
 
-      // Mirror listing-page logic: Add button when cart has 0 of this product,
-      // stepper-mini replacement when > 0. Both `+` buttons reopen the modal so
-      // the user can pick a (possibly different) species on each add.
+      // Render Add-to-cart button (qty 0) OR stepper (qty > 0). Click handling
+       // uses event delegation on #ctaSlot (wired once below) so re-renders don't
+       // lose listeners.
       const qty = (window.ZE.cart.countForProduct ? window.ZE.cart.countForProduct(p.id) : 0);
       if (!qty) {
         slot.innerHTML = `<button class="cta-secondary" id="addBtn" type="button"><i data-lucide="plus" class="w-5 h-5"></i> Add to cart</button>`;
-        qs('#addBtn').addEventListener('click', () => openCartModal());
       } else {
         slot.innerHTML = `
           <div class="cta-stepper" id="ctaStepper">
-            <button type="button" data-dir="-1" aria-label="Decrease"><i data-lucide="minus" class="w-5 h-5"></i></button>
+            <button type="button" data-cta-action="dec" aria-label="Decrease"><i data-lucide="minus" class="w-5 h-5"></i></button>
             <span class="cta-qty">${qty} in cart</span>
-            <button type="button" data-dir="1" aria-label="Increase"><i data-lucide="plus" class="w-5 h-5"></i></button>
+            <button type="button" data-cta-action="inc" aria-label="Increase"><i data-lucide="plus" class="w-5 h-5"></i></button>
           </div>
         `;
-        qs('#ctaStepper').querySelectorAll('button').forEach(b => {
-          b.addEventListener('click', () => {
-            const dir = +b.dataset.dir;
-            if (dir > 0) {
-              // + opens the modal to add another line (matches listing-page behaviour)
-              openCartModal();
-              return;
-            }
-            // − decrements the first line of this product (any species)
-            const lines = (window.ZE.cart.lines() || []).filter(l => l.productId === p.id);
-            if (!lines.length) return;
-            window.ZE.cart.incLine(lines[0].id, -1);
-          });
-        });
       }
       // Buy Now stays available as long as stock is OK (species chosen in modal).
       setBuyNowState(true);
@@ -1989,21 +2175,100 @@
       });
     }
 
+    /* Delegated click handler on #ctaSlot — survives re-renders so Add-to-cart,
+       + and − keep working after the slot's innerHTML is replaced. Wired ONCE. */
+    function wireCtaSlotDelegate() {
+      const slot = qs('#ctaSlot');
+      if (!slot || slot.dataset.wiredDelegate) return;
+      slot.dataset.wiredDelegate = '1';
+      slot.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('#addBtn');
+        if (addBtn) { e.preventDefault(); quickAdd(); return; }
+        const stepBtn = e.target.closest('[data-cta-action]');
+        if (!stepBtn) return;
+        e.preventDefault();
+        const action = stepBtn.dataset.ctaAction;
+        const lines = (window.ZE.cart.lines() || []).filter(l => l.productId === p.id);
+        if (action === 'inc') {
+          if (lines.length) window.ZE.cart.incLine(lines[0].id, +1);
+          else quickAdd();
+        } else if (action === 'dec') {
+          if (!lines.length) return;
+          window.ZE.cart.incLine(lines[0].id, -1);
+        }
+      });
+    }
+
     // ----- Species stack -----
     function renderSpeciesStack() {
+      /* V2: compatible species shown as text chips (not avatars). Full list opens
+         in a side sheet from the "View detail" button next to the section title. */
       const host = qs('#speciesStack');
-      const ids = (p.compatibleSpecies || []).slice(0, 6);
-      const more = Math.max(0, (p.compatibleSpecies || []).length - ids.length);
+      const ids = (p.compatibleSpecies || []);
+      const visible = ids.slice(0, 6);
+      const more = Math.max(0, ids.length - visible.length);
       host.innerHTML = '';
-      ids.forEach(sid => {
+      host.classList.add('species-chips');
+      visible.forEach(sid => {
         const sp = DB.byId(DB.SPECIES, sid);
         if (!sp) return;
-        const a = el('div', 'species-avatar');
-        a.title = sp.name;
-        a.innerHTML = `<img src="${DB.img(sp.imgQ, 80, 80, sp.seed)}" alt="${sp.name}"/>`;
-        host.appendChild(a);
+        const c = el('span', 'species-chip');
+        c.textContent = sp.name;
+        host.appendChild(c);
       });
-      if (more > 0) host.appendChild(el('div', 'species-more', `+${more} more`));
+      if (more > 0) {
+        const m = el('span', 'species-chip species-chip-more');
+        m.textContent = '+' + more + ' more';
+        host.appendChild(m);
+      }
+      const btn = qs('#compatViewDetailBtn');
+      if (btn && !btn._wired) {
+        btn._wired = true;
+        btn.addEventListener('click', openSpeciesSheet);
+      }
+    }
+
+    function openSpeciesSheet() {
+      let overlay = qs('#compatSpeciesOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'compatSpeciesOverlay';
+        overlay.className = 'cs-overlay';
+        overlay.innerHTML = `
+          <div class="cs-sheet" role="dialog" aria-modal="true" aria-labelledby="csSheetTitle">
+            <div class="cs-head">
+              <h3 id="csSheetTitle">Compatible species</h3>
+              <button type="button" class="cs-close" id="csCloseBtn" aria-label="Close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="cs-body" id="csBody"></div>
+          </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSpeciesSheet(); });
+        qs('#csCloseBtn').addEventListener('click', closeSpeciesSheet);
+      }
+      const body = qs('#csBody');
+      const ids = (p.compatibleSpecies || []);
+      body.innerHTML = ids.map(sid => {
+        const sp = DB.byId(DB.SPECIES, sid);
+        if (!sp) return '';
+        return `<div class="cs-row">
+          <img class="cs-img" src="${DB.img(sp.imgQ, 120, 120, sp.seed)}" alt="${sp.name}" loading="lazy"/>
+          <div class="cs-meta">
+            <div class="cs-name">${sp.name}</div>
+            <div class="cs-latin">${sp.latin || ''}</div>
+            ${sp.taxon ? `<div class="cs-taxon">${sp.taxon}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('') || '<div class="cs-empty">No compatible species listed.</div>';
+      overlay.classList.add('open');
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSpeciesSheet() {
+      const overlay = qs('#compatSpeciesOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
     }
 
     // ----- Disclosures -----
@@ -2088,25 +2353,8 @@
       const slot = qs('#writeSlot');
       const check = canWriteReview();
       if (!check.allowed) {
-        if (check.reason === 'signin') {
-          slot.innerHTML = `
-            <div class="gate-card">
-              <i data-lucide="lock" class="w-4 h-4"></i>
-              <div><a href="login_1.html">Sign in</a> to write a review for this product.</div>
-            </div>`;
-        } else if (check.reason === 'notbuyer') {
-          slot.innerHTML = `
-            <div class="gate-card">
-              <i data-lucide="info" class="w-4 h-4"></i>
-              <div>Only buyers who have received this product can leave a review.</div>
-            </div>`;
-        } else {
-          slot.innerHTML = `
-            <div class="gate-card">
-              <i data-lucide="info" class="w-4 h-4"></i>
-              <div>You can review this product after receiving an order that includes it.</div>
-            </div>`;
-        }
+        // V2: write-gating gate-cards removed entirely — no "after receiving an order" copy.
+        slot.innerHTML = '';
         return;
       }
 
@@ -2191,8 +2439,8 @@
         return;
       }
 
-      const showCount = reviewListExpanded ? reviews.length : Math.min(5, reviews.length);
-      const visible = reviews.slice(0, showCount);
+      // V2: inline list shows the latest 3 only — "View all" opens the full overlay.
+      const visible = reviews.slice(0, 3);
 
       host.innerHTML = visible.map(r => renderReviewHTML(r)).join('');
 
@@ -2219,41 +2467,41 @@
         });
       });
 
-      if (reviews.length > 5) {
-        moreWrap.innerHTML = `<button class="show-more-btn" id="showMoreBtn">${reviewListExpanded ? 'Show less' : `Show ${reviews.length - 5} more review${reviews.length - 5 === 1 ? '' : 's'}`}</button>`;
-        qs('#showMoreBtn').addEventListener('click', () => {
-          reviewListExpanded = !reviewListExpanded;
-          renderReviewList();
-        });
-      } else {
-        moreWrap.innerHTML = '';
-      }
+      // V2: "Show more" inline replaced by the View-all overlay link in the section head.
+      moreWrap.innerHTML = '';
       window.ZE && window.ZE.refreshIcons();
     }
 
+    function reviewTitle(r) {
+      if (r && r.title) return r.title;
+      const text = ((r && r.text) || '').trim();
+      if (text) {
+        const m = text.match(/^[^,.!?]{1,42}/);
+        if (m) {
+          const t = m[0].trim();
+          return t.charAt(0).toUpperCase() + t.slice(1);
+        }
+      }
+      const s = Math.round((r && r.stars) || 0);
+      return ({5:'Excellent',4:'Pretty good',3:'Mixed feelings',2:'Disappointing',1:'Poor experience'})[s] || 'Review';
+    }
     function renderReviewHTML(r) {
       const info = getReviewerInfo(r);
-      const stars = [1,2,3,4,5].map(n => r.stars >= n ? `<i data-lucide="star" fill="currentColor"></i>` : `<i data-lucide="star" class="dim"></i>`).join('');
+      const sCount = Math.max(0, Math.min(5, Math.round(Number(r.stars) || 0)));
+      const stars = [1,2,3,4,5].map(n =>
+        n <= sCount
+          ? `<i data-lucide="star" class="star-fill"></i>`
+          : `<i data-lucide="star" class="star-outline"></i>`
+      ).join('');
+      const avgNum = (typeof r.stars === 'number' && r.stars > 0) ? Number(r.stars).toFixed(1) : '—';
+      const title = reviewTitle(r);
       const avatar = info.avatarSrc
         ? `<img src="${esc(info.avatarSrc)}" alt="${esc(info.name)}"/>`
         : `<span>${esc(initialOf(info.name))}</span>`;
 
+      // V2: vendor reply blocks removed from review rows.
       let replyHTML = '';
-      if (r.vendorReply) {
-        const replyTime = r.vendorReply.createdAt ? relDate(r.vendorReply.createdAt) : '';
-        const vname = (vendor && vendor.name) || r.vendorReply.vendorName || 'Vendor';
-        const vlogo = (vendor && DB.vendorLogo) ? `<img src="${DB.vendorLogo(vendor)}" alt=""/>` : `<span>${initialOf(vname)}</span>`;
-        replyHTML = `
-          <div class="vendor-reply">
-            <div class="vendor-reply-head">
-              <span class="vr-logo">${vlogo}</span>
-              <span class="vr-name">${esc(vname)}</span>
-              <span class="vr-badge">Vendor</span>
-              ${replyTime ? `<span class="vr-time">${esc(replyTime)}</span>` : ''}
-            </div>
-            <div class="vr-text">${esc(r.vendorReply.text || '')}</div>
-          </div>
-        `;
+      if (false && r.vendorReply) {
       } else {
         const isVendorOfProduct = ZE.user && ZE.user.role && ZE.user.role() === 'vendor' && vendor && ZE.user.resolve && (ZE.user.resolve() || {}).vendorId === vendor.id;
         if (isVendorOfProduct) {
@@ -2277,10 +2525,14 @@
         <div class="review-item">
           <div class="rev-avatar">${avatar}</div>
           <div>
-            <div class="rev-head">
-              <span class="rev-name">${esc(info.name)}</span>
-              <span class="rev-title">${esc(info.title)}</span>
+            <div class="rev-stars-line">
               <span class="rev-stars">${stars}</span>
+              <span class="rev-avg">${avgNum}</span>
+              <span class="rev-bullet">·</span>
+              <span class="rev-headline">${esc(title)}</span>
+            </div>
+            <div class="rev-id-line">
+              <span class="rev-name">${esc(info.name)}</span>${info.title ? ` <span class="rev-title">· ${esc(info.title)}</span>` : ''}
             </div>
             <div class="rev-text">${esc(r.text || '')}</div>
             <div class="rev-date">${esc(relDate(r.createdAt))}</div>
@@ -2901,6 +3153,178 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
   } else { renderPill(); bind(); }
+})();
+</script>
+
+<!-- Reviews full-page overlay -->
+<div class="rv-overlay" id="rvOverlay" role="dialog" aria-modal="true" aria-labelledby="rvTitle" aria-hidden="true">
+  <div class="rv-top">
+    <h2 class="rv-title" id="rvTitle">Ratings &amp; reviews <span class="rv-product" id="rvProductLabel"></span></h2>
+    <button type="button" class="rv-close" id="rvCloseBtn" aria-label="Close"><i data-lucide="x"></i></button>
+  </div>
+  <div class="rv-body">
+    <div id="rvSummary" class="rv-summary"></div>
+    <div class="rv-controls">
+      <label class="rv-search"><i data-lucide="search"></i><input type="search" id="rvSearch" placeholder="Search reviews…" autocomplete="off"/></label>
+      <button type="button" class="rv-filter active" data-rv-filter="all">All</button>
+      <button type="button" class="rv-filter" data-rv-filter="5">5★</button>
+      <button type="button" class="rv-filter" data-rv-filter="4">4★</button>
+      <button type="button" class="rv-filter" data-rv-filter="3">3★</button>
+      <button type="button" class="rv-filter" data-rv-filter="2">2★</button>
+      <button type="button" class="rv-filter" data-rv-filter="1">1★</button>
+    </div>
+    <div class="rv-count" id="rvCount"></div>
+    <div class="rv-list" id="rvList"></div>
+  </div>
+</div>
+<script>
+(function reviewsOverlay(){
+  var ov = document.getElementById('rvOverlay');
+  var btn = document.getElementById('reviewsViewAllBtn');
+  var closeBtn = document.getElementById('rvCloseBtn');
+  if (!ov || !btn || !closeBtn) return;
+
+  var state = { filter: 'all', q: '' };
+
+  function open(){
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    render();
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+    var s = document.getElementById('rvSearch'); if (s) setTimeout(function(){ s.focus(); }, 80);
+  }
+  function close(){
+    ov.classList.remove('open');
+    ov.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  function getProduct(){
+    try {
+      var id = new URLSearchParams(location.search).get('id');
+      return (window.DB && DB.byId && DB.PRODUCTS) ? DB.byId(DB.PRODUCTS, id) : null;
+    } catch (_) { return null; }
+  }
+  function getReviews(){
+    var p = getProduct();
+    if (!p) return [];
+    if (window.ZE && ZE.reviews && ZE.reviews.forProduct) return ZE.reviews.forProduct(p.id);
+    if (window.DB && DB.reviewsForProduct) return DB.reviewsForProduct(p.id);
+    return ((window.DB && DB.REVIEWS) || []).filter(function(r){ return r.productId === p.id; });
+  }
+  function star(filled){
+    return '<i data-lucide="star"' + (filled ? '' : ' class="dim"') + '></i>';
+  }
+  function _rvTitle(r){
+    if (r && r.title) return r.title;
+    var text = ((r && (r.body || r.text || r.comment)) || '').trim();
+    if (text) {
+      var m = text.match(/^[^,.!?]{1,42}/);
+      if (m) {
+        var t = m[0].trim();
+        return t.charAt(0).toUpperCase() + t.slice(1);
+      }
+    }
+    var s = Math.round((r && r.stars) || 0);
+    return ({5:'Excellent',4:'Pretty good',3:'Mixed feelings',2:'Disappointing',1:'Poor experience'})[s] || 'Review';
+  }
+  function rowHtml(r){
+    var u = (r && r.buyerId && window.DB && DB.byId) ? DB.byId(DB.USERS, r.buyerId) : null;
+    var name = (u && u.name) || (r && (r.user || r.author || r.name)) || 'Anonymous';
+    var titleRole = (u && (u.title || u.role)) || '';
+    var headline = _rvTitle(r);
+    var date = '';
+    try {
+      if (r && r.createdAt) {
+        var d = new Date(r.createdAt);
+        if (!isNaN(d.getTime())) date = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      }
+    } catch (_) {}
+    var sCount = Math.max(0, Math.min(5, Math.round(Number(r && r.stars) || 0)));
+    var avgNum = (Number(r && r.stars) > 0) ? Number(r.stars).toFixed(1) : '—';
+    var stars = '<span class="rev-stars" style="display:inline-flex;align-items:center;gap:3px;">';
+    for (var i = 1; i <= 5; i++) {
+      stars += '<i data-lucide="star" class="' + (i <= sCount ? 'star-fill' : 'star-outline') + '"></i>';
+    }
+    stars += '</span>';
+    var body = (r && (r.body || r.text || r.comment)) || '';
+    return '<div style="padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">'
+      +   '<div>'
+      +     '<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'
+      +       stars
+      +       '<span style="font-size:16px;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums;">' + avgNum + '</span>'
+      +       '<span style="color:var(--text-muted);font-weight:700;">·</span>'
+      +       '<span style="font-size:15px;font-weight:700;color:var(--text);">' + escapeHtmlSimple(headline) + '</span>'
+      +     '</div>'
+      +     '<div style="font-size:13.5px;color:var(--text);line-height:1.3;"><span style="font-weight:700;">' + escapeHtmlSimple(name) + '</span>'
+      +     (titleRole ? '<span style="color:var(--text-muted);font-weight:500;"> · ' + escapeHtmlSimple(titleRole) + '</span>' : '')
+      +     '</div>'
+      +   '</div>'
+      +   (date ? '<div style="font-size:12px;color:var(--text-muted);">' + escapeHtmlSimple(date) + '</div>' : '')
+      + '</div>'
+      + (body ? '<div style="margin-top:8px;font-size:13.5px;color:var(--text);line-height:1.55;">' + escapeHtmlSimple(body) + '</div>' : '')
+      + '</div>';
+  }
+  function escapeHtmlSimple(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]; }); }
+  function renderSummary(reviews){
+    var host = document.getElementById('rvSummary');
+    if (!host) return;
+    var p = getProduct();
+    var lab = document.getElementById('rvProductLabel');
+    if (lab && p) lab.textContent = '· ' + p.name;
+    var n = reviews.length;
+    var avg = n ? (reviews.reduce(function(s,r){ return s + (r.stars || 0); }, 0) / n) : 0;
+    host.innerHTML = '<div style="display:inline-flex;align-items:center;gap:8px;">'
+      +   '<i data-lucide="star" style="width:22px;height:22px;color:var(--brand);fill:var(--brand);stroke:var(--brand);"></i>'
+      +   '<span class="big">' + (n ? avg.toFixed(1) : '—') + '</span>'
+      + '</div>'
+      + '<div class="meta">Based on ' + n + ' review' + (n === 1 ? '' : 's') + '</div>';
+  }
+  function render(){
+    var list = getReviews();
+    renderSummary(list);
+    var filtered = list.slice();
+    if (state.filter !== 'all') {
+      var want = parseInt(state.filter, 10);
+      filtered = filtered.filter(function(r){ return Math.round(r.stars || 0) === want; });
+    }
+    if (state.q) {
+      var q = state.q.toLowerCase();
+      filtered = filtered.filter(function(r){
+        var hay = ((r.user || '') + ' ' + (r.body || '') + ' ' + (r.text || '')).toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+    }
+    var listEl = document.getElementById('rvList');
+    var cntEl = document.getElementById('rvCount');
+    if (cntEl) cntEl.textContent = 'Showing ' + filtered.length + ' of ' + list.length + ' reviews';
+    if (!listEl) return;
+    listEl.innerHTML = filtered.length
+      ? filtered.map(rowHtml).join('')
+      : '<div class="rv-empty">No reviews match your search.</div>';
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  }
+  btn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  ov.addEventListener('click', function(e){ if (e.target === ov) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && ov.classList.contains('open')) close(); });
+  document.querySelectorAll('[data-rv-filter]').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('[data-rv-filter]').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      state.filter = b.dataset.rvFilter;
+      render();
+    });
+  });
+  var s = document.getElementById('rvSearch');
+  if (s) {
+    var t = null;
+    s.addEventListener('input', function(){
+      clearTimeout(t);
+      t = setTimeout(function(){ state.q = s.value.trim(); render(); }, 120);
+    });
+  }
 })();
 </script>
 </body>

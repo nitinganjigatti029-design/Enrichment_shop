@@ -12,7 +12,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="../data.js?v=20260504c"></script>
   <script src="../app.js?v=20260504c"></script>
-  <script src="v2-bridge.js?v=20260505a"></script>
+  <script src="../v2-bridge.js?v=20260505a"></script>
   <style>
     :root{
       --st-amber-fg:#A16207; --st-amber-bg:#FEF3C7;
@@ -74,7 +74,7 @@
 
     /* ========== STATUS TABS ========== */
     .tabs-wrap { margin-bottom: 14px; overflow-x: auto; }
-    .tabs { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; }
+    .tabs { display: inline-flex; background: #E4E5E8; padding: 4px; border-radius: 999px; gap: 4px; }
     .tabs button { padding: 9px 18px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
     .tabs button:hover { color: var(--text); }
     .tabs button.active { background: var(--brand); color:#fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
@@ -378,12 +378,15 @@
       <button class="header-btn" type="button" id="customiseBtn" onclick="window.location.href='customise_product_1.html'" style="background: var(--brand) !important; color: #fff !important; min-width: auto; padding: 8px 14px; flex-direction: row !important; gap: 6px; box-shadow: 0 4px 10px -3px rgba(55,189,105,.5); margin-right: 4px;" aria-label="Customise product"><i data-lucide="wand-sparkles" class="w-4 h-4"></i><span style="margin-top: 0 !important; font-size: 12px !important; font-weight: 600 !important;">Customise</span></button>
       <a href="orders_1_2.html" class="header-btn active" title="Orders">
         <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+        <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
       </a>
       <a href="saved_1.html" class="header-btn" title="Saved">
         <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+        <span class="badge-dot" id="savedBadge" style="display:none">0</span>
       </a>
       <a href="cart_1.html" class="header-btn" title="Cart">
         <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+        <span class="badge-dot" id="cartBadge" style="display:none">0</span>
       </a>
       <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header title="Approvals" style="display:none; position:relative;">
         <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
@@ -1590,6 +1593,27 @@ function refreshIcons(){ if (window.lucide?.createIcons) window.lucide.createIco
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
   } else { renderPill(); bind(); }
+})();
+
+/* Header count badges (Orders / Saved / Cart) — kept consistent with index/saved/cart pages */
+(function headerCountBadges(){
+  function setBadge(id, n){
+    var b = document.getElementById(id);
+    if (!b) return;
+    if (n > 0) { b.style.display = 'inline-flex'; b.textContent = n; }
+    else { b.style.display = 'none'; }
+  }
+  function refresh(){
+    if (typeof ZE === 'undefined') return;
+    try { setBadge('ordersBadge', (ZE.orders && ZE.orders.count) ? ZE.orders.count() : 0); } catch(e){}
+    try { setBadge('savedBadge',  (ZE.saved && ZE.saved.count)   ? ZE.saved.count()   : 0); } catch(e){}
+    try { setBadge('cartBadge',   (ZE.cart && ZE.cart.count)     ? ZE.cart.count()     : 0); } catch(e){}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh);
+  else refresh();
+  if (window.ZE && typeof ZE.on === 'function') {
+    ZE.on('cart:change', refresh); ZE.on('saved:change', refresh); ZE.on('orders:change', refresh); ZE.on('user:change', refresh);
+  }
 })();
 </script>
 </body>

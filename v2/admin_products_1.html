@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="../data.js?v=20260504c"></script>
   <script src="../app.js?v=20260504c"></script>
-  <script src="v2-bridge.js?v=20260505a"></script>
+  <script src="../v2-bridge.js?v=20260505a"></script>
   <style>
     /* =========== Page layout =========== */
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
@@ -80,6 +80,12 @@
 
     /* =========== Stock summary strip =========== */
     .summary-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 16px; margin-bottom: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-xs); }
+    /* Combined card: Inventory row on top + Search/filters row below, single container. */
+    .combo-strip { background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-xs); margin-bottom: 16px; overflow: hidden; }
+    .combo-strip .summary-strip,
+    .combo-strip .filter-strip { background: transparent; border: 0; box-shadow: none; border-radius: 0; margin-bottom: 0; }
+    .combo-strip .summary-strip { padding-bottom: 4px; }
+    .combo-strip .filter-strip { padding-top: 4px; }
     .sum-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #F1F2F4; color: var(--text); }
     .sum-pill .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--text-muted); }
     .sum-pill.in .dot   { background: var(--brand); }
@@ -114,7 +120,17 @@
       .summary-strip .divider-v { display: none; }
     }
     .search-wrap { position: relative; }
-    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    /* Lucide replaces <i data-lucide> with <svg> at runtime — target both
+       so the icon stays absolutely positioned inside the input. */
+    .search-wrap i,
+    .search-wrap svg {
+      position: absolute !important;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 16px !important; height: 16px !important;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
     .search-wrap input {
       width: 100%; padding: 10px 12px 10px 36px; border-radius: 10px; border: 1px solid var(--border);
       font-size: 13px; color: var(--text); outline: none; transition: .15s; background: var(--card);
@@ -166,6 +182,7 @@
     .prod-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: ui-monospace, Menlo, monospace; }
 
     .cat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--brand-soft); color: var(--brand-hover); white-space: nowrap; }
+    .cat-text { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; }
 
     .price-cell { font-weight: 700; color: var(--text); white-space: nowrap; }
 
@@ -452,7 +469,7 @@
 <script>
   (function () {
     // ---------- Page guard ----------
-    if (!ZE.user.requireRole('admin')) return;
+    /* V2: removed admin role redirect — keep all admin pages accessible during the demo. */
 
     // ---------- Helpers ----------
     function toast(msg) {
@@ -641,23 +658,23 @@
           : '<span class="rating-cell no-reviews">No reviews</span>';
         return '' +
           '<tr data-pid="' + escapeHtml(p.id) + '" class="' + (active ? '' : 'inactive') + '">' +
-            '<td class="td-check"><input type="checkbox" aria-label="Select"/></td>' +
+            '<td class="td-check"><input type="checkbox" data-pp-check data-pid="' + escapeHtml(p.id) + '" aria-label="Select"/></td>' +
             '<td class="td-prod" data-label="Product">' +
               '<div class="prod-cell">' +
                 '<div class="prod-thumb img-frame"><img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '"/></div>' +
                 '<div>' +
-                  '<a class="prod-name-link" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
+                  '<a class="prod-name-link" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '&view=admin">' + escapeHtml(p.name) + '</a>' +
                   '<div class="prod-sub">' + escapeHtml(p.id) + '</div>' +
                 '</div>' +
               '</div>' +
             '</td>' +
-            '<td data-label="Category"><span class="cat-pill"><i data-lucide="tag" class="w-3 h-3"></i>' + escapeHtml(cat ? cat.name : '—') + '</span></td>' +
+            '<td data-label="Category"><span class="cat-text">' + escapeHtml(cat ? cat.name : '—') + '</span></td>' +
             '<td data-label="Price" class="price-cell">' + DB.fmtINR(price) + '</td>' +
             '<td data-label="Stock"><span class="stock-badge ' + band + '" data-stock-edit="' + escapeHtml(p.id) + '" title="Click to edit">' + stockTxt + '</span></td>' +
             '<td data-label="Rating">' + ratingHtml + '</td>' +
             '<td data-label="Status">' +
               '<div class="status-cell">' +
-                '<span class="chip ' + (active ? 'chip-confirmed' : 'chip-pending') + '">' + (active ? 'Published' : 'Draft') + '</span>' +
+                '<span class="chip ' + (active ? 'chip-quoted' : 'chip-pending') + '">' + (active ? 'Published' : 'Draft') + '</span>' +
                 '<label class="switch" title="Toggle active">' +
                   '<input type="checkbox" data-active-toggle="' + escapeHtml(p.id) + '" ' + (active ? 'checked' : '') + '/>' +
                   '<span class="slider"></span>' +
@@ -682,12 +699,11 @@
       }).join('');
 
       return '' +
-        '<div class="note"><i data-lucide="info" class="w-3.5 h-3.5"></i>Stock edits are in-memory only and will reset on refresh until the persistence layer is wired up.</div>' +
         '<div class="table-wrap anim-up">' +
           '<table class="vp-table">' +
             '<thead>' +
               '<tr>' +
-                '<th class="th-check"><input type="checkbox" aria-label="Select all"/></th>' +
+                '<th class="th-check"><input type="checkbox" id="ppSelectAll" aria-label="Select all"/></th>' +
                 '<th>Product</th>' +
                 '<th>Category</th>' +
                 '<th>Price</th>' +
@@ -718,7 +734,7 @@
               '<img src="' + p.imgSmall + '" alt="' + escapeHtml(p.name) + '" loading="lazy"/>' +
             '</div>' +
             '<div class="g-meta">' +
-              '<a class="g-name" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '">' + escapeHtml(p.name) + '</a>' +
+              '<a class="g-name" href="product_detail_1.html?id=' + encodeURIComponent(p.id) + '&view=admin">' + escapeHtml(p.name) + '</a>' +
               '<div class="g-cat"><span class="tag-dot"></span>' + escapeHtml(cat ? cat.name : '—') + '</div>' +
               '<div class="g-price">' + DB.fmtINR(price) + '</div>' +
             '</div>' +
@@ -782,12 +798,14 @@
         ? renderEmptyFiltered()
         : (state.view === 'grid' ? renderGridView(list) : renderTableView(list));
 
-      host.innerHTML = renderSummary() + renderFilterStrip() + body;
+      host.innerHTML = '<div class="combo-strip">' + renderSummary() + renderFilterStrip() + '</div>' + body;
 
       wireFilterStrip();
       if (list.length > 0) {
         if (state.view === 'table') wireTable();
         else wireGrid();
+        wireBulkSelect();
+        wireRowClicks();
       } else {
         const btn = document.getElementById('emptyReset');
         if (btn) btn.addEventListener('click', () => {
@@ -982,9 +1000,132 @@
       if (so) so.addEventListener('click', () => { ZE.user.signOut(); location.href = 'login_1.html'; });
     })();
 
+    // ---------- Wiring: bulk select + row click ----------
+    function _refreshPpBulk() {
+      const checked = document.querySelectorAll('[data-pp-check]:checked');
+      const total   = document.querySelectorAll('[data-pp-check]').length;
+      const all     = document.getElementById('ppSelectAll');
+      document.body.classList.toggle('pp-bulk-active', checked.length > 0);
+      const bar = document.getElementById('ppBulkBar');
+      const cnt = document.getElementById('ppBulkCount');
+      if (bar) bar.classList.toggle('show', checked.length > 0);
+      if (cnt) cnt.textContent = checked.length + ' selected';
+      if (all) {
+        all.checked = total > 0 && checked.length === total;
+        all.indeterminate = checked.length > 0 && checked.length < total;
+      }
+    }
+    function wireBulkSelect() {
+      document.querySelectorAll('[data-pp-check]').forEach(cb => {
+        cb.addEventListener('click', e => e.stopPropagation());
+        cb.addEventListener('change', _refreshPpBulk);
+      });
+      const all = document.getElementById('ppSelectAll');
+      if (all) {
+        all.addEventListener('click', e => e.stopPropagation());
+        all.addEventListener('change', () => {
+          const want = all.checked;
+          document.querySelectorAll('[data-pp-check]').forEach(cb => { cb.checked = want; });
+          _refreshPpBulk();
+        });
+      }
+      const clearBtn = document.getElementById('ppBulkClear');
+      if (clearBtn && !clearBtn._wired) {
+        clearBtn._wired = true;
+        clearBtn.addEventListener('click', () => {
+          document.querySelectorAll('[data-pp-check]').forEach(cb => { cb.checked = false; });
+          if (all) { all.checked = false; all.indeterminate = false; }
+          _refreshPpBulk();
+        });
+      }
+      ['ppBulkActivate','ppBulkEdit','ppBulkDup','ppBulkDel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || el._wired) return;
+        el._wired = true;
+        el.addEventListener('click', () => {
+          const ids = Array.from(document.querySelectorAll('[data-pp-check]:checked')).map(c => c.dataset.pid);
+          if (!ids.length) return;
+          const labels = { ppBulkActivate:'Toggle active', ppBulkEdit:'Edit', ppBulkDup:'Duplicated', ppBulkDel:'Deleted' };
+          showToast(labels[id] + ' · ' + ids.length + ' product' + (ids.length === 1 ? '' : 's'));
+        });
+      });
+      _refreshPpBulk();
+    }
+    function wireRowClicks() {
+      document.querySelectorAll('tr[data-pid]').forEach(row => {
+        if (row._wiredClick) return;
+        row._wiredClick = true;
+        row.addEventListener('click', (e) => {
+          // Skip when clicking checkbox / inputs / buttons / links / labels (interactive children)
+          if (e.target.closest('input, button, a, label, .switch, [data-stock-edit]')) return;
+          const pid = row.dataset.pid;
+          if (pid) location.href = 'product_detail_1.html?id=' + encodeURIComponent(pid) + '&view=admin';
+        });
+      });
+      document.querySelectorAll('.g-card[data-pid]').forEach(card => {
+        if (card._wiredClick) return;
+        card._wiredClick = true;
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('input, button, a, label, .switch, [data-more], .g-menu')) return;
+          const pid = card.dataset.pid;
+          if (pid) location.href = 'product_detail_1.html?id=' + encodeURIComponent(pid) + '&view=admin';
+        });
+      });
+    }
+
     // ---------- Init shared bits ----------
     ZE.init();
   })();
 </script>
+
+<!-- Bulk action bar — sticky white, viewport-bottom -->
+<div class="pp-bulk-bar" id="ppBulkBar" role="region" aria-label="Bulk product actions">
+  <span class="count" id="ppBulkCount">0 selected</span>
+  <span class="spacer"></span>
+  <button type="button" class="bb-cancel" id="ppBulkClear">Clear</button>
+  <button type="button" class="bb-act" id="ppBulkActivate"><i data-lucide="toggle-right"></i> Toggle active</button>
+  <button type="button" class="bb-act" id="ppBulkEdit"><i data-lucide="pencil"></i> Edit</button>
+  <button type="button" class="bb-act" id="ppBulkDup"><i data-lucide="copy"></i> Duplicate</button>
+  <button type="button" class="bb-act bb-danger" id="ppBulkDel"><i data-lucide="trash-2"></i> Delete</button>
+</div>
+<style>
+  .pp-bulk-bar {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    z-index: 60;
+    display: none; align-items: center; gap: 12px;
+    width: min(820px, calc(100% - 48px));
+    padding: 12px 18px; border-radius: 14px;
+    background: #fff; color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: 0 18px 40px -10px rgba(15,23,42,.22);
+  }
+  .pp-bulk-bar.show { display: flex; }
+  .pp-bulk-bar .count { font-size: 13.5px; font-weight: 700; color: var(--text); }
+  .pp-bulk-bar .spacer { flex: 1; }
+  .pp-bulk-bar button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text);
+    transition: .15s;
+  }
+  .pp-bulk-bar button i, .pp-bulk-bar button svg { width: 14px !important; height: 14px !important; }
+  .pp-bulk-bar .bb-cancel { border: 0; background: transparent; color: var(--text-muted); }
+  .pp-bulk-bar .bb-cancel:hover { color: var(--text); background: #F1F2F4; }
+  .pp-bulk-bar .bb-act:hover { border-color: var(--brand); color: var(--brand); }
+  .pp-bulk-bar .bb-danger { color: var(--danger); border-color: #FECDD3; background: #FFF1F2; }
+  .pp-bulk-bar .bb-danger:hover { background: #FFE4E6; border-color: var(--danger); color: var(--danger); }
+  /* When bulk-select is active, dim and disable per-row actions */
+  body.pp-bulk-active tr[data-pid] .actions-cell,
+  body.pp-bulk-active tr[data-pid] .switch,
+  body.pp-bulk-active .g-card[data-pid] .icon-act,
+  body.pp-bulk-active .g-card[data-pid] .switch {
+    opacity: .35; pointer-events: none; cursor: not-allowed;
+  }
+  /* Make rows feel clickable */
+  tr[data-pid] { cursor: pointer; }
+  tr[data-pid]:hover { background: var(--card-subtle, #F9FAFB); }
+  .g-card[data-pid] { cursor: pointer; }
+</style>
 </body>
 </html>

@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     .page-wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
     @media (max-width: 768px) { .page-wrap { padding: 0 16px; } }
@@ -129,7 +130,7 @@
     /* Tabs */
     .tabs-wrap { margin-bottom: 20px; overflow-x: auto; }
     .tabs-wrap::-webkit-scrollbar { display: none; }
-    .tabs { display: inline-flex; background: #F1F2F4; padding: 4px; border-radius: 999px; gap: 4px; }
+    .tabs { display: inline-flex; background: #E4E5E8; padding: 4px; border-radius: 999px; gap: 4px; }
     .tabs button { padding: 9px 16px; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
     .tabs button:hover { color: var(--text); }
     .tabs button.active { background: var(--brand); color: #fff; box-shadow: 0 2px 6px -2px rgba(55,189,105,.5); }
@@ -218,8 +219,8 @@
     .btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
     .btn-info { background: #fff; color: #0369A1; border-color: #BAE6FD; }
     .btn-info:hover { background: #EFF6FF; border-color: #0369A1; }
-    .btn-chat { background: var(--brand-soft); color: var(--brand-hover); border-color: transparent; position: relative; }
-    .btn-chat:hover { background: var(--brand); color: #fff; }
+    .btn-chat { background: #fff; color: var(--text); border-color: var(--border); position: relative; }
+    .btn-chat:hover { border-color: var(--border-strong); background: #F9FAFB; }
     .btn-chat .unread-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--card); }
 
     /* ==================== ORDERS TABLE ==================== */
@@ -265,6 +266,7 @@
 
     .actions-cell { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
     .actions-cell .btn-sm { padding: 6px 10px; font-size: 12px; gap: 5px; }
+    .actions-cell .btn-sm.btn-icon-only { padding: 6px; width: 30px; height: 30px; justify-content: center; gap: 0; }
 
     .actions-more { position: relative; display: inline-flex; }
     .btn-more { width: 30px; height: 30px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s; position: relative; padding: 0; }
@@ -1278,6 +1280,72 @@ const ORDERS = [
     unread:0 }
 ];
 
+/* =========== V2: prepend V2 orders to ORDERS for the admin queue =========== */
+(function prependV2OrdersToAdmin(){
+  if (!window.DB || !Array.isArray(DB.DEMO_ORDERS_V2)) return;
+  function prodFor(pid){
+    var p = (DB.byId && DB.byId(DB.PRODUCTS, pid)) || null;
+    if (!p) return { name: pid || 'Item', img: '', price: 0 };
+    var unit = (p.price && (Number(p.price.material)||0) + (Number(p.price.labor)||0)) || 0;
+    var img = (p.images && p.images[0]) || (typeof DB.img === 'function' && p.imgQ ? DB.img(p.imgQ, 200, 200, p.seed||0) : '');
+    return { name: p.name || pid, img: img, price: unit };
+  }
+  function speciesKey(spId){
+    if (!spId) return 'macaque';
+    var map = { sp_tiger:'tiger', sp_orang:'macaque', sp_chimp:'macaque', sp_lion:'tiger', sp_macaw:'parrot', sp_pengu:'penguin', sp_eleph:'elephant', sp_otter:'otter', sp_gibbon:'macaque', sp_gorilla:'macaque' };
+    return map[spId] || 'macaque';
+  }
+  var v2Rows = DB.DEMO_ORDERS_V2.map(function(o){
+    var p = prodFor(o.productId);
+    var statusForAdmin = o.status === 'pending_approval' ? 'placed' : o.status;
+    return {
+      id: o.id,
+      status: statusForAdmin,
+      priority: o.priority || 'Normal',
+      species: speciesKey(o.speciesId),
+      buyer: 0,
+      createdAt: o.createdAt,
+      total: o.total,
+      items: [{ p: p, qty: o.qty }],
+      chatTag: '',
+      chat: [],
+      unread: 0,
+      _v2: true
+    };
+  });
+  // Prepend so V2 orders appear first in newest-first sort
+  ORDERS.unshift.apply(ORDERS, v2Rows);
+})();
+
+/* V2: split multi-product legacy orders into one-per-product so the admin
+   queue is uniformly single-product (matches V2 model). */
+(function splitOrdersToOneProduct(){
+  if (!Array.isArray(ORDERS)) return;
+  var out = [];
+  ORDERS.forEach(function(o){
+    var items = Array.isArray(o.items) ? o.items : [];
+    if (items.length <= 1) { out.push(o); return; }
+    var lineTotals = items.map(function(it){
+      var unit = (it.unit != null) ? Number(it.unit) : ((it.p && it.p.price) ? Number(it.p.price) : 0);
+      return unit * (Number(it.qty) || 1);
+    });
+    var sumLT = lineTotals.reduce(function(s,n){ return s + n; }, 0);
+    items.forEach(function(it, i){
+      var portion = sumLT > 0 ? (lineTotals[i] / sumLT) : (1/items.length);
+      var copy = Object.assign({}, o, {
+        id: o.id + '-' + String.fromCharCode(65 + i),
+        items: [it],
+        total: lineTotals[i] > 0 ? lineTotals[i] : Math.round((Number(o.total) || 0) * portion),
+        _splitFrom: o.id
+      });
+      out.push(copy);
+    });
+  });
+  ORDERS.length = 0;
+  Array.prototype.push.apply(ORDERS, out);
+})();
+
+
 /* =========== Render helpers =========== */
 const STATUS = { placed:'New Request', quoted:'Offer Sent', queued:'Queued', confirmed:'Approved', in_production:'In Production', packed:'Ready for Shipment', shipped:'Shipped', out_for_delivery:'Out for Delivery', delivered:'Delivered', cancelled:'Cancelled', returned:'Return in Progress' };
 const STATUS_ICON = { placed:'inbox', quoted:'sparkles', queued:'timer', confirmed:'check-circle', in_production:'hammer', packed:'package-check', shipped:'truck', out_for_delivery:'navigation', delivered:'check-check', cancelled:'x', returned:'rotate-ccw' };
@@ -1327,7 +1395,7 @@ function contextRow(o){
 }
 
 function actions(o){
-  const chatBtn = `<button class="btn-sm btn-chat" data-stop data-toggle-chat><i data-lucide="message-square" class="w-4 h-4"></i> ${o.status==='placed'||o.chatTag==='queued'?'Open chat':'Chat'}${o.unread?`<span class="unread-dot">${o.unread}</span>`:''}</button>`;
+  const chatBtn = `<button class="btn-sm btn-chat btn-icon-only" data-stop data-toggle-chat aria-label="${o.status==='placed'||o.chatTag==='queued'?'Open chat':'Chat'}"><i data-lucide="message-square" class="w-4 h-4"></i>${o.unread?`<span class="unread-dot">${o.unread}</span>`:''}</button>`;
   if (o.status === 'placed') {
     const viewBtn = `<a href="admin_accept_order_1.html?id=${encodeURIComponent(o.id)}" class="btn-sm btn-primary-outline" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View &amp; Accept</a>`;
     const moreMenu = `<div class="actions-more" data-stop>
@@ -1340,11 +1408,11 @@ function actions(o){
     </div>`;
     return `${viewBtn}${moreMenu}`;
   }
-  if (o.status === 'confirmed') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="hammer" class="w-4 h-4"></i> Mark in production</button>`;
-  if (o.status === 'in_production') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="package-check" class="w-4 h-4"></i> Mark ready to ship</button><button class="btn-sm btn-ghost" data-stop><i data-lucide="pencil" class="w-4 h-4"></i> Update ETA</button>`;
-  if (o.status === 'packed') return `${chatBtn}<button class="btn-sm btn-warn" data-stop><i data-lucide="printer" class="w-4 h-4"></i> Generate label</button><button class="btn-sm btn-primary" data-stop><i data-lucide="truck" class="w-4 h-4"></i> Mark shipped</button>`;
-  if (o.status === 'shipped' || o.status === 'out_for_delivery') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="map-pin" class="w-4 h-4"></i> Track</button><button class="btn-sm btn-ghost" data-stop><i data-lucide="pencil" class="w-4 h-4"></i> Update tracking</button>`;
-  if (o.status === 'delivered') { const inv = o.invoiced?`<button class="btn-sm btn-ghost" data-stop><i data-lucide="download" class="w-4 h-4"></i> Invoice</button>`:`<button class="btn-sm btn-primary" data-stop><i data-lucide="file-text" class="w-4 h-4"></i> Mark invoiced</button>`; return `${chatBtn}${inv}`; }
+  if (o.status === 'confirmed') return `${chatBtn}<button class="btn-sm btn-primary-outline" data-stop><i data-lucide="hammer" class="w-4 h-4"></i> Mark in production</button>`;
+  if (o.status === 'in_production') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="package-check" class="w-4 h-4"></i> Mark ready to ship</button><button class="btn-sm btn-ghost btn-icon-only" data-stop aria-label="Update ETA" title="Update ETA"><i data-lucide="pencil" class="w-4 h-4"></i></button>`;
+  if (o.status === 'packed') return `${chatBtn}<button class="btn-sm btn-ghost btn-icon-only" data-stop aria-label="Generate label" title="Generate label"><i data-lucide="printer" class="w-4 h-4"></i></button><button class="btn-sm btn-ghost" data-stop><i data-lucide="truck" class="w-4 h-4"></i> Mark shipped</button>`;
+  if (o.status === 'shipped' || o.status === 'out_for_delivery') return `${chatBtn}<button class="btn-sm btn-primary" data-stop><i data-lucide="map-pin" class="w-4 h-4"></i> Track</button><button class="btn-sm btn-ghost btn-icon-only" data-stop aria-label="Update tracking" title="Update tracking"><i data-lucide="pencil" class="w-4 h-4"></i></button>`;
+  if (o.status === 'delivered') { const inv = o.invoiced?`<button class="btn-sm btn-ghost" data-stop><i data-lucide="download" class="w-4 h-4"></i> Invoice</button>`:`<button class="btn-sm btn-primary-outline" data-stop><i data-lucide="file-text" class="w-4 h-4"></i> Mark invoiced</button>`; return `${chatBtn}${inv}`; }
   if (o.status === 'cancelled') return `${chatBtn}<button class="btn-sm btn-ghost" data-stop><i data-lucide="eye" class="w-4 h-4"></i> View reason</button>`;
   if (o.status === 'returned')  return `${chatBtn}<a href="admin_returns_1.html" class="btn-sm btn-primary" data-stop><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Manage return</a>`;
   return chatBtn;
@@ -1464,7 +1532,7 @@ function siteCell(b){
   const parts = (b.zoo||'').split(' · ');
   const name = parts[0] || '';
   const city = parts[1] || '';
-  return `<div class="site-cell"><div class="nm">${escapeHtml(name)}</div>${city?`<div class="city">${escapeHtml(city)}</div>`:''}</div>`;
+  return `<div class="site-cell"><div class="nm">${escapeHtml(name)}</div></div>`;
 }
 
 /* ========== Per-line tally tags ==========

@@ -640,7 +640,7 @@
 <script>
   (function () {
     // ---------- Page guard ----------
-    if (!ZE.user.requireRole('admin')) return;
+    /* V2: removed admin role redirect — keep all admin pages accessible during the demo. */
 
     // ---------- Helpers ----------
     function toast(msg) {

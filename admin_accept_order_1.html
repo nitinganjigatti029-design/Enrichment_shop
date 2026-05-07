@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504c"></script>
   <script src="app.js?v=20260504c"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     /* ============================================================
        Page chrome — sticky top header + stepper rail
@@ -365,6 +366,62 @@ const ORDERS = [
       {p:PROD.scentDiff, qty:2, unit:18000, note:'Stainless refillable · one near pool, one near den.'}
     ] }
 ];
+
+/* =========== V2: append V2 orders that are awaiting acceptance =========== */
+(function appendV2OrdersToAccept(){
+  if (!window.DB || !Array.isArray(DB.DEMO_ORDERS_V2)) return;
+  function prodFor(pid){
+    var p = (DB.byId && DB.byId(DB.PRODUCTS, pid)) || null;
+    if (!p) return { name: pid || 'Item', img: '', price: 0 };
+    var unit = (p.price && (Number(p.price.material)||0) + (Number(p.price.labor)||0)) || 0;
+    var img = (p.images && p.images[0]) || (typeof DB.img === 'function' && p.imgQ ? DB.img(p.imgQ, 200, 200, p.seed||0) : '');
+    return { name: p.name || pid, img: img, price: unit };
+  }
+  DB.DEMO_ORDERS_V2.forEach(function(o){
+    var p = prodFor(o.productId);
+    var unitPrice = o.unitPrice || (p.price || 0);
+    ORDERS.push({
+      id: o.id,
+      status: o.status === 'pending_approval' ? 'placed' : o.status,
+      priority: o.priority || 'Normal',
+      species: 'macaque',
+      buyer: 0,
+      createdAt: o.createdAt,
+      total: o.total,
+      items: [{ p: p, qty: o.qty, unit: unitPrice, note: o.notes || '' }],
+      _v2: true
+    });
+  });
+})();
+
+/* V2: split multi-product legacy orders into one-per-product so the admin
+   queue is uniformly single-product (matches V2 model). */
+(function splitOrdersToOneProduct(){
+  if (!Array.isArray(ORDERS)) return;
+  var out = [];
+  ORDERS.forEach(function(o){
+    var items = Array.isArray(o.items) ? o.items : [];
+    if (items.length <= 1) { out.push(o); return; }
+    var lineTotals = items.map(function(it){
+      var unit = (it.unit != null) ? Number(it.unit) : ((it.p && it.p.price) ? Number(it.p.price) : 0);
+      return unit * (Number(it.qty) || 1);
+    });
+    var sumLT = lineTotals.reduce(function(s,n){ return s + n; }, 0);
+    items.forEach(function(it, i){
+      var portion = sumLT > 0 ? (lineTotals[i] / sumLT) : (1/items.length);
+      var copy = Object.assign({}, o, {
+        id: o.id + '-' + String.fromCharCode(65 + i),
+        items: [it],
+        total: lineTotals[i] > 0 ? lineTotals[i] : Math.round((Number(o.total) || 0) * portion),
+        _splitFrom: o.id
+      });
+      out.push(copy);
+    });
+  });
+  ORDERS.length = 0;
+  Array.prototype.push.apply(ORDERS, out);
+})();
+
 
 /* ============ Helpers ============ */
 const inINR = n => '₹' + Number(n).toLocaleString('en-IN');

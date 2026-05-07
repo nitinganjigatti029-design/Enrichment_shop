@@ -26,6 +26,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="data.js?v=20260504d"></script>
   <script src="app.js?v=20260504d"></script>
+  <script src="v2-bridge.js?v=20260505a"></script>
   <style>
     html, body { background: var(--card-subtle) !important; }
     body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important; color: var(--text) !important; }
@@ -238,10 +239,24 @@
     .tx-sh-close:hover { border-color: var(--border-strong); color: var(--text); background: #F9FAFB; }
     .tx-sh-body { flex: 1; overflow-y: auto; padding: 20px; }
 
+    .tx-sh-prod { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 8px; margin: -20px -20px 0; background: var(--card); }
+    .tx-sh-prod-main { width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; background: #F1F2F4; }
+    .tx-sh-prod-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tx-sh-prod-thumbs { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; }
+    .tx-sh-prod-thumbs::-webkit-scrollbar { display: none; }
+    .tx-sh-prod-thumb { flex: 0 0 auto; width: 64px; height: 64px; padding: 0; border: 2px solid var(--border); border-radius: 8px; background: #F1F2F4; cursor: pointer; overflow: hidden; transition: .12s; }
+    .tx-sh-prod-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tx-sh-prod-thumb:hover { border-color: var(--brand); }
+    .tx-sh-prod-thumb.active { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(55,189,105,.2); }
+    .tx-sh-prod-name { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .tx-sh-prod-bits { font-size: 13px; color: var(--text-muted); margin-top: -4px; }
+
     .tx-sh-hero {
-      padding: 18px 20px; margin: -20px -20px 18px; background: #FAFBFC;
+      padding: 14px 20px; margin: -20px -20px 18px; background: #FAFBFC;
       border-bottom: 1px solid var(--border);
     }
+    .tx-sh-prod + .tx-sh-hero { padding: 4px 20px 16px; margin: 0 -20px 18px; background: var(--card); border-bottom: 1px solid var(--border); }
+    .tu-status-banner + .tx-sh-hero { margin-top: 4px; }
     .tx-sh-hero .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; display: inline-flex; align-items: center; gap: 8px; }
     .tx-sh-hero .label .t-rsn-pill { padding: 3px 9px; font-size: 10.5px; }
     .tx-sh-hero .amt { font-size: 32px; font-weight: 800; letter-spacing: -.01em; line-height: 1; font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, monospace; color: var(--text); margin-bottom: 4px; }
@@ -293,6 +308,25 @@
     .tu-link-row .tu-link-cost { font-weight: 600; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
     /* Top-up decision footer buttons (Approve / Reject) */
+    .tu-status-banner { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid; box-sizing: border-box; max-width: 100%; }
+    .tu-status-banner > div { min-width: 0; flex: 1; }
+    .tu-status-banner .ico { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+    .tu-status-banner .stitle { font-size: 13px; font-weight: 700; line-height: 1.3; text-transform: uppercase; letter-spacing: .04em; }
+    .tu-status-banner .ssub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+    .tu-status-banner.k-pending  { background: #FFFBEB; border-color: #FCD34D; }
+    .tu-status-banner.k-pending .ico  { background: #D97706; }
+    .tu-status-banner.k-pending .stitle { color: #92400E; }
+    .tu-status-banner.k-approved { background: var(--brand-soft); border-color: #86EFAC; }
+    .tu-status-banner.k-approved .ico { background: var(--brand); }
+    .tu-status-banner.k-approved .stitle { color: var(--brand-hover); }
+    .tu-status-banner.k-rejected { background: var(--danger-bg); border-color: #FCA5A5; }
+    .tu-status-banner.k-rejected .ico { background: var(--danger); }
+    .tu-status-banner.k-rejected .stitle { color: var(--danger); }
+
+    .tx-sh-hero .amt.k-pending  { color: #B45309 !important; }
+    .tx-sh-hero .amt.k-approved { color: var(--brand-hover) !important; }
+    .tx-sh-hero .amt.k-rejected { color: var(--danger) !important; text-decoration: line-through; text-decoration-thickness: 2px; }
+
     .tu-foot-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: .15s; font-family: inherit; }
     .tu-foot-btn.tu-reject { background: #fff; color: var(--danger); border-color: var(--danger); }
     .tu-foot-btn.tu-reject:hover { background: var(--danger-bg); }
@@ -355,6 +389,36 @@
 </head>
 <body>
 
+<!-- Seed top-up requests on first wallet load so the Top-up tab has demo content -->
+<script>
+(function seedTopups(){
+  try {
+    var KEY = 'ze_topup_requests_v1';
+    var existing = JSON.parse(localStorage.getItem(KEY) || '[]') || [];
+    var MARKER = '__v2_seeded_topups__';
+    if (existing.some(function(r){ return r && r.id === MARKER; })) return;
+    var d = function(daysAgo, hours){ var x = new Date(); x.setDate(x.getDate()-daysAgo); if(hours!=null) x.setHours(hours,0,0,0); return x.toISOString(); };
+    var seeds = [
+      { id:'TU-2026-031', siteId:'site_hyd', amount: 250000, requestedBy:'u_kumar',  approverId:'u_super', status:'pending',  requestedAt: d(0,10), reason:'Q2 enrichment refresh — multiple primate enclosures.' },
+      { id:'TU-2026-030', siteId:'site_hyd', amount: 180000, requestedBy:'u_kumar',  approverId:'u_super', status:'approved', requestedAt: d(2,14), decidedAt: d(1,11), decidedBy:'u_super', reason:'Avian aviary scent rotation programme.' },
+      { id:'TU-2026-029', siteId:'site_hyd', amount: 320000, requestedBy:'u_kumar',  approverId:'u_super', status:'approved', requestedAt: d(8,9),  decidedAt: d(7,15), decidedBy:'u_super', reason:'Tiger enclosure climbing structure — capital ask.' },
+      { id:'TU-2026-028', siteId:'site_hyd', amount:  90000, requestedBy:'u_joshi',  approverId:'u_super', status:'rejected', requestedAt: d(11,16), decidedAt: d(10,10), decidedBy:'u_super', reason:'Top-up to clear pending purchase orders.', rejectReason:'Existing balance sufficient — defer to next cycle.' },
+      { id:'TU-2026-027', siteId:'site_mum', amount: 150000, requestedBy:'u_patel',  approverId:'u_super', status:'pending',  requestedAt: d(1,9),  reason:'Penguin exhibit ice & frozen treat refresh.' },
+      { id:'TU-2026-026', siteId:'site_mum', amount: 220000, requestedBy:'u_patel',  approverId:'u_super', status:'approved', requestedAt: d(5,12), decidedAt: d(4,14), decidedBy:'u_super', reason:'Quarterly primate enrichment cycle.' },
+      { id:'TU-2026-025', siteId:'site_blr', amount: 175000, requestedBy:'u_iyer',   approverId:'u_super', status:'approved', requestedAt: d(14,11), decidedAt: d(13,16), decidedBy:'u_super', reason:'Big-cat scent rotation programme.' },
+      { id:'TU-2026-024', siteId:'site_che', amount: 120000, requestedBy:'u_iyer',   approverId:'u_super', status:'approved', requestedAt: d(20,10), decidedAt: d(19,12), decidedBy:'u_super', reason:'Reptile habitat heating supplies.' },
+      { id:'TU-2026-023', siteId:'site_del', amount: 410000, requestedBy:'u_singh',  approverId:'u_super', status:'approved', requestedAt: d(28,15), decidedAt: d(27,9),  decidedBy:'u_super', reason:'Annual maintenance + enrichment top-up.' },
+      { id:'TU-2026-022', siteId:'site_hyd', amount: 100000, requestedBy:'u_kumar',  approverId:'u_super', status:'approved', requestedAt: d(35,11), decidedAt: d(34,16), decidedBy:'u_super', reason:'Foraging puzzle restocking.' },
+      { id:'TU-2026-021', siteId:'site_blr', amount:  75000, requestedBy:'u_iyer',   approverId:'u_super', status:'rejected', requestedAt: d(42,14), decidedAt: d(41,10), decidedBy:'u_super', reason:'Catnip refill ask.', rejectReason:'Use existing inventory before topping up.' },
+      { id:'TU-2026-020', siteId:'site_hyd', amount: 360000, requestedBy:'u_kumar',  approverId:'u_super', status:'approved', requestedAt: d(50,10), decidedAt: d(49,11), decidedBy:'u_super', reason:'Monsoon-prep equipment for outdoor enclosures.' }
+    ];
+    var combined = existing.concat(seeds);
+    combined.push({ id: MARKER });
+    localStorage.setItem(KEY, JSON.stringify(combined));
+  } catch (_) {}
+})();
+</script>
+
 <!-- =============== HEADER =============== -->
 <header data-super-admin-header data-active="topups"></header>
 <header class="app-header" data-role-hide-on="super_admin">
@@ -374,12 +438,15 @@
       </button>
       <a href="orders_1_2.html" class="header-btn" title="Orders" data-buyer-only>
         <i data-lucide="package" class="w-5 h-5"></i><span>Orders</span>
+        <span class="badge-dot" id="ordersBadge" style="display:none">0</span>
       </a>
       <a href="saved_1.html" class="header-btn" title="Saved" data-buyer-only>
         <i data-lucide="heart" class="w-5 h-5"></i><span>Saved</span>
+        <span class="badge-dot" id="savedBadge" style="display:none">0</span>
       </a>
       <a href="cart_1.html" class="header-btn" title="Cart" data-buyer-only>
         <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Cart</span>
+        <span class="badge-dot" id="cartBadge" style="display:none">0</span>
       </a>
       <a href="approvals_1.html" class="header-btn" id="headerApprovalsLink" data-approvals-header data-buyer-only title="Approvals" style="display:none; position:relative;">
         <i data-lucide="user-check" class="w-5 h-5"></i><span>Approvals</span>
@@ -923,6 +990,54 @@
     return null;
   }
 
+  function prodGallery(prod, fallbackImg, fallbackName){
+    var primary = (prod && (prod.img || prod.imgSmall)) || fallbackImg || '';
+    var name = (prod && prod.name) || fallbackName || '';
+    if (prod) {
+      var g = (window.DB && typeof DB.galleryFor === 'function') ? DB.galleryFor(prod) : null;
+      if (g && g.length > 1) return g.slice(0, 5);
+      if (Array.isArray(prod.gallery) && prod.gallery.length > 1) return prod.gallery.slice(0, 5);
+      if (Array.isArray(prod.images) && prod.images.length > 1) return prod.images.slice(0, 5);
+    }
+    if (prod && prod.imgQ && window.DB && typeof DB.img === 'function') {
+      return [0,1,2,3,4].map(function(i){
+        return i === 0 ? primary : DB.img(prod.imgQ, 240, 240, 1000 + i + (prod.seed||0));
+      }).filter(Boolean);
+    }
+    if (name) {
+      var prompt = encodeURIComponent(name + ' zoo enrichment studio shot');
+      return [0,1,2,3,4].map(function(i){
+        if (i === 0 && primary) return primary;
+        return 'https://image.pollinations.ai/prompt/' + prompt + '?width=240&height=240&seed=' + (1000 + i * 7) + '&nologo=true';
+      });
+    }
+    return [primary].filter(Boolean);
+  }
+
+  function renderProdHero(order){
+    if (!order || !Array.isArray(order.items) || !order.items.length) return '';
+    var it = order.items[0];
+    var prod = null;
+    try { if (window.DB && DB.byId) prod = DB.byId(DB.PRODUCTS, it.productId); } catch(e) {}
+    var nm = (prod && prod.name) || it.name || it.productId || 'Item';
+    var imgs = prodGallery(prod, it.img, nm);
+    var qty = it.qty || it.quantity || 1;
+    var unit = it.unitPrice || it.unit || 0;
+    if (!unit && prod && prod.price) unit = (Number(prod.price.material) || 0) + (Number(prod.price.labor) || 0);
+    if (!unit && order && order.total && qty) unit = Math.round(Number(order.total) / qty);
+    var mainImg = imgs[0] || '';
+    var imgHtml = mainImg ? '<img id="txShProdMain" src="' + escapeHtml(mainImg) + '" alt="' + escapeHtml(nm) + '"/>' : '';
+    var thumbsHtml = (imgs.length > 1) ? '<div class="tx-sh-prod-thumbs">' + imgs.map(function(src, i){
+      return '<button type="button" class="tx-sh-prod-thumb' + (i===0?' active':'') + '" data-tx-thumb data-src="' + escapeHtml(src) + '"><img src="' + escapeHtml(src) + '" alt=""/></button>';
+    }).join('') + '</div>' : '';
+    return '<div class="tx-sh-prod">' +
+      '<div class="tx-sh-prod-main">' + imgHtml + '</div>' +
+      thumbsHtml +
+      '<div class="tx-sh-prod-name">' + escapeHtml(nm) + '</div>' +
+      '<div class="tx-sh-prod-bits">Qty ' + qty + ' · Unit ' + fmtCompactINR(unit) + '</div>' +
+    '</div>';
+  }
+
   function renderOrderItemsBlock(order){
     if (!order || !Array.isArray(order.items) || !order.items.length) return '';
     var rows = order.items.map(function(it){
@@ -953,15 +1068,12 @@
     var order = findOrder(t.orderId);
 
     var heroHtml = '<div class="tx-sh-hero">' +
-      '<div class="label">' + escapeHtml(txnLabel(t)) + ' <span class="t-rsn-pill k-' + pillKind + '">' + pillLbl + '</span></div>' +
-      (t.sublabel ? '<div class="sub" style="font-size:13px;color:var(--text-muted);margin-top:4px">' + escapeHtml(t.sublabel) + '</div>' : '') +
+      (t.sublabel ? '<div class="sub" style="font-size:13px;color:var(--text-muted);margin-bottom:4px">' + escapeHtml(t.sublabel) + '</div>' : '') +
       '<div class="amt ' + amtCls + '">' + amtTxt + '</div>' +
       '<div class="when">' + fmtDateTime(t.at) + '</div>' +
     '</div>';
 
-    var explainHtml = txnExplain(t)
-      ? '<div class="tx-sh-section"><h4>What this means</h4><div class="tx-sh-explain">' + escapeHtml(txnExplain(t)) + '</div></div>'
-      : '';
+    var explainHtml = '';
 
     // Key-value section
     var kv = [];
@@ -983,9 +1095,20 @@
       kv.map(function(p){ return '<div class="k">' + p.k + '</div><div class="v">' + p.v + '</div>'; }).join('') +
     '</div></div>';
 
-    var itemsHtml = renderOrderItemsBlock(order);
+    var prodHero = renderProdHero(order);
+    var itemsHtml = (order && Array.isArray(order.items) && order.items.length > 1) ? renderOrderItemsBlock(order) : '';
 
-    document.getElementById('txShBody').innerHTML = heroHtml + explainHtml + kvHtml + itemsHtml;
+    var txShBody = document.getElementById('txShBody');
+    txShBody.innerHTML = prodHero + heroHtml + explainHtml + kvHtml + itemsHtml;
+    txShBody.querySelectorAll('[data-tx-thumb]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var src = btn.getAttribute('data-src');
+        var main = document.getElementById('txShProdMain');
+        if (main && src) main.src = src;
+        txShBody.querySelectorAll('.tx-sh-prod-thumb.active').forEach(function(a){ a.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
 
     var foot = document.getElementById('txShFoot');
     if (t.orderId) {
@@ -1000,15 +1123,29 @@
 
   function openTopupSheet(r){
     var status = (r.status || 'pending').toLowerCase();
+    var decisionDate = r.approvedAt || r.rejectedAt || r.decidedAt || null;
+    var decisionWho = r.decisionByName || r.decidedByName || (r.decidedBy ? (function(){
+      try { var u = (window.DB && DB.byId) ? DB.byId(DB.USERS, r.decidedBy) : null; return (u && u.name) || r.decidedBy; } catch(e){ return r.decidedBy; }
+    })() : null);
+    var whoBit = decisionWho ? (' by ' + escapeHtml(decisionWho)) : '';
+    var bannerCfg = {
+      pending:  { icon: 'clock', title: 'Awaiting approval', sub: 'This top-up has not been approved yet — it does NOT add to your available balance until finance approves.' },
+      approved: { icon: 'check', title: 'Approved',          sub: decisionDate ? ('Approved on ' + fmtDateTime(decisionDate) + whoBit) : 'Approved · credited to your wallet.' },
+      rejected: { icon: 'x',     title: 'Rejected',          sub: decisionDate ? ('Rejected on ' + fmtDateTime(decisionDate) + whoBit + ' — see rejection note below.') : 'Rejected — your wallet balance is unchanged.' }
+    }[status] || { icon: 'help-circle', title: status, sub: '' };
+    var bannerHtml = '<div class="tu-status-banner k-' + status + '">' +
+      '<span class="ico"><i data-lucide="' + bannerCfg.icon + '" class="w-4 h-4"></i></span>' +
+      '<div><div class="stitle">' + escapeHtml(bannerCfg.title) + '</div>' +
+        (bannerCfg.sub ? '<div class="ssub">' + bannerCfg.sub + '</div>' : '') +
+      '</div>' +
+    '</div>';
+    var amtSign = (status === 'rejected') ? '' : '+';
     var heroHtml = '<div class="tx-sh-hero">' +
-      '<div class="label">Top-up request <span class="t-rsn-pill k-' + status + '">' + status + '</span></div>' +
-      '<div class="amt pos">+' + fmtINR(r.amount || 0) + '</div>' +
+      '<div class="amt k-' + status + '">' + amtSign + fmtINR(r.amount || 0) + '</div>' +
       '<div class="when">Requested ' + fmtDateTime(r.requestedAt) + '</div>' +
     '</div>';
 
-    var explainHtml = topupExplain(r)
-      ? '<div class="tx-sh-section"><h4>What this means</h4><div class="tx-sh-explain">' + escapeHtml(topupExplain(r)) + '</div></div>'
-      : '';
+    var explainHtml = '';
 
     var kv = [];
     if (r.id) kv.push({ k: 'Request ID', v: '<span class="mono">' + escapeHtml(r.id) + '</span>' });
@@ -1016,9 +1153,9 @@
     kv.push({ k: 'Status', v: escapeHtml(status) });
     if (r.urgency) kv.push({ k: 'Urgency', v: escapeHtml(r.urgency) });
     kv.push({ k: 'Requested', v: escapeHtml(fmtDateTime(r.requestedAt)) });
-    if (r.approvedAt) kv.push({ k: 'Approved', v: escapeHtml(fmtDateTime(r.approvedAt)) });
-    if (r.rejectedAt) kv.push({ k: 'Rejected', v: escapeHtml(fmtDateTime(r.rejectedAt)) });
-    if (r.approver)   kv.push({ k: 'Decision by', v: escapeHtml(r.approver) });
+    if (status === 'approved' && decisionDate) kv.push({ k: 'Approved', v: escapeHtml(fmtDateTime(decisionDate)) });
+    if (status === 'rejected' && decisionDate) kv.push({ k: 'Rejected', v: escapeHtml(fmtDateTime(decisionDate)) });
+    if (decisionWho && status !== 'pending')   kv.push({ k: 'Decision by', v: escapeHtml(decisionWho) });
     var kvHtml = '<div class="tx-sh-section"><h4>Details</h4><div class="tx-sh-kv">' +
       kv.map(function(p){ return '<div class="k">' + p.k + '</div><div class="v">' + p.v + '</div>'; }).join('') +
     '</div></div>';
@@ -1045,7 +1182,7 @@
       '</div>';
     }
 
-    document.getElementById('txShBody').innerHTML = heroHtml + explainHtml + kvHtml + reasonHtml + noteHtml + linksHtml;
+    document.getElementById('txShBody').innerHTML = bannerHtml + heroHtml + explainHtml + kvHtml + reasonHtml + noteHtml + linksHtml;
 
     var foot = document.getElementById('txShFoot');
     var _u = (window.ZE && ZE.user && ZE.user.resolve) ? ZE.user.resolve() : null;
@@ -1366,6 +1503,27 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ renderPill(); bind(); });
   } else { renderPill(); bind(); }
+})();
+
+/* Header count badges (Orders / Saved / Cart) — kept consistent with index/saved/cart pages */
+(function headerCountBadges(){
+  function setBadge(id, n){
+    var b = document.getElementById(id);
+    if (!b) return;
+    if (n > 0) { b.style.display = 'inline-flex'; b.textContent = n; }
+    else { b.style.display = 'none'; }
+  }
+  function refresh(){
+    if (typeof ZE === 'undefined') return;
+    try { setBadge('ordersBadge', (ZE.orders && ZE.orders.count) ? ZE.orders.count() : 0); } catch(e){}
+    try { setBadge('savedBadge',  (ZE.saved && ZE.saved.count)   ? ZE.saved.count()   : 0); } catch(e){}
+    try { setBadge('cartBadge',   (ZE.cart && ZE.cart.count)     ? ZE.cart.count()     : 0); } catch(e){}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh);
+  else refresh();
+  if (window.ZE && typeof ZE.on === 'function') {
+    ZE.on('cart:change', refresh); ZE.on('saved:change', refresh); ZE.on('orders:change', refresh); ZE.on('user:change', refresh);
+  }
 })();
 </script>
 
