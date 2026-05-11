@@ -891,7 +891,14 @@
     const lines = order.items.map((it, idx) => {
       const lf = lineFulfilmentGet(order.id, idx);
       if (lf && lf.status) return lf.status;
-      return order.status === 'cancelled' ? 'cancelled' : 'pending';
+      // Fall back to the order's own status when no per-line fulfilment record exists
+      // (seeded demo orders + V2 demo data don't carry line-level state). Map admin
+      // statuses into the line-status vocabulary the bucket logic understands.
+      const os = order.status;
+      if (os === 'cancelled')                                          return 'cancelled';
+      if (os === 'delivered')                                          return 'delivered';
+      if (os === 'shipped' || os === 'out_for_delivery')               return 'shipped';
+      return 'pending';
     });
     const total = lines.length;
     let cancelled = 0, delivered = 0, shipped = 0, pending = 0;
